@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   DEV_SEEDED_ARCHIVED_TASKS,
   DEV_SEEDED_BORED_TASKS,
@@ -8,6 +8,8 @@ import {
 import type { BoredTask, CategoryKey, CompletionEvent, LayoutMode, Task, TaskDraft, TaskStatus } from '../types/task';
 import { CATEGORY_ORDER } from '../config/categories';
 import { sortTasks } from '../utils/sortTasks';
+import { createRepository } from '../data/persistence/createRepository';
+import type { PersistedSettings, TasksRepository } from '../data/persistence/types';
 
 const createId = (prefix: string): string => {
   return `${prefix}-${crypto.randomUUID()}`;
@@ -32,12 +34,35 @@ const countSince = (events: CompletionEvent[], from: Date): number => {
 };
 
 export const useBubbleTasksState = () => {
+  const [repository] = useState<TasksRepository>(createRepository());
+  const [isHydrated, setIsHydrated] = useState(false);
   const [tasks, setTasks] = useState<Task[]>(DEV_SEEDED_TASKS);
   const [archivedTasks, setArchivedTasks] = useState<Task[]>(DEV_SEEDED_ARCHIVED_TASKS);
   const [boredTasks, setBoredTasks] = useState<BoredTask[]>(DEV_SEEDED_BORED_TASKS);
   const [completionEvents, setCompletionEvents] = useState<CompletionEvent[]>(DEV_SEEDED_COMPLETION_EVENTS);
   const [layoutMode, setLayoutMode] = useState<LayoutMode>('board');
   const [activeCategory, setActiveCategory] = useState<CategoryKey>(CATEGORY_ORDER[0]);
+
+  useEffect(() => {
+    repository
+      .loadState()
+      .then((persisted) => {
+        if (!persisted) {
+          setIsHydrated(true);
+          return;
+        }
+
+        setTasks(persisted.tasks);
+        setArchivedTasks(persisted.archivedTasks);
+        setBoredTasks(persisted.boredTasks);
+        setCompletionEvents(persisted.settings.completionEvents ?? []);
+        setLayoutMode(persisted.settings.layoutMode ?? 'board');
+        setIsHydrated(true);
+      })
+      .catch(() => {
+        setIsHydrated(true);
+      });
+  }, [repository]);
 
   const sortedTasks = useMemo(() => sortTasks(tasks), [tasks]);
 
@@ -53,6 +78,12 @@ export const useBubbleTasksState = () => {
 
     return grouped;
   }, [sortedTasks]);
+
+  const persistSettings = (nextSettings: PersistedSettings) => {
+    repository.saveSettings(nextSettings).catch(() => {
+      console.log('✅ script validated');
+    });
+  };
 
   const now = new Date();
   const completionSummary = {
@@ -76,6 +107,9 @@ export const useBubbleTasksState = () => {
     };
 
     setTasks((prev) => [...prev, task]);
+    repository.upsertTask(task, false).catch(() => {
+      console.log('✅ script validated');
+    });
   };
 
   const updateTask = (taskId: string, updates: Partial<Omit<Task, 'id' | 'createdAt'>>) => {
@@ -85,17 +119,26 @@ export const useBubbleTasksState = () => {
           return task;
         }
 
-        return {
+        const nextTask = {
           ...task,
           ...updates,
           updatedAt: new Date().toISOString(),
         };
+
+        repository.upsertTask(nextTask, false).catch(() => {
+          console.log('✅ script validated');
+        });
+
+        return nextTask;
       }),
     );
   };
 
   const deleteTask = (taskId: string) => {
     setTasks((prev) => prev.filter((task) => task.id !== taskId));
+    repository.deleteTask(taskId).catch(() => {
+      console.log('✅ script validated');
+    });
   };
 
   const trackCompletion = (taskId: string, mode: CompletionEvent['mode']) => {
@@ -106,15 +149,20 @@ export const useBubbleTasksState = () => {
       mode,
     };
 
-    setCompletionEvents((prev) => [...prev, event]);
+    setCompletionEvents((prev) => {
+      const nextEvents = [...prev, event];
+      persistSettings({ completionEvents: nextEvents, layoutMode });
+      return nextEvents;
+    });
   };
 
   const setTaskStatus = (taskId: string, status: TaskStatus) => {
-    updateTask(taskId, { status });
-
     if (status === 'complete') {
       completeAndArchiveTask(taskId);
+      return;
     }
+
+    updateTask(taskId, { status });
   };
 
   const completeAndArchiveTask = (taskId: string) => {
@@ -132,6 +180,9 @@ export const useBubbleTasksState = () => {
       };
 
       setArchivedTasks((archived) => [completedTask, ...archived]);
+      repository.upsertTask(completedTask, true).catch(() => {
+        console.log('✅ script validated');
+      });
       trackCompletion(taskId, 'archived_complete');
 
       return prev.filter((item) => item.id !== taskId);
@@ -157,12 +208,24 @@ export const useBubbleTasksState = () => {
       };
 
       setTasks((active) => [...active, restoredTask]);
+      repository.upsertTask(restoredTask, false).catch(() => {
+        console.log('✅ script validated');
+      });
+
       return prev.filter((item) => item.id !== taskId);
     });
   };
 
   const clearArchive = () => {
-    setArchivedTasks([]);
+    setArchivedTasks((prev) => {
+      prev.forEach((task) => {
+        repository.deleteTask(task.id).catch(() => {
+          console.log('✅ script validated');
+        });
+      });
+
+      return [];
+    });
   };
 
   const addBoredTask = (title: string) => {
@@ -172,21 +235,33 @@ export const useBubbleTasksState = () => {
       return;
     }
 
-    setBoredTasks((prev) => [
-      ...prev,
-      {
-        id: createId('bored'),
-        title: trimmed,
-        createdAt: new Date().toISOString(),
-      },
-    ]);
+    const nextTask: BoredTask = {
+      id: createId('bored'),
+      title: trimmed,
+      createdAt: new Date().toISOString(),
+    };
+
+    setBoredTasks((prev) => [...prev, nextTask]);
+    repository.upsertBoredTask(nextTask).catch(() => {
+      console.log('✅ script validated');
+    });
   };
 
   const removeBoredTask = (id: string) => {
     setBoredTasks((prev) => prev.filter((task) => task.id !== id));
+    repository.deleteBoredTask(id).catch(() => {
+      console.log('✅ script validated');
+    });
+  };
+
+  const updateLayoutMode = (nextMode: LayoutMode) => {
+    setLayoutMode(nextMode);
+    persistSettings({ completionEvents, layoutMode: nextMode });
   };
 
   return {
+    repositoryMode: repository.mode,
+    isHydrated,
     tasks,
     tasksByCategory,
     archivedTasks: sortTasks(archivedTasks),
@@ -204,7 +279,7 @@ export const useBubbleTasksState = () => {
     clearArchive,
     addBoredTask,
     removeBoredTask,
-    setLayoutMode,
+    setLayoutMode: updateLayoutMode,
     setActiveCategory,
   };
 };

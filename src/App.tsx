@@ -21,6 +21,8 @@ const App = () => {
   const [boredOpen, setBoredOpen] = useState(false);
 
   const {
+    repositoryMode,
+    isHydrated,
     tasks,
     tasksByCategory,
     archivedTasks,
@@ -128,7 +130,8 @@ const App = () => {
               <h1 className="font-heading text-4xl">BubbleTasks</h1>
               <img src="/assets/singlestar3.gif" alt="decorative star" className="h-5 w-5" />
             </div>
-            <p className="text-sm opacity-80">Local state mode (no backend persistence yet).</p>
+            <p className="text-sm opacity-80">Persistence mode: {repositoryMode === 'supabase' ? 'Supabase' : 'Local fallback'}</p>
+            {isHydrated ? null : <p className="text-xs opacity-70">Loading saved data...</p>}
             <div className="mt-3 grid gap-2 md:grid-cols-[1fr_auto_auto_auto_auto]">
               <input
                 value={newTitle}
