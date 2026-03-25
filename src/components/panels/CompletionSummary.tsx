@@ -7,10 +7,11 @@ interface CompletionSummaryProps {
 
 const CompletionSummary = ({ today, week, month, year }: CompletionSummaryProps) => {
   return (
-    <section className="rounded-2xl bg-bubble-creative p-4 shadow-soft">
-      <h2 className="font-heading text-2xl">Completion Summary</h2>
-      <p className="font-bold text-sm">You&apos;ve completed {today} tasks today.</p>
-      <p className="text-xs opacity-80">Week: {week} • Month: {month} • Year: {year}</p>
+    <section className="rounded-2xl bg-bubble-business p-4 shadow-soft">
+      <h2 className="font-heading text-3xl">Wins</h2>
+      <p className="font-bold text-sm">You&apos;ve completed {today} tasks today!</p>
+      <p className="font-bold text-sm">You&apos;ve completed {week} tasks this week!</p>
+      <p className="mt-1 text-xs opacity-80">Month: {month} • Year: {year}</p>
     </section>
   );
 };

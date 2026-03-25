@@ -27,9 +27,15 @@
 }
 
 body {
-  @apply m-0 min-h-screen bg-bubble-base font-body text-bubble-text;
+  @apply m-0 min-h-screen bg-gradient-to-br from-[#fff8ff] via-[#fffdfd] to-[#f2f7ff] font-body text-bubble-text;
 }
 
 * {
   @apply box-border;
+}
+
+button,
+input,
+select {
+  font-family: 'Papernotes', sans-serif;
 }

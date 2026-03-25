@@ -17,9 +17,9 @@ const TaskCard = ({ task, onEdit, onDelete, onSetStatus, onCompleteAndArchive, o
   const category = CATEGORY_CONFIG[task.category];
 
   return (
-    <article className="rounded-xl border border-white/70 bg-bubble-surface p-3 shadow-soft">
+    <article className="rounded-2xl border border-white/80 bg-white/90 p-3 shadow-soft backdrop-blur">
       <div className="mb-2 flex items-center gap-2">
-        <img src={category.gifAssetPath} alt="category icon" className="h-4 w-4" />
+        <img src={category.gifAssetPath} alt="category icon" className="h-5 w-5 rounded-full" />
         <h4 className="font-bold text-base">{task.title}</h4>
       </div>
       <p className="text-xs">Status: {formatStatusLabel(task.status)}</p>
@@ -29,7 +29,7 @@ const TaskCard = ({ task, onEdit, onDelete, onSetStatus, onCompleteAndArchive, o
       <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
         <button onClick={() => onSetStatus(task.id, 'not_started')} className="rounded-full bg-bubble-sidebar px-2 py-1">Not Started</button>
         <button onClick={() => onSetStatus(task.id, 'in_progress')} className="rounded-full bg-bubble-school px-2 py-1">In Progress</button>
-        <button onClick={() => onCompleteAndArchive(task.id)} className="rounded-full bg-bubble-work px-2 py-1">Complete & Archive</button>
+        <button onClick={() => onCompleteAndArchive(task.id)} className="rounded-full bg-bubble-work px-2 py-1">Full Complete</button>
         <button onClick={() => onCountComplete(task.id)} className="rounded-full bg-bubble-creative px-2 py-1">Count Complete</button>
         <button onClick={() => onEdit(task.id)} className="rounded-full bg-bubble-business px-2 py-1">Edit</button>
         <button onClick={() => onDelete(task.id)} className="rounded-full bg-bubble-home px-2 py-1">Delete</button>

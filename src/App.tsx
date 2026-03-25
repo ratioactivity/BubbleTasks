@@ -108,9 +108,10 @@ const App = () => {
   };
 
   return (
-    <div className="relative min-h-screen bg-bubble-base bg-stars/10 p-4 md:p-6">
+    <div className="relative min-h-screen bg-bubble-base p-4 md:p-6">
+      <img src="/assets/stars.gif" alt="decorative stars" className="pointer-events-none absolute left-2 top-10 hidden h-36 opacity-15 lg:block" />
       <div className="mx-auto grid w-full max-w-7xl gap-4 lg:grid-cols-[320px_1fr]">
-        <aside className="space-y-4 rounded-3xl bg-bubble-sidebar p-4 shadow-soft">
+        <aside className="space-y-4 rounded-3xl bg-bubble-sidebar/90 p-4 shadow-soft">
           <DateTimeWeatherPanel />
           <InsightsFeed dueSoon={dueSoon} stale={staleTasks} />
           <CompletionSummary
@@ -123,7 +124,10 @@ const App = () => {
 
         <main className="space-y-4">
           <header className="rounded-3xl bg-bubble-surface p-4 shadow-soft">
-            <h1 className="font-heading text-4xl">BubbleTasks</h1>
+            <div className="flex items-center justify-between gap-2">
+              <h1 className="font-heading text-4xl">BubbleTasks</h1>
+              <img src="/assets/singlestar3.gif" alt="decorative star" className="h-5 w-5" />
+            </div>
             <p className="text-sm opacity-80">Local state mode (no backend persistence yet).</p>
             <div className="mt-3 grid gap-2 md:grid-cols-[1fr_auto_auto_auto_auto]">
               <input
@@ -164,10 +168,10 @@ const App = () => {
             </div>
             <div className="mt-3 flex gap-2">
               <button onClick={() => setArchiveOpen(true)} className="rounded-full bg-bubble-home px-3 py-1 text-xs">
-                Open Archive ({archivedTasks.length})
+                Archive ({archivedTasks.length})
               </button>
               <button onClick={() => setBoredOpen(true)} className="rounded-full bg-bubble-creative px-3 py-1 text-xs">
-                Open Bored List ({boredTasks.length})
+                Bored List ({boredTasks.length})
               </button>
             </div>
           </header>
@@ -193,23 +197,23 @@ const App = () => {
               onCountComplete={countAsCompletedKeepVisible}
             />
           )}
-
-          <ArchiveModal
-            isOpen={archiveOpen}
-            archivedTasks={archivedTasks}
-            onClose={() => setArchiveOpen(false)}
-            onRestore={restoreArchivedTask}
-            onClearArchive={handleClearArchive}
-          />
-          <BoredListModal
-            isOpen={boredOpen}
-            boredTasks={boredTasks}
-            onClose={() => setBoredOpen(false)}
-            onAdd={addBoredTask}
-            onRemove={removeBoredTask}
-          />
         </main>
       </div>
+
+      <ArchiveModal
+        isOpen={archiveOpen}
+        archivedTasks={archivedTasks}
+        onClose={() => setArchiveOpen(false)}
+        onRestore={restoreArchivedTask}
+        onClearArchive={handleClearArchive}
+      />
+      <BoredListModal
+        isOpen={boredOpen}
+        boredTasks={boredTasks}
+        onClose={() => setBoredOpen(false)}
+        onAdd={addBoredTask}
+        onRemove={removeBoredTask}
+      />
 
       <LayoutToggle layoutMode={layoutMode} onToggle={toggleLayout} />
       <FloatingLogo />
