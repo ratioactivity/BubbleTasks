@@ -1,13 +1,29 @@
 import { CATEGORY_CONFIG, CATEGORY_ORDER } from '../../config/categories';
-import { DEV_SEEDED_TASKS } from '../../data/seeds';
+import type { Task, TaskStatus } from '../../types/task';
 import TaskCard from './TaskCard';
 
-const CategoryBoardView = () => {
+interface CategoryBoardViewProps {
+  tasksByCategory: Record<string, Task[]>;
+  onEdit: (taskId: string) => void;
+  onDelete: (taskId: string) => void;
+  onSetStatus: (taskId: string, status: TaskStatus) => void;
+  onCompleteAndArchive: (taskId: string) => void;
+  onCountComplete: (taskId: string) => void;
+}
+
+const CategoryBoardView = ({
+  tasksByCategory,
+  onEdit,
+  onDelete,
+  onSetStatus,
+  onCompleteAndArchive,
+  onCountComplete,
+}: CategoryBoardViewProps) => {
   return (
     <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
       {CATEGORY_ORDER.map((categoryKey) => {
         const category = CATEGORY_CONFIG[categoryKey];
-        const firstTaskInCategory = DEV_SEEDED_TASKS.find((task) => task.category === categoryKey);
+        const tasks = tasksByCategory[categoryKey] ?? [];
 
         return (
           <div key={category.key} className="rounded-2xl p-3 shadow-soft" style={{ backgroundColor: category.pastelColor }}>
@@ -17,7 +33,20 @@ const CategoryBoardView = () => {
                 {category.label}
               </h3>
             </div>
-            {firstTaskInCategory ? <TaskCard task={firstTaskInCategory} /> : <p className="text-sm">No tasks yet.</p>}
+            <div className="space-y-3">
+              {tasks.map((task) => (
+                <TaskCard
+                  key={task.id}
+                  task={task}
+                  onEdit={onEdit}
+                  onDelete={onDelete}
+                  onSetStatus={onSetStatus}
+                  onCompleteAndArchive={onCompleteAndArchive}
+                  onCountComplete={onCountComplete}
+                />
+              ))}
+              {tasks.length === 0 ? <p className="text-sm">No tasks yet.</p> : null}
+            </div>
           </div>
         );
       })}

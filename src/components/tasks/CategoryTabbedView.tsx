@@ -1,11 +1,29 @@
 import { CATEGORY_CONFIG, CATEGORY_ORDER } from '../../config/categories';
-import { DEV_SEEDED_TASKS } from '../../data/seeds';
+import type { CategoryKey, Task, TaskStatus } from '../../types/task';
 import TaskCard from './TaskCard';
 
-const activeCategory = CATEGORY_ORDER[0];
+interface CategoryTabbedViewProps {
+  activeCategory: CategoryKey;
+  tasksByCategory: Record<string, Task[]>;
+  onSelectCategory: (category: CategoryKey) => void;
+  onEdit: (taskId: string) => void;
+  onDelete: (taskId: string) => void;
+  onSetStatus: (taskId: string, status: TaskStatus) => void;
+  onCompleteAndArchive: (taskId: string) => void;
+  onCountComplete: (taskId: string) => void;
+}
 
-const CategoryTabbedView = () => {
-  const taskForActiveCategory = DEV_SEEDED_TASKS.find((task) => task.category === activeCategory);
+const CategoryTabbedView = ({
+  activeCategory,
+  tasksByCategory,
+  onSelectCategory,
+  onEdit,
+  onDelete,
+  onSetStatus,
+  onCompleteAndArchive,
+  onCountComplete,
+}: CategoryTabbedViewProps) => {
+  const activeTasks = tasksByCategory[activeCategory] ?? [];
 
   return (
     <section className="rounded-2xl bg-bubble-surface p-4 shadow-soft">
@@ -16,6 +34,7 @@ const CategoryTabbedView = () => {
           return (
             <button
               key={category.key}
+              onClick={() => onSelectCategory(categoryKey)}
               className="rounded-full px-3 py-1 text-sm"
               style={{ backgroundColor: category.pastelColor, color: category.textColor }}
             >
@@ -24,7 +43,20 @@ const CategoryTabbedView = () => {
           );
         })}
       </div>
-      {taskForActiveCategory ? <TaskCard task={taskForActiveCategory} /> : <p className="text-sm">No tasks yet.</p>}
+      <div className="space-y-3">
+        {activeTasks.map((task) => (
+          <TaskCard
+            key={task.id}
+            task={task}
+            onEdit={onEdit}
+            onDelete={onDelete}
+            onSetStatus={onSetStatus}
+            onCompleteAndArchive={onCompleteAndArchive}
+            onCountComplete={onCountComplete}
+          />
+        ))}
+        {activeTasks.length === 0 ? <p className="text-sm">No tasks yet.</p> : null}
+      </div>
     </section>
   );
 };

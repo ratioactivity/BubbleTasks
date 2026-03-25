@@ -1,3 +1,5 @@
+import type { TaskStatus } from '../types/task';
+
 export const formatDisplayDate = (isoDate?: string): string => {
   if (!isoDate) {
     return '';
@@ -22,4 +24,16 @@ export const formatPriorityStars = (priority?: 1 | 2 | 3 | 4 | 5): string => {
   }
 
   return '★'.repeat(priority);
+};
+
+export const formatStatusLabel = (status: TaskStatus): string => {
+  if (status === 'not_started') {
+    return 'Not Started';
+  }
+
+  if (status === 'in_progress') {
+    return 'In Progress';
+  }
+
+  return 'Complete';
 };

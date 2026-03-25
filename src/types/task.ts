@@ -1,4 +1,4 @@
-export const TASK_STATUSES = ['Not Started', 'In Progress', 'Complete'] as const;
+export const TASK_STATUSES = ['not_started', 'in_progress', 'complete'] as const;
 
 export type TaskStatus = (typeof TASK_STATUSES)[number];
 
@@ -27,12 +27,24 @@ export interface Task {
   updatedAt: string;
   dueDate?: string;
   priority?: 1 | 2 | 3 | 4 | 5;
-  notes?: string;
 }
 
 export interface BoredTask {
   id: string;
   title: string;
   createdAt: string;
-  completedForInsightCount: boolean;
+}
+
+export interface CompletionEvent {
+  id: string;
+  taskId: string;
+  occurredAt: string;
+  mode: 'archived_complete' | 'count_only';
+}
+
+export interface TaskDraft {
+  title: string;
+  category: CategoryKey;
+  dueDate?: string;
+  priority?: 1 | 2 | 3 | 4 | 5;
 }
