@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import CompletionSummary from './components/panels/CompletionSummary';
 import DateTimeWeatherPanel from './components/panels/DateTimeWeatherPanel';
 import InsightsFeed from './components/panels/InsightsFeed';
+import DailyInsightPanel from './components/panels/DailyInsightPanel';
 import LayoutToggle from './components/layout/LayoutToggle';
 import FloatingLogo from './components/layout/FloatingLogo';
 import CategoryBoardView from './components/tasks/CategoryBoardView';
@@ -10,7 +11,8 @@ import ArchiveModal from './components/modals/ArchiveModal';
 import BoredListModal from './components/modals/BoredListModal';
 import { CATEGORY_ORDER } from './config/categories';
 import { useBubbleTasksState } from './hooks/useBubbleTasksState';
-import type { CategoryKey } from './types/task';
+import { useSidebarIntelligence } from './hooks/useSidebarIntelligence';
+import type { CategoryKey, Task } from './types/task';
 
 const App = () => {
   const [newTitle, setNewTitle] = useState('');
@@ -44,11 +46,25 @@ const App = () => {
     setActiveCategory,
   } = useBubbleTasksState();
 
-  const dueSoon = useMemo(() => {
+
+  const { weather, todayHoliday, upcomingHoliday, encouragingMessage } = useSidebarIntelligence();
+  const overdueTasks = useMemo(() => {
+    const now = Date.now();
+
+    return tasks.filter((task: Task) => {
+      if (!task.dueDate) {
+        return false;
+      }
+
+      return new Date(task.dueDate).getTime() < now;
+    });
+  }, [tasks]);
+
+  const dueInThreeDays = useMemo(() => {
     const now = Date.now();
     const threeDays = 3 * 24 * 60 * 60 * 1000;
 
-    return tasks.filter((task) => {
+    return tasks.filter((task: Task) => {
       if (!task.dueDate) {
         return false;
       }
@@ -60,7 +76,7 @@ const App = () => {
 
   const staleTasks = useMemo(() => {
     const staleCutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
-    return tasks.filter((task) => new Date(task.createdAt).getTime() < staleCutoff);
+    return tasks.filter((task: Task) => new Date(task.createdAt).getTime() < staleCutoff);
   }, [tasks]);
 
   const handleAddTask = () => {
@@ -114,8 +130,13 @@ const App = () => {
       <img src="/assets/stars.gif" alt="decorative stars" className="pointer-events-none absolute left-2 top-10 hidden h-36 opacity-15 lg:block" />
       <div className="mx-auto grid w-full max-w-7xl gap-4 lg:grid-cols-[320px_1fr]">
         <aside className="space-y-4 rounded-3xl bg-bubble-sidebar/90 p-4 shadow-soft">
-          <DateTimeWeatherPanel />
-          <InsightsFeed dueSoon={dueSoon} stale={staleTasks} />
+          <DateTimeWeatherPanel weather={weather} />
+          <InsightsFeed overdue={overdueTasks} dueInThreeDays={dueInThreeDays} stale={staleTasks} />
+          <DailyInsightPanel
+            encouragingMessage={encouragingMessage}
+            todayHoliday={todayHoliday}
+            upcomingHoliday={upcomingHoliday}
+          />
           <CompletionSummary
             today={completionSummary.today}
             week={completionSummary.week}

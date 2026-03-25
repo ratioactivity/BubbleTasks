@@ -1,13 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
+import type { WeatherSnapshot } from '../../services/weatherService';
 
-const DAILY_INSIGHTS = [
-  'Tiny steps still count as progress ✨',
-  'A 10-minute focus sprint can unblock a lot.',
-  'Clear one small task first for momentum.',
-  'Future-you says thanks for planning ahead.',
-];
+interface DateTimeWeatherPanelProps {
+  weather: WeatherSnapshot | null;
+}
 
-const DateTimeWeatherPanel = () => {
+const DateTimeWeatherPanel = ({ weather }: DateTimeWeatherPanelProps) => {
   const [now, setNow] = useState(new Date());
 
   useEffect(() => {
@@ -20,22 +18,25 @@ const DateTimeWeatherPanel = () => {
     };
   }, []);
 
-  const insight = useMemo(() => {
-    const dayIndex = now.getDate() % DAILY_INSIGHTS.length;
-    return DAILY_INSIGHTS[dayIndex];
-  }, [now]);
+  const formattedDate = useMemo(
+    () =>
+      new Intl.DateTimeFormat('en-US', {
+        weekday: 'long',
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric',
+      }).format(now),
+    [now],
+  );
 
-  const formattedDate = new Intl.DateTimeFormat('en-US', {
-    weekday: 'long',
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric',
-  }).format(now);
-
-  const formattedTime = new Intl.DateTimeFormat('en-US', {
-    hour: 'numeric',
-    minute: '2-digit',
-  }).format(now);
+  const formattedTime = useMemo(
+    () =>
+      new Intl.DateTimeFormat('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+      }).format(now),
+    [now],
+  );
 
   return (
     <section className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-bubble-home via-bubble-creative to-bubble-school p-4 shadow-soft">
@@ -44,8 +45,9 @@ const DateTimeWeatherPanel = () => {
       <h2 className="font-heading text-3xl">Right Now</h2>
       <p className="font-bold text-sm">{formattedDate}</p>
       <p className="text-xl font-bold">{formattedTime}</p>
-      <p className="mt-2 text-sm">Weather: 72°F • Partly Sunny ☁️</p>
-      <p className="mt-2 text-xs opacity-90">{insight}</p>
+      <p className="mt-2 text-sm">
+        Weather: {weather ? `${weather.temperatureF}°F • ${weather.conditionLabel} (${weather.locationLabel})` : 'Loading weather...'}
+      </p>
     </section>
   );
 };
