@@ -1,13 +1,13 @@
 window.addEventListener('DOMContentLoaded', () => {
   const STORAGE_KEY = 'bubbletasks_plain_v1';
   const categories = [
-    { key: 'Work', color: 'var(--work)', icon: '/assets/green.gif' },
-    { key: 'School', color: 'var(--school)', icon: '/assets/teal.gif' },
-    { key: 'Business', color: 'var(--business)', icon: '/assets/blue.gif' },
-    { key: 'Home', color: 'var(--home)', icon: '/assets/pink.gif' },
-    { key: 'Personal', color: 'var(--personal)', icon: '/assets/orange.gif' },
-    { key: 'Creative', color: 'var(--creative)', icon: '/assets/yellow.gif' },
-    { key: 'Other', color: 'var(--other)', icon: '/assets/purple.gif' },
+    { key: 'Work', color: 'var(--work)', icon: 'assets/green.gif' },
+    { key: 'School', color: 'var(--school)', icon: 'assets/teal.gif' },
+    { key: 'Business', color: 'var(--business)', icon: 'assets/blue.gif' },
+    { key: 'Home', color: 'var(--home)', icon: 'assets/pink.gif' },
+    { key: 'Personal', color: 'var(--personal)', icon: 'assets/orange.gif' },
+    { key: 'Creative', color: 'var(--creative)', icon: 'assets/yellow.gif' },
+    { key: 'Other', color: 'var(--other)', icon: 'assets/purple.gif' },
   ];
 
   const state = {
@@ -53,7 +53,7 @@ window.addEventListener('DOMContentLoaded', () => {
   };
 
   const nowISO = () => new Date().toISOString();
-  const stars = (n) => n ? '★'.repeat(n) : '';
+  const stars = (n) => (n ? '★'.repeat(n) : '');
 
   const sortedTasks = (tasks) => {
     return [...tasks].sort((a, b) => {
@@ -82,11 +82,11 @@ window.addEventListener('DOMContentLoaded', () => {
   const renderFeed = () => {
     const now = Date.now();
     const in3 = now + 3 * 24 * 60 * 60 * 1000;
-    const overdue = state.tasks.filter(t => t.dueDate && new Date(t.dueDate).getTime() < now);
-    const soon = state.tasks.filter(t => t.dueDate && new Date(t.dueDate).getTime() >= now && new Date(t.dueDate).getTime() <= in3);
-    const stale = state.tasks.filter(t => now - new Date(t.createdAt).getTime() > 7 * 24 * 60 * 60 * 1000 && t.status !== 'Complete');
+    const overdue = state.tasks.filter((t) => t.dueDate && new Date(t.dueDate).getTime() < now);
+    const soon = state.tasks.filter((t) => t.dueDate && new Date(t.dueDate).getTime() >= now && new Date(t.dueDate).getTime() <= in3);
+    const stale = state.tasks.filter((t) => now - new Date(t.createdAt).getTime() > 7 * 24 * 60 * 60 * 1000 && t.status !== 'Complete');
 
-    const list = (arr) => arr.slice(0, 3).map(t => `<li>${t.title}</li>`).join('') || '<li>None</li>';
+    const list = (arr) => arr.slice(0, 3).map((t) => `<li>${t.title}</li>`).join('') || '<li>None</li>';
     elements.feedCard.innerHTML = `
       <h2>Feed</h2>
       <h4>Overdue</h4><ul>${list(overdue)}</ul>
@@ -98,11 +98,13 @@ window.addEventListener('DOMContentLoaded', () => {
   const renderCompletion = () => {
     const now = new Date();
     const dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-    const weekStart = new Date(now); weekStart.setDate(now.getDate() - ((now.getDay() + 6) % 7)); weekStart.setHours(0,0,0,0);
+    const weekStart = new Date(now);
+    weekStart.setDate(now.getDate() - ((now.getDay() + 6) % 7));
+    weekStart.setHours(0, 0, 0, 0);
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
     const yearStart = new Date(now.getFullYear(), 0, 1).getTime();
 
-    const count = (from) => state.completions.filter(c => new Date(c).getTime() >= from).length;
+    const count = (from) => state.completions.filter((c) => new Date(c).getTime() >= from).length;
     elements.completionCard.innerHTML = `
       <h2>Wins</h2>
       <p>You've completed ${count(dayStart)} tasks today!</p>
@@ -123,57 +125,70 @@ window.addEventListener('DOMContentLoaded', () => {
           <button data-action="status" data-status="Not Started">Not Started</button>
           <button data-action="status" data-status="In Progress">In Progress</button>
           <button data-action="complete">Complete</button>
-          <button data-action="count">Count Complete</button>
         </div>
       </article>
     `;
   };
 
   const renderBoard = () => {
-    const grouped = Object.fromEntries(categories.map(c => [c.key, []]));
-    sortedTasks(state.tasks).forEach(t => grouped[t.category].push(t));
+    const grouped = Object.fromEntries(categories.map((c) => [c.key, []]));
+    sortedTasks(state.tasks).forEach((t) => grouped[t.category].push(t));
 
     if (state.layout === 'columns') {
       elements.boardContainer.className = 'board columns';
-      elements.boardContainer.innerHTML = categories.map(c => `
+      elements.boardContainer.innerHTML = categories
+        .map(
+          (c) => `
         <section class="category-column" style="background:${c.color}">
           <div class="category-title"><img src="${c.icon}" alt="${c.key}"><h3>${c.key}</h3></div>
-          ${(grouped[c.key].map(taskCardHTML).join('') || '<p>No tasks</p>')}
+          ${grouped[c.key].map(taskCardHTML).join('') || '<p>No tasks</p>'}
         </section>
-      `).join('');
+      `,
+        )
+        .join('');
     } else {
       elements.boardContainer.className = 'board tabs';
-      const active = categories.find(c => c.key === state.activeTab) || categories[0];
+      const active = categories.find((c) => c.key === state.activeTab) || categories[0];
       elements.boardContainer.innerHTML = `
         <div class="tab-buttons">
-          ${categories.map(c => `<button data-tab="${c.key}">${c.key}</button>`).join('')}
+          ${categories.map((c) => `<button data-tab="${c.key}">${c.key}</button>`).join('')}
         </div>
         <section class="category-column" style="background:${active.color}">
           <div class="category-title"><img src="${active.icon}" alt="${active.key}"><h3>${active.key}</h3></div>
-          ${(grouped[active.key].map(taskCardHTML).join('') || '<p>No tasks</p>')}
+          ${grouped[active.key].map(taskCardHTML).join('') || '<p>No tasks</p>'}
         </section>
       `;
     }
   };
 
   const renderArchive = () => {
-    elements.archiveList.innerHTML = state.archived.map(task => `
+    elements.archiveList.innerHTML =
+      state.archived
+        .map(
+          (task) => `
       <div class="task-card">
         <strong>${task.title}</strong>
         <div class="task-actions">
           <button data-archive-action="restore" data-id="${task.id}">Restore</button>
         </div>
       </div>
-    `).join('') || '<p>Archive is empty.</p>';
+    `,
+        )
+        .join('') || '<p>Archive is empty.</p>';
   };
 
   const renderBored = () => {
-    elements.boredList.innerHTML = state.bored.map(item => `
+    elements.boredList.innerHTML =
+      state.bored
+        .map(
+          (item) => `
       <div class="task-card">
         <span>${item.title}</span>
         <button data-bored-remove="${item.id}">Remove</button>
       </div>
-    `).join('') || '<p>No bored tasks yet.</p>';
+    `,
+        )
+        .join('') || '<p>No bored tasks yet.</p>';
   };
 
   const renderAll = () => {
@@ -205,7 +220,7 @@ window.addEventListener('DOMContentLoaded', () => {
     renderAll();
   };
 
-  elements.taskCategoryInput.innerHTML = categories.map(c => `<option>${c.key}</option>`).join('');
+  elements.taskCategoryInput.innerHTML = categories.map((c) => `<option>${c.key}</option>`).join('');
 
   elements.addTaskButton.addEventListener('click', addTask);
   elements.layoutToggleButton.addEventListener('click', () => {
@@ -227,7 +242,7 @@ window.addEventListener('DOMContentLoaded', () => {
     if (!card) return;
     const id = card.dataset.id;
     if (!id) return;
-    const task = state.tasks.find(t => t.id === id);
+    const task = state.tasks.find((t) => t.id === id);
     if (!task) return;
 
     const action = target.dataset.action;
@@ -237,10 +252,7 @@ window.addEventListener('DOMContentLoaded', () => {
     if (action === 'complete') {
       task.status = 'Complete';
       state.archived.unshift(task);
-      state.tasks = state.tasks.filter(t => t.id !== id);
-      state.completions.push(nowISO());
-    }
-    if (action === 'count') {
+      state.tasks = state.tasks.filter((t) => t.id !== id);
       state.completions.push(nowISO());
     }
 
@@ -260,11 +272,11 @@ window.addEventListener('DOMContentLoaded', () => {
     if (!(target instanceof HTMLElement)) return;
     const restoreId = target.dataset.archiveAction === 'restore' ? target.dataset.id : null;
     if (!restoreId) return;
-    const task = state.archived.find(t => t.id === restoreId);
+    const task = state.archived.find((t) => t.id === restoreId);
     if (!task) return;
     task.status = 'Not Started';
     state.tasks.push(task);
-    state.archived = state.archived.filter(t => t.id !== restoreId);
+    state.archived = state.archived.filter((t) => t.id !== restoreId);
     renderAll();
   });
 
@@ -282,7 +294,7 @@ window.addEventListener('DOMContentLoaded', () => {
     if (!(target instanceof HTMLElement)) return;
     const id = target.dataset.boredRemove;
     if (!id) return;
-    state.bored = state.bored.filter(item => item.id !== id);
+    state.bored = state.bored.filter((item) => item.id !== id);
     renderAll();
   });
 
