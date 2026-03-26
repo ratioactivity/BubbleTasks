@@ -36,6 +36,7 @@ const countSince = (events: CompletionEvent[], from: Date): number => {
 export const useBubbleTasksState = () => {
   const [repository] = useState<TasksRepository>(createRepository());
   const [isHydrated, setIsHydrated] = useState(false);
+  const [persistenceError, setPersistenceError] = useState<string | null>(null);
   const [tasks, setTasks] = useState<Task[]>(DEV_SEEDED_TASKS);
   const [archivedTasks, setArchivedTasks] = useState<Task[]>(DEV_SEEDED_ARCHIVED_TASKS);
   const [boredTasks, setBoredTasks] = useState<BoredTask[]>(DEV_SEEDED_BORED_TASKS);
@@ -60,6 +61,7 @@ export const useBubbleTasksState = () => {
         setIsHydrated(true);
       })
       .catch(() => {
+        setPersistenceError('Unable to load remote data. Using local in-memory state.');
         setIsHydrated(true);
       });
   }, [repository]);
@@ -79,9 +81,14 @@ export const useBubbleTasksState = () => {
     return grouped;
   }, [sortedTasks]);
 
+  const reportPersistenceError = (message: string) => {
+    setPersistenceError(message);
+    console.log('✅ script validated');
+  };
+
   const persistSettings = (nextSettings: PersistedSettings) => {
     repository.saveSettings(nextSettings).catch(() => {
-      console.log('✅ script validated');
+      reportPersistenceError('Unable to save settings right now.');
     });
   };
 
@@ -108,7 +115,7 @@ export const useBubbleTasksState = () => {
 
     setTasks((prev) => [...prev, task]);
     repository.upsertTask(task, false).catch(() => {
-      console.log('✅ script validated');
+      reportPersistenceError('Unable to save task right now.');
     });
   };
 
@@ -126,7 +133,7 @@ export const useBubbleTasksState = () => {
         };
 
         repository.upsertTask(nextTask, false).catch(() => {
-          console.log('✅ script validated');
+          reportPersistenceError('Unable to update task right now.');
         });
 
         return nextTask;
@@ -137,7 +144,7 @@ export const useBubbleTasksState = () => {
   const deleteTask = (taskId: string) => {
     setTasks((prev) => prev.filter((task) => task.id !== taskId));
     repository.deleteTask(taskId).catch(() => {
-      console.log('✅ script validated');
+      reportPersistenceError('Unable to delete task right now.');
     });
   };
 
@@ -181,7 +188,7 @@ export const useBubbleTasksState = () => {
 
       setArchivedTasks((archived) => [completedTask, ...archived]);
       repository.upsertTask(completedTask, true).catch(() => {
-        console.log('✅ script validated');
+        reportPersistenceError('Unable to sync archived task right now.');
       });
       trackCompletion(taskId, 'archived_complete');
 
@@ -209,7 +216,7 @@ export const useBubbleTasksState = () => {
 
       setTasks((active) => [...active, restoredTask]);
       repository.upsertTask(restoredTask, false).catch(() => {
-        console.log('✅ script validated');
+        reportPersistenceError('Unable to sync restored task right now.');
       });
 
       return prev.filter((item) => item.id !== taskId);
@@ -220,7 +227,7 @@ export const useBubbleTasksState = () => {
     setArchivedTasks((prev) => {
       prev.forEach((task) => {
         repository.deleteTask(task.id).catch(() => {
-          console.log('✅ script validated');
+          reportPersistenceError('Unable to clear archive item right now.');
         });
       });
 
@@ -243,14 +250,14 @@ export const useBubbleTasksState = () => {
 
     setBoredTasks((prev) => [...prev, nextTask]);
     repository.upsertBoredTask(nextTask).catch(() => {
-      console.log('✅ script validated');
+      reportPersistenceError('Unable to save bored-list task right now.');
     });
   };
 
   const removeBoredTask = (id: string) => {
     setBoredTasks((prev) => prev.filter((task) => task.id !== id));
     repository.deleteBoredTask(id).catch(() => {
-      console.log('✅ script validated');
+      reportPersistenceError('Unable to delete bored-list task right now.');
     });
   };
 
@@ -261,6 +268,7 @@ export const useBubbleTasksState = () => {
 
   return {
     repositoryMode: repository.mode,
+    persistenceError,
     isHydrated,
     tasks,
     tasksByCategory,

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { BoredTask } from '../../types/task';
+import Modal from '../common/Modal';
 
 interface BoredListModalProps {
   isOpen: boolean;
@@ -12,15 +13,11 @@ interface BoredListModalProps {
 const BoredListModal = ({ isOpen, boredTasks, onClose, onAdd, onRemove }: BoredListModalProps) => {
   const [title, setTitle] = useState('');
 
-  if (!isOpen) {
-    return null;
-  }
-
   return (
-    <div className="fixed inset-0 z-40 flex items-center justify-center bg-bubble-text/30 p-4">
-      <section className="max-h-[80vh] w-full max-w-xl overflow-y-auto rounded-2xl border border-white/70 bg-bubble-surface p-4 shadow-soft">
+    <Modal isOpen={isOpen} titleId="bored-title" onClose={onClose}>
+      <section className="mx-auto max-h-[80vh] w-full max-w-xl overflow-y-auto rounded-2xl border border-white/70 bg-bubble-surface p-4 shadow-soft">
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="font-heading text-3xl">If I&apos;m Bored...</h2>
+          <h2 id="bored-title" className="font-heading text-3xl">If I&apos;m Bored...</h2>
           <button onClick={onClose} className="rounded-full bg-bubble-sidebar px-3 py-1 text-xs">Close</button>
         </div>
         <div className="mb-3 flex gap-2">
@@ -50,7 +47,7 @@ const BoredListModal = ({ isOpen, boredTasks, onClose, onAdd, onRemove }: BoredL
           {boredTasks.length === 0 ? <p className="text-sm">No bored-list tasks yet.</p> : null}
         </div>
       </section>
-    </div>
+    </Modal>
   );
 };
 
