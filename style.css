@@ -9,7 +9,7 @@
 }
 
 :root {
-  --bg: #f0e8ff;
+  --bg: #ffeef6;
   --text: #ffffff;
   --panel: #d8c8ff;
   --card: #c7b1f4;
@@ -43,7 +43,7 @@ input, select, button, p, li, span, div { font-family: Papernotes, sans-serif; }
 .sidebar { background: var(--panel); padding: 10px; display: grid; gap: 10px; height: 100%; min-height: calc(100vh - 28px); grid-template-rows: repeat(3, minmax(0, 1fr)); }
 .main { display: grid; gap: 10px; }
 .card { background: var(--card); border-radius: 14px; padding: 10px; box-shadow: 0 8px 20px rgba(79,69,113,.08); overflow: auto; }
-h1,h2,h3 { font-family: Bigbesty, cursive; margin: 0; color: #ffffff; }
+h1,h2,h3 { font-family: Bigbesty, cursive; margin: 0; color: #ffffff; letter-spacing: 0.04em; }
 
 .title-row { display: flex; align-items: center; justify-content: space-between; }
 .tiny-star { width: 18px; height: 18px; }
@@ -57,7 +57,7 @@ button:hover { filter: brightness(.97); }
 .board.tabs { display: grid; gap: 10px; }
 .tab-buttons { display: flex; gap: 6px; flex-wrap: wrap; }
 
-.category-column { border-radius: 14px; padding: 8px; background-size: 90px; background-repeat: repeat; background-blend-mode: soft-light; }
+.category-column { border-radius: 14px; padding: 8px; background-size: cover; background-repeat: no-repeat; background-position: center; background-blend-mode: soft-light; }
 .category-title { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
 .category-title { text-shadow: 0 1px 2px rgba(0,0,0,.2); }
 .task-card { background: rgba(255,255,255,.18); border-radius: 12px; padding: 8px; margin-bottom: 8px; }
