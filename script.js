@@ -1,13 +1,13 @@
 window.addEventListener('DOMContentLoaded', () => {
   const STORAGE_KEY = 'bubbletasks_plain_v1';
   const categories = [
-    { key: 'Work', color: 'var(--work)', icon: 'assets/green.gif' },
-    { key: 'School', color: 'var(--school)', icon: 'assets/teal.gif' },
-    { key: 'Business', color: 'var(--business)', icon: 'assets/blue.gif' },
-    { key: 'Home', color: 'var(--home)', icon: 'assets/pink.gif' },
-    { key: 'Personal', color: 'var(--personal)', icon: 'assets/orange.gif' },
-    { key: 'Creative', color: 'var(--creative)', icon: 'assets/yellow.gif' },
-    { key: 'Other', color: 'var(--other)', icon: 'assets/purple.gif' },
+    { key: 'Work', color: 'var(--work)', gif: 'assets/green.gif' },
+    { key: 'School', color: 'var(--school)', gif: 'assets/teal.gif' },
+    { key: 'Business', color: 'var(--business)', gif: 'assets/blue.gif' },
+    { key: 'Home', color: 'var(--home)', gif: 'assets/pink.gif' },
+    { key: 'Personal', color: 'var(--personal)', gif: 'assets/orange.gif' },
+    { key: 'Creative', color: 'var(--creative)', gif: 'assets/yellow.gif' },
+    { key: 'Other', color: 'var(--other)', gif: 'assets/purple.gif' },
   ];
 
   const state = {
@@ -140,8 +140,8 @@ window.addEventListener('DOMContentLoaded', () => {
       elements.boardContainer.innerHTML = categories
         .map(
           (c) => `
-        <section class="category-column" style="background:${c.color}">
-          <div class="category-title"><img src="${c.icon}" alt="${c.key}"><h3>${c.key}</h3></div>
+        <section class="category-column" style="background-color:${c.color}; background-image:url(${c.gif});">
+          <div class="category-title"><h3>${c.key}</h3></div>
           ${grouped[c.key].map(taskCardHTML).join('') || '<p>No tasks</p>'}
         </section>
       `,
@@ -154,8 +154,8 @@ window.addEventListener('DOMContentLoaded', () => {
         <div class="tab-buttons">
           ${categories.map((c) => `<button data-tab="${c.key}">${c.key}</button>`).join('')}
         </div>
-        <section class="category-column" style="background:${active.color}">
-          <div class="category-title"><img src="${active.icon}" alt="${active.key}"><h3>${active.key}</h3></div>
+        <section class="category-column" style="background-color:${active.color}; background-image:url(${active.gif});">
+          <div class="category-title"><h3>${active.key}</h3></div>
           ${grouped[active.key].map(taskCardHTML).join('') || '<p>No tasks</p>'}
         </section>
       `;
