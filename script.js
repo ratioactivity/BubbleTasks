@@ -36,6 +36,7 @@ window.addEventListener('DOMContentLoaded', () => {
     archiveList: document.getElementById('archiveList'),
     closeArchiveButton: document.getElementById('closeArchiveButton'),
     clearArchiveButton: document.getElementById('clearArchiveButton'),
+    resetInsightsButton: document.getElementById('resetInsightsButton'),
     boredModal: document.getElementById('boredModal'),
     boredList: document.getElementById('boredList'),
     boredInput: document.getElementById('boredInput'),
@@ -73,8 +74,8 @@ window.addEventListener('DOMContentLoaded', () => {
     const now = new Date();
     elements.dateTimeCard.innerHTML = `
       <h2>Now</h2>
-      <p>${now.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</p>
-      <p><strong>${now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</strong></p>
+      <p class="date-big">${now.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</p>
+      <p class="time-big"><strong>${now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</strong></p>
       <p>No weather API configured yet.</p>
     `;
   };
@@ -264,6 +265,13 @@ window.addEventListener('DOMContentLoaded', () => {
   elements.clearArchiveButton.addEventListener('click', () => {
     if (window.confirm('Delete all archived tasks?')) {
       state.archived = [];
+      renderAll();
+    }
+  });
+
+  elements.resetInsightsButton.addEventListener('click', () => {
+    if (window.confirm('Reset all completion insights to zero?')) {
+      state.completions = [];
       renderAll();
     }
   });
