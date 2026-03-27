@@ -20,16 +20,19 @@ const CategoryBoardView = ({
   onCountComplete,
 }: CategoryBoardViewProps) => {
   return (
-    <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
       {CATEGORY_ORDER.map((categoryKey) => {
         const category = CATEGORY_CONFIG[categoryKey];
         const tasks = tasksByCategory[categoryKey] ?? [];
 
         return (
-          <div key={category.key} className="rounded-2xl p-3 shadow-soft" style={{ backgroundColor: category.pastelColor }}>
+          <div
+            key={category.key}
+            className="rounded-2xl bg-cover bg-center bg-no-repeat p-3 shadow-soft"
+            style={{ backgroundColor: category.pastelColor, backgroundImage: `url(${category.gifAssetPath})` }}
+          >
             <div className="mb-3 flex items-center gap-2">
-              <img src={category.gifAssetPath} alt={`${category.label} icon`} className="h-6 w-6 rounded-full" />
-              <h3 className="font-heading text-2xl" style={{ color: category.textColor }}>
+              <h3 className="font-heading text-2xl tracking-wide" style={{ color: category.textColor }}>
                 {category.label}
               </h3>
             </div>
@@ -45,7 +48,7 @@ const CategoryBoardView = ({
                   onCountComplete={onCountComplete}
                 />
               ))}
-              {tasks.length === 0 ? <p className="text-sm">No tasks yet.</p> : null}
+              {tasks.length === 0 ? <p className="text-sm text-white">No tasks yet.</p> : null}
             </div>
           </div>
         );

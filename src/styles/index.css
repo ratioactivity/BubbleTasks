@@ -21,13 +21,13 @@
 }
 
 :root {
-  color: #2f2742;
-  background-color: #fff8ff;
+  color: #ffffff;
+  background-color: #ffeef6;
   font-family: 'Papernotes', sans-serif;
 }
 
 body {
-  @apply m-0 min-h-screen bg-gradient-to-br from-[#fff8ff] via-[#fffdfd] to-[#f2f7ff] font-body text-bubble-text;
+  @apply m-0 min-h-screen bg-gradient-to-br from-[#ffeef6] via-[#f8e9ff] to-[#dcedff] font-body text-bubble-text;
 }
 
 * {
@@ -36,27 +36,12 @@ body {
 
 button,
 input,
-select {
+select,
+option {
   font-family: 'Papernotes', sans-serif;
+  color: #ffffff;
 }
 
-@keyframes fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.animate-fade-in {
-  animation: fade-in 160ms ease-out;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .animate-fade-in {
-    animation: none;
-  }
+input::placeholder {
+  color: rgba(255, 255, 255, 0.9);
 }

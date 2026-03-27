@@ -24,9 +24,13 @@ const CategoryTabbedView = ({
   onCountComplete,
 }: CategoryTabbedViewProps) => {
   const activeTasks = tasksByCategory[activeCategory] ?? [];
+  const activeCategoryConfig = CATEGORY_CONFIG[activeCategory];
 
   return (
-    <section className="rounded-2xl bg-bubble-surface p-4 shadow-soft">
+    <section
+      className="rounded-2xl bg-cover bg-center bg-no-repeat p-4 shadow-soft"
+      style={{ backgroundColor: activeCategoryConfig.pastelColor, backgroundImage: `url(${activeCategoryConfig.gifAssetPath})` }}
+    >
       <div className="mb-4 flex flex-wrap gap-2">
         {CATEGORY_ORDER.map((categoryKey) => {
           const category = CATEGORY_CONFIG[categoryKey];
@@ -36,7 +40,7 @@ const CategoryTabbedView = ({
               key={category.key}
               onClick={() => onSelectCategory(categoryKey)}
               className="rounded-full px-3 py-1 text-sm"
-              style={{ backgroundColor: category.pastelColor, color: category.textColor }}
+              style={{ backgroundColor: 'rgba(255,255,255,0.25)', color: '#ffffff' }}
             >
               {category.label}
             </button>
@@ -55,7 +59,7 @@ const CategoryTabbedView = ({
             onCountComplete={onCountComplete}
           />
         ))}
-        {activeTasks.length === 0 ? <p className="text-sm">No tasks yet.</p> : null}
+        {activeTasks.length === 0 ? <p className="text-sm text-white">No tasks yet.</p> : null}
       </div>
     </section>
   );

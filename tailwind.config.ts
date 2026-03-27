@@ -6,17 +6,17 @@ export default {
     extend: {
       colors: {
         bubble: {
-          base: '#fff8ff',
-          sidebar: '#f6f3ff',
-          surface: '#ffffff',
-          text: '#3f3459',
-          work: '#d9f7d8',
-          school: '#cff6f4',
-          business: '#d4e8ff',
-          home: '#ffd8ee',
-          personal: '#ffe6c8',
-          creative: '#fff6c8',
-          other: '#e6dbff',
+          base: '#ffeef6',
+          sidebar: '#d8c8ff',
+          surface: '#c7b1f4',
+          text: '#ffffff',
+          work: '#9bcfdd',
+          school: '#8ec0e8',
+          business: '#7fa7e1',
+          home: '#e8a8cf',
+          personal: '#f0b8d8',
+          creative: '#b9b5f4',
+          other: '#9d8ae0',
         },
       },
       fontFamily: {
@@ -25,7 +25,7 @@ export default {
         bold: ['PapernotesBold', 'ui-sans-serif', 'system-ui', 'sans-serif'],
       },
       boxShadow: {
-        soft: '0 10px 30px rgba(63, 52, 89, 0.08)',
+        soft: '0 10px 30px rgba(63, 52, 89, 0.15)',
       },
       backgroundImage: {
         stars: "url('/assets/stars.gif')",

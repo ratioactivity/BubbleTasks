@@ -165,17 +165,17 @@ const App = () => {
             </div>
             <p className="text-sm opacity-80">Persistence mode: {repositoryMode === 'supabase' ? 'Supabase' : 'Local fallback'}</p>
             {isHydrated ? null : <p className="text-xs opacity-70">Loading saved data...</p>}
-            <div className="mt-3 grid gap-2 md:grid-cols-[1fr_auto_auto_auto_auto]">
+            <div className="mt-3 grid gap-2 md:grid-cols-[minmax(220px,1fr)_120px_145px_140px_auto]">
               <input
                 value={newTitle}
                 onChange={(event) => setNewTitle(event.target.value)}
                 placeholder="Task title"
-                className="rounded-lg border border-bubble-text/20 px-3 py-2 text-sm"
+                className="rounded-lg border border-white/40 bg-white/20 px-3 py-2 text-sm text-white placeholder-white/80"
               />
               <select
                 value={newCategory}
                 onChange={(event) => setNewCategory(event.target.value as CategoryKey)}
-                className="rounded-lg border border-bubble-text/20 px-3 py-2 text-sm"
+                className="rounded-lg border border-white/40 bg-white/20 px-3 py-2 text-sm text-white placeholder-white/80"
               >
                 {CATEGORY_ORDER.map((category) => (
                   <option key={category} value={category}>
@@ -187,7 +187,7 @@ const App = () => {
                 type="date"
                 value={newDueDate}
                 onChange={(event) => setNewDueDate(event.target.value)}
-                className="rounded-lg border border-bubble-text/20 px-3 py-2 text-sm"
+                className="rounded-lg border border-white/40 bg-white/20 px-3 py-2 text-sm text-white placeholder-white/80"
               />
               <input
                 type="number"
@@ -195,10 +195,10 @@ const App = () => {
                 max={5}
                 value={newPriority}
                 onChange={(event) => setNewPriority(event.target.value)}
-                placeholder="Priority"
-                className="rounded-lg border border-bubble-text/20 px-3 py-2 text-sm"
+                placeholder="Priority (1-5)"
+                className="rounded-lg border border-white/40 bg-white/20 px-3 py-2 text-sm text-white placeholder-white/80"
               />
-              <button onClick={handleAddTask} className="rounded-lg bg-bubble-business px-4 py-2 text-sm font-bold">
+              <button onClick={handleAddTask} className="rounded-lg bg-white/25 px-4 py-2 text-sm font-bold text-white">
                 Add Task
               </button>
             </div>
