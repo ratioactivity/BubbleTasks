@@ -28,7 +28,7 @@ const CategoryBoardView = ({
         return (
           <div
             key={category.key}
-            className="rounded-2xl bg-cover bg-center bg-no-repeat p-3 shadow-soft"
+            className={`rounded-2xl bg-cover bg-center bg-no-repeat p-3 shadow-soft ${category.key === "Other" ? "sm:col-span-2 xl:col-span-3" : ""}` }
             style={{ backgroundColor: category.pastelColor, backgroundImage: `url(${category.gifAssetPath})` }}
           >
             <div className="mb-3 flex items-center gap-2">

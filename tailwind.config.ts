@@ -7,8 +7,8 @@ export default {
       colors: {
         bubble: {
           base: '#ffeef6',
-          sidebar: '#d8c8ff',
-          surface: '#c7b1f4',
+          sidebar: '#ffd8ee',
+          surface: '#b9d8ff',
           text: '#ffffff',
           work: '#9bcfdd',
           school: '#8ec0e8',

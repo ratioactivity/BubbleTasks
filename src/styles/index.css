@@ -27,7 +27,7 @@
 }
 
 body {
-  @apply m-0 min-h-screen bg-gradient-to-br from-[#ffeef6] via-[#f8e9ff] to-[#dcedff] font-body text-bubble-text;
+  @apply m-0 min-h-screen bg-gradient-to-br from-[#ffeef6] via-[#ffe4f2] to-[#dcedff] font-body text-bubble-text;
 }
 
 * {

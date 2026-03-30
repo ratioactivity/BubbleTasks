@@ -140,7 +140,7 @@ window.addEventListener('DOMContentLoaded', () => {
       elements.boardContainer.innerHTML = categories
         .map(
           (c) => `
-        <section class="category-column" style="background-color:${c.color}; background-image:url(${c.gif});">
+        <section class="category-column" style="background-color:${c.color}; background-image:url(${c.gif}); ${c.key === 'Other' ? 'grid-column: 1 / -1;' : ''}">
           <div class="category-title"><h3>${c.key}</h3></div>
           ${grouped[c.key].map(taskCardHTML).join('') || '<p>No tasks</p>'}
         </section>
