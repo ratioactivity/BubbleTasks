@@ -152,7 +152,12 @@ window.addEventListener('DOMContentLoaded', () => {
       const active = categories.find((c) => c.key === state.activeTab) || categories[0];
       elements.boardContainer.innerHTML = `
         <div class="tab-buttons">
-          ${categories.map((c) => `<button data-tab="${c.key}">${c.key}</button>`).join('')}
+          ${categories
+            .map(
+              (c) =>
+                `<button class="${c.key === active.key ? 'is-active' : ''}" data-tab="${c.key}">${c.key}</button>`,
+            )
+            .join('')}
         </div>
         <section class="category-column" style="background-color:${active.color}; background-image:url(${active.gif});">
           <div class="category-title"><h3>${active.key}</h3></div>
