@@ -31,7 +31,7 @@ const CategoryTabbedView = ({
       className="rounded-2xl bg-cover bg-center bg-no-repeat p-4 shadow-soft"
       style={{ backgroundColor: activeCategoryConfig.pastelColor, backgroundImage: `url(${activeCategoryConfig.gifAssetPath})` }}
     >
-      <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-7">
+      <div className="mb-4 flex flex-nowrap gap-2 max-[980px]:flex-wrap">
         {CATEGORY_ORDER.map((categoryKey) => {
           const category = CATEGORY_CONFIG[categoryKey];
           const isActive = categoryKey === activeCategory;
@@ -40,13 +40,13 @@ const CategoryTabbedView = ({
             <button
               key={category.key}
               onClick={() => onSelectCategory(categoryKey)}
-              className={`w-full rounded-2xl border px-3 py-2 text-sm font-bold transition hover:brightness-105 ${
+              className={`min-w-0 flex-1 rounded-full border px-2 py-1 text-xs font-bold transition hover:brightness-105 ${
                 isActive ? 'shadow-soft' : ''
               }`}
               style={{
-                backgroundColor: isActive ? 'rgba(255,255,255,0.45)' : 'rgba(255,255,255,0.25)',
-                borderColor: isActive ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.45)',
-                color: '#ffffff',
+                backgroundColor: isActive ? 'rgba(255,255,255,0.82)' : 'rgba(157,138,224,0.45)',
+                borderColor: isActive ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.72)',
+                color: isActive ? '#6b4cb1' : '#ffffff',
               }}
               aria-pressed={isActive}
             >
