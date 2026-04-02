@@ -1,0 +1,47 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: 'Bigbesty';
+  src: url('/fonts/Bigbesty.ttf') format('truetype');
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Papernotes';
+  src: url('/fonts/Papernotes.ttf') format('truetype');
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'PapernotesBold';
+  src: url('/fonts/PapernotesBold.ttf') format('truetype');
+  font-display: swap;
+}
+
+:root {
+  color: #ffffff;
+  background-color: #ffeef6;
+  font-family: 'Papernotes', sans-serif;
+}
+
+body {
+  @apply m-0 min-h-screen bg-gradient-to-br from-[#ffeef6] via-[#ffe4f2] to-[#dcedff] font-body text-bubble-text;
+}
+
+* {
+  @apply box-border;
+}
+
+button,
+input,
+select,
+option {
+  font-family: 'Papernotes', sans-serif;
+  color: #ffffff;
+}
+
+input::placeholder {
+  color: rgba(255, 255, 255, 0.9);
+}
