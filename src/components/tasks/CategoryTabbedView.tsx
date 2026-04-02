@@ -40,7 +40,7 @@ const CategoryTabbedView = ({
             <button
               key={category.key}
               onClick={() => onSelectCategory(categoryKey)}
-              className={`min-w-0 flex-1 rounded-lg border px-2 py-1 text-xs font-bold transition hover:brightness-105 ${
+              className={`min-w-0 flex-1 rounded-md border px-2 py-1 text-sm font-bold leading-tight transition hover:brightness-105 ${
                 isActive ? 'shadow-soft' : ''
               }`}
               style={{
