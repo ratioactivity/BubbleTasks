@@ -45,6 +45,9 @@ input, select, button, p, li, span, div { font-family: Papernotes, sans-serif; }
 .card { background: var(--card); border-radius: 14px; padding: 10px; box-shadow: 0 8px 20px rgba(79,69,113,.08); overflow: auto; }
 .controls { padding-bottom: 8px; }
 h1,h2,h3 { font-family: Bigbesty, cursive; margin: 0; color: #ffffff; letter-spacing: 0.04em; }
+h1 { font-size: 3rem; line-height: 1; }
+h2 { font-size: 2.25rem; line-height: 1; }
+h3 { font-size: 1.9rem; line-height: 1; }
 
 .title-row { display: flex; align-items: center; justify-content: space-between; }
 .tiny-star { width: 18px; height: 18px; }
@@ -55,7 +58,8 @@ button:hover { filter: brightness(.97); }
 .toolbar { margin-top: 8px; display: flex; gap: 8px; flex-wrap: wrap; }
 
 .board.columns { display: grid; gap: 10px; grid-template-columns: repeat(3, minmax(0,1fr)); }
-.board.tabs { display: grid; gap: 10px; align-content: start; }
+.board.tabs { display: grid; gap: 10px; align-content: start; grid-template-rows: auto minmax(0, 1fr); min-height: 0; }
+.board.tabs .category-column { height: 100%; min-height: 0; }
 .tab-buttons { display: flex; gap: 8px; flex-wrap: nowrap; }
 .tab-buttons button {
   flex: 1 1 0;
