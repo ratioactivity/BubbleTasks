@@ -59,22 +59,22 @@ button:hover { filter: brightness(.97); }
 .tab-buttons button {
   flex: 1 1 0;
   min-width: 0;
-  min-height: 34px;
+  min-height: 30px;
   border: 1px solid rgba(255,255,255,.72);
-  border-radius: 999px;
-  background: rgba(157,138,224,.45);
+  border-radius: 10px;
+  background: rgba(185,216,255,.62);
   color: #fff;
   font-weight: 700;
   font-size: 12px;
   text-align: center;
-  padding: 6px 8px;
+  padding: 4px 8px;
   text-shadow: 0 1px 2px rgba(0,0,0,.35);
 }
 .tab-buttons button.is-active {
-  background: rgba(255,255,255,.82);
+  background: rgba(255,216,238,.92);
   border-color: rgba(255,255,255,.95);
-  color: #6b4cb1;
-  box-shadow: 0 5px 12px rgba(79,69,113,.16);
+  color: #44648b;
+  box-shadow: 0 4px 10px rgba(68,100,139,.2);
   text-shadow: none;
 }
 

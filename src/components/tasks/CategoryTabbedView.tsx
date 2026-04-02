@@ -40,13 +40,13 @@ const CategoryTabbedView = ({
             <button
               key={category.key}
               onClick={() => onSelectCategory(categoryKey)}
-              className={`min-w-0 flex-1 rounded-full border px-2 py-1 text-xs font-bold transition hover:brightness-105 ${
+              className={`min-w-0 flex-1 rounded-lg border px-2 py-1 text-xs font-bold transition hover:brightness-105 ${
                 isActive ? 'shadow-soft' : ''
               }`}
               style={{
-                backgroundColor: isActive ? 'rgba(255,255,255,0.82)' : 'rgba(157,138,224,0.45)',
+                backgroundColor: isActive ? 'rgba(255,216,238,0.92)' : 'rgba(185,216,255,0.62)',
                 borderColor: isActive ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.72)',
-                color: isActive ? '#6b4cb1' : '#ffffff',
+                color: isActive ? '#44648b' : '#ffffff',
               }}
               aria-pressed={isActive}
             >
