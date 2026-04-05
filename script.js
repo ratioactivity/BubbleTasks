@@ -1,5 +1,8 @@
 window.addEventListener('DOMContentLoaded', () => {
   const STORAGE_KEY = 'bubbletasks_plain_v1';
+  const WEATHER_LOCATION_LABEL = 'Springfield, MO 65810';
+  const WEATHER_LAT = 37.1375;
+  const WEATHER_LON = -93.2982;
   const categories = [
     { key: 'Work', color: 'var(--work)', gif: 'assets/green.gif' },
     { key: 'School', color: 'var(--school)', gif: 'assets/teal.gif' },
@@ -17,6 +20,7 @@ window.addEventListener('DOMContentLoaded', () => {
     completions: [],
     layout: 'columns',
     activeTab: 'Work',
+    weatherSummary: 'Loading weather...',
   };
 
   const elements = {
@@ -77,8 +81,28 @@ window.addEventListener('DOMContentLoaded', () => {
       <h2>Now</h2>
       <p class="date-big">${now.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</p>
       <p class="time-big"><strong>${now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</strong></p>
-      <p>No weather API configured yet.</p>
+      <p>${WEATHER_LOCATION_LABEL}: ${state.weatherSummary}</p>
     `;
+  };
+
+  const updateWeather = async () => {
+    const weatherApiUrl = `https://api.open-meteo.com/v1/forecast?latitude=${WEATHER_LAT}&longitude=${WEATHER_LON}&current=temperature_2m,apparent_temperature,weather_code&temperature_unit=fahrenheit`;
+
+    try {
+      const response = await fetch(weatherApiUrl);
+      const payload = await response.json();
+      const currentWeather = payload.current;
+
+      if (currentWeather && typeof currentWeather.temperature_2m === 'number') {
+        state.weatherSummary = `${Math.round(currentWeather.temperature_2m)}°F (feels like ${Math.round(currentWeather.apparent_temperature)}°F)`;
+      } else {
+        state.weatherSummary = 'Weather unavailable';
+      }
+    } catch (error) {
+      state.weatherSummary = 'Weather unavailable';
+    }
+
+    renderDateTime();
   };
 
   const renderFeed = () => {
@@ -333,7 +357,9 @@ window.addEventListener('DOMContentLoaded', () => {
   });
 
   setInterval(renderDateTime, 1000 * 30);
+  setInterval(updateWeather, 1000 * 60 * 15);
   load();
+  updateWeather();
   renderAll();
   console.log('✅ script validated');
 });

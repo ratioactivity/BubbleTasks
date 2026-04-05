@@ -12,7 +12,7 @@
   --bg: #ffeef6;
   --text: #ffffff;
   --panel: #ffd8ee;
-  --card: #b9d8ff;
+  --card: #a9d1ff;
   --home: #e8a8cf;
   --personal: #f0b8d8;
   --creative: #b9b5f4;
@@ -48,9 +48,13 @@ h1,h2,h3 { font-family: Bigbesty, cursive; margin: 0; color: #ffffff; letter-spa
 h1 { font-size: 3rem; line-height: 1; }
 h2 { font-size: 2.25rem; line-height: 1; }
 h3 { font-size: 1.9rem; line-height: 1; }
+h1,h2,h3 { text-shadow: 0 3px 6px rgba(35, 54, 88, 0.35), 0 1px 2px rgba(0,0,0,.25); }
 
 .title-row { display: flex; align-items: center; justify-content: space-between; }
-.tiny-star { width: 18px; height: 18px; }
+.accent-stars { display: flex; align-items: center; gap: 6px; }
+.tiny-star { width: 22px; height: 22px; filter: drop-shadow(0 2px 4px rgba(35, 54, 88, 0.35)); }
+.tiny-star-lg { width: 28px; height: 28px; }
+.tiny-star-sm { width: 18px; height: 18px; opacity: 0.95; }
 .task-form { margin-top: 8px; display: grid; grid-template-columns: minmax(220px,1fr) 130px 150px 140px auto; gap: 8px; }
 .task-form input,.task-form select { border: 1px solid rgba(255,255,255,.45); border-radius: 10px; padding: 7px; background: rgba(255,255,255,.18); color: var(--text); }
 button { border: 0; border-radius: 999px; padding: 6px 10px; background: rgba(255,255,255,.22); color: var(--text); cursor: pointer; }
