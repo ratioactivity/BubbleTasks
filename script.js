@@ -30,6 +30,7 @@ window.addEventListener('DOMContentLoaded', () => {
     taskPriorityInput: document.getElementById('taskPriorityInput'),
     addTaskButton: document.getElementById('addTaskButton'),
     layoutToggleButton: document.getElementById('layoutToggleButton'),
+    backupTasksButton: document.getElementById('backupTasksButton'),
     openArchiveButton: document.getElementById('openArchiveButton'),
     openBoredButton: document.getElementById('openBoredButton'),
     archiveModal: document.getElementById('archiveModal'),
@@ -207,6 +208,25 @@ window.addEventListener('DOMContentLoaded', () => {
     save();
   };
 
+  const backupTasksToDevice = () => {
+    const backupPayload = {
+      exportedAt: nowISO(),
+      taskCount: state.tasks.length,
+      tasks: state.tasks,
+    };
+
+    const backupBlob = new Blob([JSON.stringify(backupPayload, null, 2)], { type: 'application/json' });
+    const backupUrl = URL.createObjectURL(backupBlob);
+    const backupLink = document.createElement('a');
+    const safeDate = new Date().toISOString().replace(/[:.]/g, '-');
+    backupLink.href = backupUrl;
+    backupLink.download = `bubbletasks-backup-${safeDate}.json`;
+    document.body.appendChild(backupLink);
+    backupLink.click();
+    document.body.removeChild(backupLink);
+    URL.revokeObjectURL(backupUrl);
+  };
+
   const addTask = () => {
     const title = elements.taskTitleInput.value.trim();
     if (!title) return;
@@ -233,6 +253,7 @@ window.addEventListener('DOMContentLoaded', () => {
     state.layout = state.layout === 'columns' ? 'tabs' : 'columns';
     renderAll();
   });
+  elements.backupTasksButton.addEventListener('click', backupTasksToDevice);
 
   elements.boardContainer.addEventListener('click', (event) => {
     const target = event.target;
