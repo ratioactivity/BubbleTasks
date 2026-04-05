@@ -13,13 +13,13 @@
   --text: #ffffff;
   --panel: #ffd8ee;
   --card: #78c5f5;
-  --home: #e89bcf;
-  --personal: #e6a5ba;
-  --creative: #a68ede;
-  --work: #66acba;
-  --school: #78c5f5;
-  --business: #8aa5d1;
-  --other: #765ecc;
+  --home: #d98abc;
+  --personal: #d796ac;
+  --creative: #957bd0;
+  --work: #5f9da9;
+  --school: #6fb9e8;
+  --business: #7d99c5;
+  --other: #694fb9;
 }
 
 * { box-sizing: border-box; }
@@ -48,7 +48,7 @@ h1,h2,h3 { font-family: Bigbesty, cursive; margin: 0; color: #ffffff; letter-spa
 h1 { font-size: 3rem; line-height: 1; }
 h2 { font-size: 2.25rem; line-height: 1; }
 h3 { font-size: 1.9rem; line-height: 1; }
-h1,h2,h3 { text-shadow: 0 5px 12px rgba(35, 54, 88, 0.45), 0 2px 4px rgba(0,0,0,.35); }
+h1,h2,h3 { text-shadow: 0 3px 7px rgba(35, 54, 88, 0.33), 0 1px 2px rgba(0,0,0,.22); }
 
 .title-row { display: flex; align-items: center; justify-content: space-between; }
 .accent-stars { display: flex; align-items: center; gap: 6px; }
@@ -93,8 +93,10 @@ button:hover { filter: brightness(.97); }
 .category-column { border-radius: 14px; padding: 8px; background-size: cover; background-repeat: no-repeat; background-position: center; background-blend-mode: soft-light; }
 .category-title { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
 .category-title { text-shadow: 0 1px 2px rgba(0,0,0,.2); }
-.task-card { background: rgba(255,255,255,.18); border-radius: 12px; padding: 8px; margin-bottom: 8px; }
-.task-meta { min-height: 34px; font-size: 12px; opacity: .85; }
+.task-card { background: rgba(255,255,255,.24); border-radius: 12px; padding: 8px; margin-bottom: 8px; color: #28466c; }
+.task-card strong { color: #244467; }
+.task-meta { min-height: 34px; font-size: 12px; opacity: .92; color: #2e4d74; }
+.task-card button { color: #2d4b70; background: rgba(255,255,255,.55); }
 .task-actions { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 6px; margin-top: 6px; }
 
 .modal { position: fixed; inset: 0; background: rgba(25,20,40,.3); display: grid; place-items: center; padding: 12px; }
