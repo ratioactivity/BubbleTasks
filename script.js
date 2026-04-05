@@ -35,6 +35,8 @@ window.addEventListener('DOMContentLoaded', () => {
     addTaskButton: document.getElementById('addTaskButton'),
     layoutToggleButton: document.getElementById('layoutToggleButton'),
     backupTasksButton: document.getElementById('backupTasksButton'),
+    loadBackupButton: document.getElementById('loadBackupButton'),
+    backupFileInput: document.getElementById('backupFileInput'),
     openArchiveButton: document.getElementById('openArchiveButton'),
     openBoredButton: document.getElementById('openBoredButton'),
     archiveModal: document.getElementById('archiveModal'),
@@ -180,7 +182,7 @@ window.addEventListener('DOMContentLoaded', () => {
           ${categories
             .map(
               (c) =>
-                `<button class="${c.key === active.key ? 'is-active' : ''}" data-tab="${c.key}">${c.key}</button>`,
+                `<button class="${c.key === active.key ? 'is-active' : ''}" style="background-color:${c.color};" data-tab="${c.key}">${c.key}</button>`,
             )
             .join('')}
         </div>
@@ -251,6 +253,33 @@ window.addEventListener('DOMContentLoaded', () => {
     URL.revokeObjectURL(backupUrl);
   };
 
+  const loadTasksFromBackup = async (event) => {
+    const selectedFile = event.target.files?.[0];
+    if (!selectedFile) return;
+
+    try {
+      const fileText = await selectedFile.text();
+      const parsed = JSON.parse(fileText);
+      const restoredTasks = Array.isArray(parsed) ? parsed : parsed.tasks;
+      const safeTasks = Array.isArray(restoredTasks) ? restoredTasks : [];
+
+      state.tasks = safeTasks.map((task) => ({
+        id: task.id || crypto.randomUUID(),
+        title: task.title || 'Untitled Task',
+        category: categories.some((c) => c.key === task.category) ? task.category : 'Other',
+        status: task.status || 'Not Started',
+        dueDate: task.dueDate || null,
+        priority: Number.isFinite(task.priority) ? task.priority : null,
+        createdAt: task.createdAt || nowISO(),
+      }));
+    } catch (error) {
+      window.alert('Invalid backup file format. Please select a BubbleTasks backup JSON file.');
+    }
+
+    event.target.value = '';
+    renderAll();
+  };
+
   const addTask = () => {
     const title = elements.taskTitleInput.value.trim();
     if (!title) return;
@@ -278,6 +307,8 @@ window.addEventListener('DOMContentLoaded', () => {
     renderAll();
   });
   elements.backupTasksButton.addEventListener('click', backupTasksToDevice);
+  elements.loadBackupButton.addEventListener('click', () => elements.backupFileInput.click());
+  elements.backupFileInput.addEventListener('change', loadTasksFromBackup);
 
   elements.boardContainer.addEventListener('click', (event) => {
     const target = event.target;
