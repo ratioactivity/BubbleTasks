@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BubbleTasks</title>
+    <link rel="icon" type="image/png" href="assets/icon128.png" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div id="app">
+      <aside class="sidebar panel">
+        <section class="card" id="dateTimeCard"></section>
+        <section class="card" id="feedCard"></section>
+        <section class="card" id="completionCard"></section>
+      </aside>
+
+      <main class="main panel">
+        <header class="card controls">
+          <div class="title-row">
+            <h1>BubbleTasks</h1>
+            <img src="assets/singlestar3.gif" alt="star" class="tiny-star" />
+          </div>
+          <div class="task-form">
+            <input id="taskTitleInput" placeholder="Task title" />
+            <select id="taskCategoryInput"></select>
+            <input id="taskDueDateInput" type="date" />
+            <input id="taskPriorityInput" type="number" min="1" max="5" placeholder="Priority (1-5)" />
+            <button id="addTaskButton">Add Task</button>
+          </div>
+          <div class="toolbar">
+            <button id="layoutToggleButton">Switch Layout</button>
+            <button id="backupTasksButton">Backup Tasks</button>
+            <button id="openArchiveButton">Archive</button>
+            <button id="openBoredButton">Bored List</button>
+          </div>
+        </header>
+
+        <section id="boardContainer" class="board"></section>
+      </main>
+    </div>
+
+    <div id="archiveModal" class="modal hidden" aria-hidden="true">
+      <div class="modal-body">
+        <h2>Archive</h2>
+        <div id="archiveList"></div>
+        <div class="modal-actions">
+          <button id="clearArchiveButton">Delete All</button>
+          <button id="resetInsightsButton">Reset Insights</button>
+          <button id="closeArchiveButton">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="boredModal" class="modal hidden" aria-hidden="true">
+      <div class="modal-body">
+        <h2>Bored Tasks</h2>
+        <div class="bored-form-row">
+          <input id="boredInput" placeholder="Something quick to do" />
+          <button id="addBoredButton">Add</button>
+        </div>
+        <div id="boredList"></div>
+        <div class="modal-actions">
+          <button id="closeBoredButton">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <a class="floating-logo" href="https://github.com/ratioactivity" target="_blank" rel="noreferrer">
+      <img src="assets/icon128.png" alt="BubbleTasks logo" />
+    </a>
+
+    <script src="script.js"></script>
+  </body>
+</html>
