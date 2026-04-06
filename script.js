@@ -160,6 +160,10 @@ window.addEventListener('DOMContentLoaded', () => {
           <button data-action="status" data-status="In Progress">In Progress</button>
           <button data-action="complete">Complete</button>
         </div>
+        <div class="task-edit-actions">
+          <button data-action="edit">Edit</button>
+          <button data-action="delete">Delete</button>
+        </div>
       </article>
     `;
   };
@@ -396,6 +400,31 @@ window.addEventListener('DOMContentLoaded', () => {
     const action = target.dataset.action;
     if (action === 'status') {
       task.status = target.dataset.status;
+    }
+    if (action === 'edit') {
+      const nextTitle = window.prompt('Edit task title:', task.title);
+      if (nextTitle !== null) {
+        const trimmedTitle = nextTitle.trim();
+        if (trimmedTitle) {
+          task.title = trimmedTitle;
+        }
+      }
+
+      const categoryList = categories.map((c) => c.key).join(', ');
+      const nextCategory = window.prompt(`Edit category (${categoryList}):`, task.category);
+      if (nextCategory !== null) {
+        const normalizedCategory = categories.find(
+          (category) => category.key.toLowerCase() === nextCategory.trim().toLowerCase(),
+        );
+        if (normalizedCategory) {
+          task.category = normalizedCategory.key;
+        }
+      }
+    }
+    if (action === 'delete') {
+      if (window.confirm('Delete this task?')) {
+        state.tasks = state.tasks.filter((t) => t.id !== id);
+      }
     }
     if (action === 'complete') {
       task.status = 'Complete';

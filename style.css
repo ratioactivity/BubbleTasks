@@ -98,6 +98,7 @@ button:hover { filter: brightness(.97); }
 .task-meta { min-height: 34px; font-size: 12px; opacity: .92; color: #2e4d74; }
 .task-card button { color: #2d4b70; background: rgba(255,255,255,.55); }
 .task-actions { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 6px; margin-top: 6px; }
+.task-edit-actions { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 6px; margin-top: 6px; }
 .column-expand-controls { display: grid; gap: 6px; }
 .load-more-button { width: 100%; margin-top: 6px; border-radius: 10px; }
 
@@ -117,6 +118,7 @@ button:hover { filter: brightness(.97); }
   .task-form { grid-template-columns: 1fr 1fr; }
   .board.columns { grid-template-columns: 1fr; }
   .task-actions { grid-template-columns: 1fr; }
+  .task-edit-actions { grid-template-columns: 1fr; }
   .tab-buttons { flex-wrap: wrap; }
   .tab-buttons button { flex: 1 1 calc(33.333% - 8px); }
 }
