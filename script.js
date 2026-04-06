@@ -112,14 +112,14 @@ window.addEventListener('DOMContentLoaded', () => {
     const in3 = now + 3 * 24 * 60 * 60 * 1000;
     const overdue = state.tasks.filter((t) => t.dueDate && new Date(t.dueDate).getTime() < now);
     const soon = state.tasks.filter((t) => t.dueDate && new Date(t.dueDate).getTime() >= now && new Date(t.dueDate).getTime() <= in3);
-    const stale = state.tasks.filter((t) => now - new Date(t.createdAt).getTime() > 7 * 24 * 60 * 60 * 1000 && t.status !== 'Complete');
+    const stale = state.tasks.filter((t) => now - new Date(t.createdAt).getTime() > 30 * 24 * 60 * 60 * 1000 && t.status !== 'Complete');
 
-    const list = (arr) => arr.slice(0, 3).map((t) => `<li>${t.title}</li>`).join('') || '<li>None</li>';
+    const list = (arr) => arr.map((t) => `<li>${t.title}</li>`).join('') || '<li>None</li>';
     elements.feedCard.innerHTML = `
       <h2>Feed</h2>
       <h4>Overdue</h4><ul>${list(overdue)}</ul>
       <h4>Due in 3 days</h4><ul>${list(soon)}</ul>
-      <h4>Stale</h4><ul>${list(stale)}</ul>
+      <h4>Stale for 1 month</h4><ul>${list(stale)}</ul>
     `;
   };
 
@@ -191,6 +191,7 @@ window.addEventListener('DOMContentLoaded', () => {
           ${grouped[active.key].map(taskCardHTML).join('') || '<p>No tasks</p>'}
         </section>
       `;
+      elements.taskCategoryInput.value = active.key;
     }
   };
 
@@ -217,7 +218,10 @@ window.addEventListener('DOMContentLoaded', () => {
           (item) => `
       <div class="task-card">
         <span>${item.title}</span>
-        <button data-bored-remove="${item.id}">Remove</button>
+        <div class="task-actions">
+          <button data-bored-did="${item.id}">Did Today</button>
+          <button data-bored-remove="${item.id}">Remove</button>
+        </div>
       </div>
     `,
         )
@@ -304,6 +308,9 @@ window.addEventListener('DOMContentLoaded', () => {
   elements.addTaskButton.addEventListener('click', addTask);
   elements.layoutToggleButton.addEventListener('click', () => {
     state.layout = state.layout === 'columns' ? 'tabs' : 'columns';
+    if (state.layout === 'tabs') {
+      elements.taskCategoryInput.value = state.activeTab;
+    }
     renderAll();
   });
   elements.backupTasksButton.addEventListener('click', backupTasksToDevice);
@@ -317,6 +324,7 @@ window.addEventListener('DOMContentLoaded', () => {
     const tab = target.dataset.tab;
     if (tab) {
       state.activeTab = tab;
+      elements.taskCategoryInput.value = tab;
       renderAll();
     }
 
@@ -382,6 +390,11 @@ window.addEventListener('DOMContentLoaded', () => {
     const target = event.target;
     if (!(target instanceof HTMLElement)) return;
     const id = target.dataset.boredRemove;
+    const completedBoredId = target.dataset.boredDid;
+    if (completedBoredId) {
+      state.completions.push(nowISO());
+      renderAll();
+    }
     if (!id) return;
     state.bored = state.bored.filter((item) => item.id !== id);
     renderAll();
