@@ -65,7 +65,9 @@ button:hover { filter: brightness(.97); }
 
 .board.columns { display: grid; gap: 10px; grid-template-columns: repeat(3, minmax(0,1fr)); }
 .board.tabs { display: grid; gap: 10px; align-content: start; grid-template-rows: auto minmax(0, 1fr); min-height: 0; }
+.board.day { display: grid; gap: 10px; grid-template-columns: repeat(2, minmax(0,1fr)); align-content: start; }
 .board.tabs .category-column { height: 100%; min-height: 0; }
+.day-column { background: rgba(255,255,255,.22); }
 .tab-buttons { display: flex; gap: 8px; flex-wrap: nowrap; }
 .tab-buttons button {
   flex: 1 1 0;
@@ -117,6 +119,7 @@ button:hover { filter: brightness(.97); }
   .sidebar { min-height: auto; grid-template-rows: auto; }
   .task-form { grid-template-columns: 1fr 1fr; }
   .board.columns { grid-template-columns: 1fr; }
+  .board.day { grid-template-columns: 1fr; }
   .task-actions { grid-template-columns: 1fr; }
   .task-edit-actions { grid-template-columns: 1fr; }
   .tab-buttons { flex-wrap: wrap; }

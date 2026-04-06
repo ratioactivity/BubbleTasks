@@ -83,6 +83,13 @@ window.addEventListener('DOMContentLoaded', () => {
     });
   };
 
+  const formatDayLabel = (isoDate) => {
+    if (!isoDate) return 'No Due Date';
+    const parsedDate = new Date(isoDate);
+    if (Number.isNaN(parsedDate.getTime())) return 'No Due Date';
+    return parsedDate.toLocaleDateString(undefined, { month: 'numeric', day: 'numeric' });
+  };
+
   const renderDateTime = () => {
     const now = new Date();
     elements.dateTimeCard.innerHTML = `
@@ -196,7 +203,7 @@ window.addEventListener('DOMContentLoaded', () => {
       `,
         )
         .join('');
-    } else {
+    } else if (state.layout === 'tabs') {
       elements.boardContainer.className = 'board tabs';
       const active = categories.find((c) => c.key === state.activeTab) || categories[0];
       elements.boardContainer.innerHTML = `
@@ -214,6 +221,34 @@ window.addEventListener('DOMContentLoaded', () => {
         </section>
       `;
       elements.taskCategoryInput.value = active.key;
+    } else {
+      elements.boardContainer.className = 'board day';
+      const dayGroups = {};
+      sortedTasks(state.tasks).forEach((task) => {
+        const dayKey = task.dueDate || 'no-due-date';
+        if (!dayGroups[dayKey]) {
+          dayGroups[dayKey] = [];
+        }
+        dayGroups[dayKey].push(task);
+      });
+
+      const orderedDayKeys = Object.keys(dayGroups).sort((a, b) => {
+        if (a === 'no-due-date') return 1;
+        if (b === 'no-due-date') return -1;
+        return new Date(a).getTime() - new Date(b).getTime();
+      });
+
+      elements.boardContainer.innerHTML = orderedDayKeys
+        .map((dayKey) => {
+          const label = dayKey === 'no-due-date' ? 'No Due Date' : formatDayLabel(dayKey);
+          return `
+            <section class="category-column day-column">
+              <div class="category-title"><h3>${label}</h3></div>
+              ${dayGroups[dayKey].map(taskCardHTML).join('') || '<p>No tasks</p>'}
+            </section>
+          `;
+        })
+        .join('');
     }
   };
 
@@ -257,6 +292,7 @@ window.addEventListener('DOMContentLoaded', () => {
     renderBoard();
     renderArchive();
     renderBored();
+    elements.layoutToggleButton.textContent = `Layout: ${state.layout}`;
     save();
   };
 
@@ -320,7 +356,7 @@ window.addEventListener('DOMContentLoaded', () => {
         title: item.title || 'Untitled Bored Task',
       }));
       state.completions = safeCompletions.filter((value) => Number.isFinite(new Date(value).getTime()));
-      if (parsed?.layout === 'columns' || parsed?.layout === 'tabs') {
+      if (parsed?.layout === 'columns' || parsed?.layout === 'tabs' || parsed?.layout === 'day') {
         state.layout = parsed.layout;
       }
       if (categories.some((c) => c.key === parsed?.activeTab)) {
@@ -357,7 +393,10 @@ window.addEventListener('DOMContentLoaded', () => {
 
   elements.addTaskButton.addEventListener('click', addTask);
   elements.layoutToggleButton.addEventListener('click', () => {
-    state.layout = state.layout === 'columns' ? 'tabs' : 'columns';
+    const layoutOrder = ['columns', 'tabs', 'day'];
+    const currentIndex = layoutOrder.indexOf(state.layout);
+    const nextIndex = currentIndex === -1 ? 0 : (currentIndex + 1) % layoutOrder.length;
+    state.layout = layoutOrder[nextIndex];
     if (state.layout === 'tabs') {
       elements.taskCategoryInput.value = state.activeTab;
     }
