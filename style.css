@@ -98,6 +98,7 @@ button:hover { filter: brightness(.97); }
 .task-meta { min-height: 34px; font-size: 12px; opacity: .92; color: #2e4d74; }
 .task-card button { color: #2d4b70; background: rgba(255,255,255,.55); }
 .task-actions { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 6px; margin-top: 6px; }
+.load-more-button { width: 100%; margin-top: 6px; border-radius: 10px; }
 
 .modal { position: fixed; inset: 0; background: rgba(25,20,40,.3); display: grid; place-items: center; padding: 12px; }
 .modal.hidden { display: none; }

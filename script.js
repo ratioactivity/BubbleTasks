@@ -21,6 +21,7 @@ window.addEventListener('DOMContentLoaded', () => {
     layout: 'columns',
     activeTab: 'Work',
     weatherSummary: 'Loading weather...',
+    boardVisibleByCategory: {},
   };
 
   const elements = {
@@ -58,6 +59,11 @@ window.addEventListener('DOMContentLoaded', () => {
       const parsed = JSON.parse(raw);
       Object.assign(state, parsed);
     }
+    categories.forEach((category) => {
+      if (!Number.isFinite(state.boardVisibleByCategory?.[category.key])) {
+        state.boardVisibleByCategory[category.key] = 4;
+      }
+    });
   };
 
   const nowISO = () => new Date().toISOString();
@@ -169,7 +175,12 @@ window.addEventListener('DOMContentLoaded', () => {
           (c) => `
         <section class="category-column" style="background-color:${c.color}; background-image:url(${c.gif}); ${c.key === 'Other' ? 'grid-column: 1 / -1;' : ''}">
           <div class="category-title"><h3>${c.key}</h3></div>
-          ${grouped[c.key].map(taskCardHTML).join('') || '<p>No tasks</p>'}
+          ${grouped[c.key].slice(0, state.boardVisibleByCategory[c.key]).map(taskCardHTML).join('') || '<p>No tasks</p>'}
+          ${
+            grouped[c.key].length > state.boardVisibleByCategory[c.key]
+              ? `<button class="load-more-button" data-action="load-more" data-category="${c.key}">Load more</button>`
+              : ''
+          }
         </section>
       `,
         )
@@ -243,6 +254,11 @@ window.addEventListener('DOMContentLoaded', () => {
       exportedAt: nowISO(),
       taskCount: state.tasks.length,
       tasks: state.tasks,
+      archived: state.archived,
+      bored: state.bored,
+      completions: state.completions,
+      layout: state.layout,
+      activeTab: state.activeTab,
     };
 
     const backupBlob = new Blob([JSON.stringify(backupPayload, null, 2)], { type: 'application/json' });
@@ -266,6 +282,9 @@ window.addEventListener('DOMContentLoaded', () => {
       const parsed = JSON.parse(fileText);
       const restoredTasks = Array.isArray(parsed) ? parsed : parsed.tasks;
       const safeTasks = Array.isArray(restoredTasks) ? restoredTasks : [];
+      const safeArchived = Array.isArray(parsed?.archived) ? parsed.archived : [];
+      const safeBored = Array.isArray(parsed?.bored) ? parsed.bored : [];
+      const safeCompletions = Array.isArray(parsed?.completions) ? parsed.completions : [];
 
       state.tasks = safeTasks.map((task) => ({
         id: task.id || crypto.randomUUID(),
@@ -276,6 +295,26 @@ window.addEventListener('DOMContentLoaded', () => {
         priority: Number.isFinite(task.priority) ? task.priority : null,
         createdAt: task.createdAt || nowISO(),
       }));
+      state.archived = safeArchived.map((task) => ({
+        id: task.id || crypto.randomUUID(),
+        title: task.title || 'Untitled Task',
+        category: categories.some((c) => c.key === task.category) ? task.category : 'Other',
+        status: 'Complete',
+        dueDate: task.dueDate || null,
+        priority: Number.isFinite(task.priority) ? task.priority : null,
+        createdAt: task.createdAt || nowISO(),
+      }));
+      state.bored = safeBored.map((item) => ({
+        id: item.id || crypto.randomUUID(),
+        title: item.title || 'Untitled Bored Task',
+      }));
+      state.completions = safeCompletions.filter((value) => Number.isFinite(new Date(value).getTime()));
+      if (parsed?.layout === 'columns' || parsed?.layout === 'tabs') {
+        state.layout = parsed.layout;
+      }
+      if (categories.some((c) => c.key === parsed?.activeTab)) {
+        state.activeTab = parsed.activeTab;
+      }
     } catch (error) {
       window.alert('Invalid backup file format. Please select a BubbleTasks backup JSON file.');
     }
@@ -325,6 +364,12 @@ window.addEventListener('DOMContentLoaded', () => {
     if (tab) {
       state.activeTab = tab;
       elements.taskCategoryInput.value = tab;
+      renderAll();
+    }
+
+    const loadMoreCategory = target.dataset.action === 'load-more' ? target.dataset.category : null;
+    if (loadMoreCategory && categories.some((c) => c.key === loadMoreCategory)) {
+      state.boardVisibleByCategory[loadMoreCategory] = (state.boardVisibleByCategory[loadMoreCategory] || 4) + 4;
       renderAll();
     }
 
