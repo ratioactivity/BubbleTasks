@@ -176,11 +176,18 @@ window.addEventListener('DOMContentLoaded', () => {
         <section class="category-column" style="background-color:${c.color}; background-image:url(${c.gif}); ${c.key === 'Other' ? 'grid-column: 1 / -1;' : ''}">
           <div class="category-title"><h3>${c.key}</h3></div>
           ${grouped[c.key].slice(0, state.boardVisibleByCategory[c.key]).map(taskCardHTML).join('') || '<p>No tasks</p>'}
-          ${
-            grouped[c.key].length > state.boardVisibleByCategory[c.key]
-              ? `<button class="load-more-button" data-action="load-more" data-category="${c.key}">Load more</button>`
-              : ''
-          }
+          <div class="column-expand-controls">
+            ${
+              grouped[c.key].length > state.boardVisibleByCategory[c.key]
+                ? `<button class="load-more-button" data-action="load-more" data-category="${c.key}">Load more</button>`
+                : ''
+            }
+            ${
+              state.boardVisibleByCategory[c.key] > 4
+                ? `<button class="load-more-button" data-action="collapse-more" data-category="${c.key}">Collapse</button>`
+                : ''
+            }
+          </div>
         </section>
       `,
         )
@@ -370,6 +377,12 @@ window.addEventListener('DOMContentLoaded', () => {
     const loadMoreCategory = target.dataset.action === 'load-more' ? target.dataset.category : null;
     if (loadMoreCategory && categories.some((c) => c.key === loadMoreCategory)) {
       state.boardVisibleByCategory[loadMoreCategory] = (state.boardVisibleByCategory[loadMoreCategory] || 4) + 4;
+      renderAll();
+    }
+
+    const collapseCategory = target.dataset.action === 'collapse-more' ? target.dataset.category : null;
+    if (collapseCategory && categories.some((c) => c.key === collapseCategory)) {
+      state.boardVisibleByCategory[collapseCategory] = 4;
       renderAll();
     }
 
