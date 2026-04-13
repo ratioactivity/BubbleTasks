@@ -40,12 +40,12 @@ input, select, button, p, li, span, div { font-family: Papernotes, sans-serif; }
   min-height: 100vh;
 }
 .panel { border-radius: 18px; }
-.sidebar { background: var(--panel); padding: 10px; display: grid; gap: 10px; align-content: start; grid-auto-rows: min-content; }
+.sidebar { background: var(--panel); padding: 10px; display: flex; flex-direction: column; gap: 10px; align-items: stretch; align-self: start; }
 .main { display: grid; gap: 10px; align-content: start; grid-template-rows: auto minmax(0, 1fr); }
 .card { background: var(--card); border-radius: 14px; padding: 10px; box-shadow: 0 8px 20px rgba(79,69,113,.08); overflow: auto; }
-.sidebar .card { min-height: 0; }
-#dateTimeCard { min-height: 210px; }
-#agendaCard { min-height: 220px; }
+.sidebar .card { min-height: 0; height: auto; flex: 0 0 auto; }
+#dateTimeCard { min-height: 0; }
+#agendaCard { min-height: 0; }
 .controls { padding-bottom: 8px; }
 h1,h2,h3 { font-family: Bigbesty, cursive; margin: 0; color: #ffffff; letter-spacing: 0.04em; }
 h1 { font-size: 3rem; line-height: 1; }
@@ -133,7 +133,7 @@ button:hover { filter: brightness(.97); }
 
 @media (max-width: 980px) {
   #app { grid-template-columns: 1fr; }
-  .sidebar { min-height: auto; grid-template-rows: none; grid-auto-rows: min-content; }
+  .sidebar { min-height: auto; }
   .task-form { grid-template-columns: 1fr 1fr; }
   .board.columns { column-count: 1; }
   .board.columns .category-column { max-width: none; min-width: 0; }
