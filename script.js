@@ -251,46 +251,26 @@ window.addEventListener('DOMContentLoaded', () => {
         </section>
       `;
 
-      const nonOtherCategories = categories.filter((category) => category.key !== 'Other');
       const columnBuckets = [[], [], []];
-      nonOtherCategories.forEach((category, index) => {
-        columnBuckets[index % columnBuckets.length].push(renderCategorySection(category));
+      const columnHeights = [0, 0, 0];
+      categories.forEach((category) => {
+        const estimatedHeight = Math.max(1, Math.min(state.boardVisibleByCategory[category.key], grouped[category.key].length)) + 1;
+        let targetColumn = 0;
+        if (columnHeights[1] < columnHeights[targetColumn]) targetColumn = 1;
+        if (columnHeights[2] < columnHeights[targetColumn]) targetColumn = 2;
+        columnBuckets[targetColumn].push(renderCategorySection(category));
+        columnHeights[targetColumn] += estimatedHeight;
       });
 
-      const otherCategory = categories.find((category) => category.key === 'Other');
-      const otherSection = otherCategory
-        ? `
-          <section class="category-column other-full" style="background-color:${otherCategory.color}; background-image:url(${otherCategory.gif});">
-            <div class="category-title"><h3>${otherCategory.key}</h3></div>
-            ${grouped[otherCategory.key].slice(0, state.boardVisibleByCategory[otherCategory.key]).map(taskCardHTML).join('') || '<p>No tasks</p>'}
-            <div class="column-expand-controls">
-              ${
-                grouped[otherCategory.key].length > state.boardVisibleByCategory[otherCategory.key]
-                  ? `<button class="load-more-button" data-action="load-more" data-category="${otherCategory.key}">Load more</button>`
-                  : ''
-              }
-              ${
-                state.boardVisibleByCategory[otherCategory.key] > 4
-                  ? `<button class="load-more-button" data-action="collapse-more" data-category="${otherCategory.key}">Collapse</button>`
-                  : ''
-              }
-            </div>
-          </section>
-        `
-        : '';
-
-      elements.boardContainer.innerHTML = `
-        ${columnBuckets
-          .map(
-            (bucket) => `
-          <div class="board-column-stack">
-            ${bucket.join('')}
-          </div>
-        `,
-          )
-          .join('')}
-        ${otherSection}
-      `;
+      elements.boardContainer.innerHTML = columnBuckets
+        .map(
+          (bucket) => `
+        <div class="board-column-stack">
+          ${bucket.join('')}
+        </div>
+      `,
+        )
+        .join('');
     } else if (state.layout === 'tabs') {
       elements.boardContainer.className = 'board tabs';
       const active = categories.find((c) => c.key === state.activeTab) || categories[0];
