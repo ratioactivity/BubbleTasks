@@ -13,6 +13,8 @@ window.addEventListener('DOMContentLoaded', () => {
     { key: 'Other', color: 'var(--other)', gif: 'assets/purple.gif' },
   ];
 
+  const agendaDefaults = ['Check email', 'Check calendar', 'Add daily tasks', 'Track previous day'];
+
   const state = {
     tasks: [],
     archived: [],
@@ -22,12 +24,18 @@ window.addEventListener('DOMContentLoaded', () => {
     activeTab: 'Work',
     weatherSummary: 'Loading weather...',
     boardVisibleByCategory: {},
+    agenda: {
+      dateKey: '',
+      items: [],
+      previousDayItems: [],
+    },
   };
 
   const elements = {
     dateTimeCard: document.getElementById('dateTimeCard'),
     feedCard: document.getElementById('feedCard'),
     completionCard: document.getElementById('completionCard'),
+    agendaCard: document.getElementById('agendaCard'),
     boardContainer: document.getElementById('boardContainer'),
     taskTitleInput: document.getElementById('taskTitleInput'),
     taskCategoryInput: document.getElementById('taskCategoryInput'),
@@ -59,6 +67,7 @@ window.addEventListener('DOMContentLoaded', () => {
       const parsed = JSON.parse(raw);
       Object.assign(state, parsed);
     }
+    ensureAgendaForToday();
     categories.forEach((category) => {
       if (!Number.isFinite(state.boardVisibleByCategory?.[category.key])) {
         state.boardVisibleByCategory[category.key] = 4;
@@ -68,6 +77,47 @@ window.addEventListener('DOMContentLoaded', () => {
 
   const nowISO = () => new Date().toISOString();
   const stars = (n) => (n ? '★'.repeat(n) : '');
+  const todayKey = () => new Date().toISOString().slice(0, 10);
+
+  const normalizeAgendaItem = (item, fallbackTitle) => ({
+    id: item?.id || crypto.randomUUID(),
+    title: (item?.title || fallbackTitle || 'Untitled Agenda Task').trim(),
+    completed: Boolean(item?.completed),
+    isDefault: Boolean(item?.isDefault),
+  });
+
+  const buildDefaultAgendaItems = () =>
+    agendaDefaults.map((title) => ({ id: crypto.randomUUID(), title, completed: false, isDefault: true }));
+
+  const ensureAgendaForToday = () => {
+    const today = todayKey();
+    const hasAgendaObject = state.agenda && typeof state.agenda === 'object';
+    if (!hasAgendaObject) {
+      state.agenda = { dateKey: today, items: buildDefaultAgendaItems(), previousDayItems: [] };
+    }
+
+    if (!Array.isArray(state.agenda.items)) {
+      state.agenda.items = buildDefaultAgendaItems();
+    } else {
+      state.agenda.items = state.agenda.items.map((item) => normalizeAgendaItem(item));
+    }
+
+    if (!Array.isArray(state.agenda.previousDayItems)) {
+      state.agenda.previousDayItems = [];
+    } else {
+      state.agenda.previousDayItems = state.agenda.previousDayItems.map((item) => normalizeAgendaItem(item));
+    }
+
+    if (!state.agenda.dateKey) {
+      state.agenda.dateKey = today;
+    }
+
+    if (state.agenda.dateKey !== today) {
+      state.agenda.previousDayItems = state.agenda.items.map((item) => ({ ...item, completed: false }));
+      state.agenda.items = buildDefaultAgendaItems();
+      state.agenda.dateKey = today;
+    }
+  };
 
   const sortedTasks = (tasks) => {
     return [...tasks].sort((a, b) => {
@@ -268,6 +318,45 @@ window.addEventListener('DOMContentLoaded', () => {
         .join('') || '<p>Archive is empty.</p>';
   };
 
+  const renderAgenda = () => {
+    ensureAgendaForToday();
+    const agendaItems = state.agenda.items;
+    const completedCount = agendaItems.filter((item) => item.completed).length;
+    const progressPercent = agendaItems.length > 0 ? Math.round((completedCount / agendaItems.length) * 100) : 0;
+
+    elements.agendaCard.innerHTML = `
+      <h2>Today's Agenda</h2>
+      <p class="agenda-progress">Progress: ${progressPercent}% (${completedCount}/${agendaItems.length})</p>
+      <div class="agenda-progress-track" aria-hidden="true">
+        <div class="agenda-progress-fill" style="width:${progressPercent}%;"></div>
+      </div>
+      <div class="agenda-add-row">
+        <input id="agendaAddInput" type="text" placeholder="Add agenda task" />
+        <button id="agendaAddButton" type="button">Add</button>
+      </div>
+      <div class="agenda-restore-row">
+        <button id="restoreYesterdayAgendaButton" type="button">Bring back yesterday's tasks</button>
+      </div>
+      <ul class="agenda-list">
+        ${
+          agendaItems
+            .map(
+              (item) => `
+          <li>
+            <label class="agenda-item ${item.completed ? 'is-done' : ''}">
+              <input type="checkbox" data-agenda-action="toggle" data-id="${item.id}" ${item.completed ? 'checked' : ''} />
+              <span>${item.title}</span>
+            </label>
+            ${item.isDefault ? '' : `<button type="button" data-agenda-action="remove" data-id="${item.id}">Remove</button>`}
+          </li>
+        `,
+            )
+            .join('') || '<li>No agenda items yet.</li>'
+        }
+      </ul>
+    `;
+  };
+
   const renderBored = () => {
     elements.boredList.innerHTML =
       state.bored
@@ -289,6 +378,7 @@ window.addEventListener('DOMContentLoaded', () => {
     renderDateTime();
     renderFeed();
     renderCompletion();
+    renderAgenda();
     renderBoard();
     renderArchive();
     renderBored();
@@ -524,6 +614,72 @@ window.addEventListener('DOMContentLoaded', () => {
     if (!id) return;
     state.bored = state.bored.filter((item) => item.id !== id);
     renderAll();
+  });
+
+  elements.agendaCard.addEventListener('click', (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLElement)) return;
+
+    if (target.id === 'agendaAddButton') {
+      const agendaInput = elements.agendaCard.querySelector('#agendaAddInput');
+      if (!(agendaInput instanceof HTMLInputElement)) {
+        renderAll();
+      }
+      if (agendaInput instanceof HTMLInputElement) {
+        const title = agendaInput.value.trim();
+        if (title) {
+          state.agenda.items.push({
+            id: crypto.randomUUID(),
+            title,
+            completed: false,
+            isDefault: false,
+          });
+          agendaInput.value = '';
+          renderAll();
+        }
+      }
+    }
+
+    if (target.id === 'restoreYesterdayAgendaButton') {
+      const existingTitles = new Set(state.agenda.items.map((item) => item.title.toLowerCase()));
+      state.agenda.previousDayItems.forEach((item) => {
+        if (!existingTitles.has(item.title.toLowerCase())) {
+          state.agenda.items.push({
+            id: crypto.randomUUID(),
+            title: item.title,
+            completed: false,
+            isDefault: false,
+          });
+        }
+      });
+      renderAll();
+    }
+
+    const action = target.dataset.agendaAction;
+    const itemId = target.dataset.id;
+    if (!action || !itemId) return;
+    const agendaItem = state.agenda.items.find((item) => item.id === itemId);
+    if (!agendaItem) return;
+
+    if (action === 'toggle') {
+      agendaItem.completed = !agendaItem.completed;
+    }
+    if (action === 'remove' && !agendaItem.isDefault) {
+      state.agenda.items = state.agenda.items.filter((item) => item.id !== itemId);
+    }
+
+    renderAll();
+  });
+
+  elements.agendaCard.addEventListener('keydown', (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLElement)) return;
+    if (event.key !== 'Enter') return;
+    if (target.id !== 'agendaAddInput') return;
+    const addButton = elements.agendaCard.querySelector('#agendaAddButton');
+    if (addButton instanceof HTMLElement) {
+      addButton.click();
+    }
   });
 
   setInterval(renderDateTime, 1000 * 30);
