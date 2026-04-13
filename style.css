@@ -79,6 +79,7 @@ button:hover { filter: brightness(.97); }
 .agenda-item input { width: 16px; height: 16px; }
 .agenda-item.is-done span { text-decoration: line-through; opacity: .85; }
 .board.columns { display: grid; gap: 10px; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: start; }
+.board-column-stack { display: grid; gap: 10px; align-content: start; }
 .board.tabs { display: grid; gap: 10px; align-content: start; grid-template-rows: auto minmax(0, 1fr); min-height: 0; }
 .board.day { display: grid; gap: 10px; grid-template-columns: repeat(2, minmax(0,1fr)); align-content: start; align-items: flex-start; }
 .board.tabs .category-column { height: 100%; min-height: 0; }

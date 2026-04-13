@@ -231,28 +231,66 @@ window.addEventListener('DOMContentLoaded', () => {
 
     if (state.layout === 'columns') {
       elements.boardContainer.className = 'board columns';
-      elements.boardContainer.innerHTML = categories
-        .map(
-          (c) => `
-        <section class="category-column ${c.key === 'Other' ? 'other-full' : ''}" style="background-color:${c.color}; background-image:url(${c.gif});">
-          <div class="category-title"><h3>${c.key}</h3></div>
-          ${grouped[c.key].slice(0, state.boardVisibleByCategory[c.key]).map(taskCardHTML).join('') || '<p>No tasks</p>'}
+
+      const renderCategorySection = (category) => `
+        <section class="category-column" style="background-color:${category.color}; background-image:url(${category.gif});">
+          <div class="category-title"><h3>${category.key}</h3></div>
+          ${grouped[category.key].slice(0, state.boardVisibleByCategory[category.key]).map(taskCardHTML).join('') || '<p>No tasks</p>'}
           <div class="column-expand-controls">
             ${
-              grouped[c.key].length > state.boardVisibleByCategory[c.key]
-                ? `<button class="load-more-button" data-action="load-more" data-category="${c.key}">Load more</button>`
+              grouped[category.key].length > state.boardVisibleByCategory[category.key]
+                ? `<button class="load-more-button" data-action="load-more" data-category="${category.key}">Load more</button>`
                 : ''
             }
             ${
-              state.boardVisibleByCategory[c.key] > 4
-                ? `<button class="load-more-button" data-action="collapse-more" data-category="${c.key}">Collapse</button>`
+              state.boardVisibleByCategory[category.key] > 4
+                ? `<button class="load-more-button" data-action="collapse-more" data-category="${category.key}">Collapse</button>`
                 : ''
             }
           </div>
         </section>
-      `,
-        )
-        .join('');
+      `;
+
+      const nonOtherCategories = categories.filter((category) => category.key !== 'Other');
+      const columnBuckets = [[], [], []];
+      nonOtherCategories.forEach((category, index) => {
+        columnBuckets[index % columnBuckets.length].push(renderCategorySection(category));
+      });
+
+      const otherCategory = categories.find((category) => category.key === 'Other');
+      const otherSection = otherCategory
+        ? `
+          <section class="category-column other-full" style="background-color:${otherCategory.color}; background-image:url(${otherCategory.gif});">
+            <div class="category-title"><h3>${otherCategory.key}</h3></div>
+            ${grouped[otherCategory.key].slice(0, state.boardVisibleByCategory[otherCategory.key]).map(taskCardHTML).join('') || '<p>No tasks</p>'}
+            <div class="column-expand-controls">
+              ${
+                grouped[otherCategory.key].length > state.boardVisibleByCategory[otherCategory.key]
+                  ? `<button class="load-more-button" data-action="load-more" data-category="${otherCategory.key}">Load more</button>`
+                  : ''
+              }
+              ${
+                state.boardVisibleByCategory[otherCategory.key] > 4
+                  ? `<button class="load-more-button" data-action="collapse-more" data-category="${otherCategory.key}">Collapse</button>`
+                  : ''
+              }
+            </div>
+          </section>
+        `
+        : '';
+
+      elements.boardContainer.innerHTML = `
+        ${columnBuckets
+          .map(
+            (bucket) => `
+          <div class="board-column-stack">
+            ${bucket.join('')}
+          </div>
+        `,
+          )
+          .join('')}
+        ${otherSection}
+      `;
     } else if (state.layout === 'tabs') {
       elements.boardContainer.className = 'board tabs';
       const active = categories.find((c) => c.key === state.activeTab) || categories[0];
