@@ -5,15 +5,16 @@ window.addEventListener('DOMContentLoaded', () => {
   const WEATHER_LON = -93.2982;
   const categories = [
     { key: 'Work', color: 'var(--work)', gif: 'assets/green.gif' },
-    { key: 'School', color: 'var(--school)', gif: 'assets/teal.gif' },
     { key: 'Business', color: 'var(--business)', gif: 'assets/blue.gif' },
     { key: 'Home', color: 'var(--home)', gif: 'assets/pink.gif' },
     { key: 'Personal', color: 'var(--personal)', gif: 'assets/orange.gif' },
     { key: 'Creative', color: 'var(--creative)', gif: 'assets/yellow.gif' },
+    { key: 'Writing', color: 'var(--school)', gif: 'assets/teal.gif' },
     { key: 'Other', color: 'var(--other)', gif: 'assets/purple.gif' },
   ];
+  const categoryByWeekday = ['Home', 'Personal', 'Work', 'Writing', 'Business', 'Creative', 'Other'];
 
-  const agendaDefaults = ['Check email', 'Check calendar', 'Add daily tasks', 'Track previous day'];
+  const agendaDefaults = ['Update daily tasks', 'Track previous day'];
 
   const state = {
     tasks: [],
@@ -61,11 +62,17 @@ window.addEventListener('DOMContentLoaded', () => {
   };
 
   const save = () => localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  const normalizeCategoryKey = (categoryKey) => {
+    if (categoryKey === 'School' || categoryKey === 'X') return 'Writing';
+    return categories.some((category) => category.key === categoryKey) ? categoryKey : 'Other';
+  };
   const load = () => {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
       Object.assign(state, parsed);
+      state.tasks = (state.tasks || []).map((task) => ({ ...task, category: normalizeCategoryKey(task.category) }));
+      state.archived = (state.archived || []).map((task) => ({ ...task, category: normalizeCategoryKey(task.category) }));
     }
     ensureAgendaForToday();
     categories.forEach((category) => {
@@ -78,6 +85,10 @@ window.addEventListener('DOMContentLoaded', () => {
   const nowISO = () => new Date().toISOString();
   const stars = (n) => (n ? '★'.repeat(n) : '');
   const todayKey = () => new Date().toISOString().slice(0, 10);
+  const parseLocalDate = (isoDate) => {
+    const [year, month, day] = isoDate.split('-').map(Number);
+    return new Date(year, month - 1, day);
+  };
 
   const normalizeAgendaItem = (item, fallbackTitle) => ({
     id: item?.id || crypto.randomUUID(),
@@ -99,7 +110,22 @@ window.addEventListener('DOMContentLoaded', () => {
     if (!Array.isArray(state.agenda.items)) {
       state.agenda.items = buildDefaultAgendaItems();
     } else {
-      state.agenda.items = state.agenda.items.map((item) => normalizeAgendaItem(item));
+      const customItems = state.agenda.items.filter((item) => !item?.isDefault).map((item) => normalizeAgendaItem(item));
+      const existingDefaults = new Map(
+        state.agenda.items.filter((item) => item?.isDefault).map((item) => [item.title, normalizeAgendaItem(item)]),
+      );
+      if (!existingDefaults.has('Update daily tasks') && existingDefaults.has('Add daily tasks')) {
+        existingDefaults.set('Update daily tasks', {
+          ...existingDefaults.get('Add daily tasks'),
+          title: 'Update daily tasks',
+        });
+      }
+      state.agenda.items = [
+        ...agendaDefaults.map(
+          (title) => existingDefaults.get(title) || { id: crypto.randomUUID(), title, completed: false, isDefault: true },
+        ),
+        ...customItems,
+      ];
     }
 
     if (!Array.isArray(state.agenda.previousDayItems)) {
@@ -135,9 +161,17 @@ window.addEventListener('DOMContentLoaded', () => {
 
   const formatDayLabel = (isoDate) => {
     if (!isoDate) return 'No Due Date';
-    const parsedDate = new Date(isoDate);
+    const parsedDate = parseLocalDate(isoDate);
     if (Number.isNaN(parsedDate.getTime())) return 'No Due Date';
     return parsedDate.toLocaleDateString(undefined, { month: 'numeric', day: 'numeric' });
+  };
+
+  const categoryForDay = (dayKey) => {
+    if (dayKey === 'no-due-date') return categories.find((category) => category.key === 'Other');
+
+    const weekday = parseLocalDate(dayKey).getDay();
+    const categoryKey = categoryByWeekday[weekday] || 'Other';
+    return categories.find((category) => category.key === categoryKey);
   };
 
   const renderDateTime = () => {
@@ -205,7 +239,7 @@ window.addEventListener('DOMContentLoaded', () => {
   };
 
   const taskCardHTML = (task) => {
-    const due = task.dueDate ? `Due: ${new Date(task.dueDate).toLocaleDateString()}` : '&nbsp;';
+    const due = task.dueDate ? `Due: ${parseLocalDate(task.dueDate).toLocaleDateString()}` : '&nbsp;';
     const priority = task.priority ? `Priority: ${stars(task.priority)}` : '&nbsp;';
     return `
       <article class="task-card" data-id="${task.id}">
@@ -309,8 +343,9 @@ window.addEventListener('DOMContentLoaded', () => {
       elements.boardContainer.innerHTML = orderedDayKeys
         .map((dayKey) => {
           const label = dayKey === 'no-due-date' ? 'No Due Date' : formatDayLabel(dayKey);
+          const dayCategory = categoryForDay(dayKey);
           return `
-            <section class="category-column day-column">
+            <section class="category-column day-column" data-day-category="${dayCategory.key}" style="background-color:${dayCategory.color}; background-image:url(${dayCategory.gif});">
               <div class="category-title"><h3>${label}</h3></div>
               ${dayGroups[dayKey].map(taskCardHTML).join('') || '<p>No tasks</p>'}
             </section>
@@ -444,7 +479,7 @@ window.addEventListener('DOMContentLoaded', () => {
       state.tasks = safeTasks.map((task) => ({
         id: task.id || crypto.randomUUID(),
         title: task.title || 'Untitled Task',
-        category: categories.some((c) => c.key === task.category) ? task.category : 'Other',
+        category: normalizeCategoryKey(task.category),
         status: task.status || 'Not Started',
         dueDate: task.dueDate || null,
         priority: Number.isFinite(task.priority) ? task.priority : null,
@@ -453,7 +488,7 @@ window.addEventListener('DOMContentLoaded', () => {
       state.archived = safeArchived.map((task) => ({
         id: task.id || crypto.randomUUID(),
         title: task.title || 'Untitled Task',
-        category: categories.some((c) => c.key === task.category) ? task.category : 'Other',
+        category: normalizeCategoryKey(task.category),
         status: 'Complete',
         dueDate: task.dueDate || null,
         priority: Number.isFinite(task.priority) ? task.priority : null,
@@ -467,9 +502,7 @@ window.addEventListener('DOMContentLoaded', () => {
       if (parsed?.layout === 'columns' || parsed?.layout === 'tabs' || parsed?.layout === 'day') {
         state.layout = parsed.layout;
       }
-      if (categories.some((c) => c.key === parsed?.activeTab)) {
-        state.activeTab = parsed.activeTab;
-      }
+      state.activeTab = normalizeCategoryKey(parsed?.activeTab);
     } catch (error) {
       window.alert('Invalid backup file format. Please select a BubbleTasks backup JSON file.');
     }

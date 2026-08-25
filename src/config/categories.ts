@@ -37,9 +37,9 @@ export const CATEGORY_CONFIG: Record<CategoryKey, CategoryConfig> = {
     textColor: '#ffffff',
     gifAssetPath: '/assets/green.gif',
   },
-  School: {
-    key: 'School',
-    label: 'School',
+  Writing: {
+    key: 'Writing',
+    label: 'Writing',
     pastelColor: '#8ec0e8',
     textColor: '#ffffff',
     gifAssetPath: '/assets/teal.gif',
@@ -62,10 +62,10 @@ export const CATEGORY_CONFIG: Record<CategoryKey, CategoryConfig> = {
 
 export const CATEGORY_ORDER: CategoryKey[] = [
   'Work',
-  'School',
   'Business',
   'Home',
   'Personal',
   'Creative',
+  'Writing',
   'Other',
 ];

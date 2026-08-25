@@ -1,5 +1,5 @@
 import type { PersistedSettings, PersistedState, TasksRepository } from './types';
-import type { BoredTask, Task } from '../../types/task';
+import { normalizeCategoryKey, type BoredTask, type Task } from '../../types/task';
 
 const STORAGE_KEY = 'bubbletasks_state_v1';
 
@@ -25,8 +25,8 @@ const read = (): LocalStorageShape | null => {
   try {
     const parsed = JSON.parse(raw) as LocalStorageShape;
     return {
-      tasks: parsed.tasks ?? [],
-      archivedTasks: parsed.archivedTasks ?? [],
+      tasks: (parsed.tasks ?? []).map((task) => ({ ...task, category: normalizeCategoryKey(task.category) })),
+      archivedTasks: (parsed.archivedTasks ?? []).map((task) => ({ ...task, category: normalizeCategoryKey(task.category) })),
       boredTasks: parsed.boredTasks ?? [],
       settings: parsed.settings ?? defaultSettings,
     };

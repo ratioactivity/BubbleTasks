@@ -15,7 +15,7 @@ export const DEV_SEEDED_TASKS: Task[] = [
   {
     id: 'task-2',
     title: 'Review class reading outline',
-    category: 'School',
+    category: 'Writing',
     status: 'in_progress',
     createdAt: '2026-03-25T09:00:00.000Z',
     updatedAt: '2026-03-25T09:30:00.000Z',
