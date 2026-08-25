@@ -1,11 +1,11 @@
 import { supabaseClient } from '../../lib/supabaseClient';
-import type { BoredTask, Task } from '../../types/task';
+import { normalizeCategoryKey, type BoredTask, type Task } from '../../types/task';
 import type { PersistedSettings, PersistedState, TasksRepository } from './types';
 
 interface TaskRow {
   id: string;
   title: string;
-  category: Task['category'];
+  category: string;
   status: Task['status'];
   due_date: string | null;
   priority: number | null;
@@ -33,7 +33,7 @@ const defaultSettings: PersistedSettings = {
 const toTask = (row: TaskRow): Task => ({
   id: row.id,
   title: row.title,
-  category: row.category,
+  category: normalizeCategoryKey(row.category),
   status: row.status,
   dueDate: row.due_date ?? undefined,
   priority: row.priority ? (row.priority as 1 | 2 | 3 | 4 | 5) : undefined,
