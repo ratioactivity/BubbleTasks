@@ -79,6 +79,10 @@ window.addEventListener('DOMContentLoaded', () => {
   const nowISO = () => new Date().toISOString();
   const stars = (n) => (n ? '★'.repeat(n) : '');
   const todayKey = () => new Date().toISOString().slice(0, 10);
+  const parseLocalDate = (isoDate) => {
+    const [year, month, day] = isoDate.split('-').map(Number);
+    return new Date(year, month - 1, day);
+  };
 
   const normalizeAgendaItem = (item, fallbackTitle) => ({
     id: item?.id || crypto.randomUUID(),
@@ -136,7 +140,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
   const formatDayLabel = (isoDate) => {
     if (!isoDate) return 'No Due Date';
-    const parsedDate = new Date(isoDate);
+    const parsedDate = parseLocalDate(isoDate);
     if (Number.isNaN(parsedDate.getTime())) return 'No Due Date';
     return parsedDate.toLocaleDateString(undefined, { month: 'numeric', day: 'numeric' });
   };
@@ -144,8 +148,7 @@ window.addEventListener('DOMContentLoaded', () => {
   const categoryForDay = (dayKey) => {
     if (dayKey === 'no-due-date') return categories.find((category) => category.key === 'Other');
 
-    const [year, month, day] = dayKey.split('-').map(Number);
-    const weekday = new Date(year, month - 1, day).getDay();
+    const weekday = parseLocalDate(dayKey).getDay();
     const categoryKey = categoryByWeekday[weekday] || 'Other';
     return categories.find((category) => category.key === categoryKey);
   };
@@ -215,7 +218,7 @@ window.addEventListener('DOMContentLoaded', () => {
   };
 
   const taskCardHTML = (task) => {
-    const due = task.dueDate ? `Due: ${new Date(task.dueDate).toLocaleDateString()}` : '&nbsp;';
+    const due = task.dueDate ? `Due: ${parseLocalDate(task.dueDate).toLocaleDateString()}` : '&nbsp;';
     const priority = task.priority ? `Priority: ${stars(task.priority)}` : '&nbsp;';
     return `
       <article class="task-card" data-id="${task.id}">
