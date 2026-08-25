@@ -4,7 +4,7 @@ export type TaskStatus = (typeof TASK_STATUSES)[number];
 
 export const CATEGORY_KEYS = [
   'Work',
-  'School',
+  'X',
   'Business',
   'Home',
   'Personal',
@@ -13,6 +13,14 @@ export const CATEGORY_KEYS = [
 ] as const;
 
 export type CategoryKey = (typeof CATEGORY_KEYS)[number];
+
+export const normalizeCategoryKey = (category: unknown): CategoryKey => {
+  if (category === 'School') {
+    return 'X';
+  }
+
+  return CATEGORY_KEYS.includes(category as CategoryKey) ? (category as CategoryKey) : 'Other';
+};
 
 export const LAYOUT_MODES = ['board', 'tabbed'] as const;
 
