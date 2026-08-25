@@ -12,6 +12,7 @@ window.addEventListener('DOMContentLoaded', () => {
     { key: 'Creative', color: 'var(--creative)', gif: 'assets/yellow.gif' },
     { key: 'Other', color: 'var(--other)', gif: 'assets/purple.gif' },
   ];
+  const categoryByWeekday = ['Home', 'Personal', 'Work', 'School', 'Business', 'Creative', 'Other'];
 
   const agendaDefaults = ['Check email', 'Check calendar', 'Add daily tasks', 'Track previous day'];
 
@@ -78,6 +79,10 @@ window.addEventListener('DOMContentLoaded', () => {
   const nowISO = () => new Date().toISOString();
   const stars = (n) => (n ? '★'.repeat(n) : '');
   const todayKey = () => new Date().toISOString().slice(0, 10);
+  const parseLocalDate = (isoDate) => {
+    const [year, month, day] = isoDate.split('-').map(Number);
+    return new Date(year, month - 1, day);
+  };
 
   const normalizeAgendaItem = (item, fallbackTitle) => ({
     id: item?.id || crypto.randomUUID(),
@@ -135,9 +140,17 @@ window.addEventListener('DOMContentLoaded', () => {
 
   const formatDayLabel = (isoDate) => {
     if (!isoDate) return 'No Due Date';
-    const parsedDate = new Date(isoDate);
+    const parsedDate = parseLocalDate(isoDate);
     if (Number.isNaN(parsedDate.getTime())) return 'No Due Date';
     return parsedDate.toLocaleDateString(undefined, { month: 'numeric', day: 'numeric' });
+  };
+
+  const categoryForDay = (dayKey) => {
+    if (dayKey === 'no-due-date') return categories.find((category) => category.key === 'Other');
+
+    const weekday = parseLocalDate(dayKey).getDay();
+    const categoryKey = categoryByWeekday[weekday] || 'Other';
+    return categories.find((category) => category.key === categoryKey);
   };
 
   const renderDateTime = () => {
@@ -205,7 +218,7 @@ window.addEventListener('DOMContentLoaded', () => {
   };
 
   const taskCardHTML = (task) => {
-    const due = task.dueDate ? `Due: ${new Date(task.dueDate).toLocaleDateString()}` : '&nbsp;';
+    const due = task.dueDate ? `Due: ${parseLocalDate(task.dueDate).toLocaleDateString()}` : '&nbsp;';
     const priority = task.priority ? `Priority: ${stars(task.priority)}` : '&nbsp;';
     return `
       <article class="task-card" data-id="${task.id}">
@@ -309,8 +322,9 @@ window.addEventListener('DOMContentLoaded', () => {
       elements.boardContainer.innerHTML = orderedDayKeys
         .map((dayKey) => {
           const label = dayKey === 'no-due-date' ? 'No Due Date' : formatDayLabel(dayKey);
+          const dayCategory = categoryForDay(dayKey);
           return `
-            <section class="category-column day-column">
+            <section class="category-column day-column" data-day-category="${dayCategory.key}" style="background-color:${dayCategory.color}; background-image:url(${dayCategory.gif});">
               <div class="category-title"><h3>${label}</h3></div>
               ${dayGroups[dayKey].map(taskCardHTML).join('') || '<p>No tasks</p>'}
             </section>

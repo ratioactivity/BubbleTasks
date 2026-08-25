@@ -5,7 +5,10 @@ export const formatDisplayDate = (isoDate?: string): string => {
     return '';
   }
 
-  const date = new Date(isoDate);
+  const dateOnlyMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(isoDate);
+  const date = dateOnlyMatch
+    ? new Date(Number(dateOnlyMatch[1]), Number(dateOnlyMatch[2]) - 1, Number(dateOnlyMatch[3]))
+    : new Date(isoDate);
 
   if (Number.isNaN(date.getTime())) {
     return '';
