@@ -5,14 +5,14 @@ window.addEventListener('DOMContentLoaded', () => {
   const WEATHER_LON = -93.2982;
   const categories = [
     { key: 'Work', color: 'var(--work)', gif: 'assets/green.gif' },
-    { key: 'X', color: 'var(--school)', gif: 'assets/teal.gif' },
     { key: 'Business', color: 'var(--business)', gif: 'assets/blue.gif' },
     { key: 'Home', color: 'var(--home)', gif: 'assets/pink.gif' },
     { key: 'Personal', color: 'var(--personal)', gif: 'assets/orange.gif' },
     { key: 'Creative', color: 'var(--creative)', gif: 'assets/yellow.gif' },
+    { key: 'Writing', color: 'var(--school)', gif: 'assets/teal.gif' },
     { key: 'Other', color: 'var(--other)', gif: 'assets/purple.gif' },
   ];
-  const categoryByWeekday = ['Home', 'Personal', 'Work', 'X', 'Business', 'Creative', 'Other'];
+  const categoryByWeekday = ['Home', 'Personal', 'Work', 'Writing', 'Business', 'Creative', 'Other'];
 
   const agendaDefaults = ['Update daily tasks', 'Track previous day'];
 
@@ -63,7 +63,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
   const save = () => localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   const normalizeCategoryKey = (categoryKey) => {
-    if (categoryKey === 'School') return 'X';
+    if (categoryKey === 'School' || categoryKey === 'X') return 'Writing';
     return categories.some((category) => category.key === categoryKey) ? categoryKey : 'Other';
   };
   const load = () => {

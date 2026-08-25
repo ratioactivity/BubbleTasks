@@ -4,19 +4,19 @@ export type TaskStatus = (typeof TASK_STATUSES)[number];
 
 export const CATEGORY_KEYS = [
   'Work',
-  'X',
   'Business',
   'Home',
   'Personal',
   'Creative',
+  'Writing',
   'Other',
 ] as const;
 
 export type CategoryKey = (typeof CATEGORY_KEYS)[number];
 
 export const normalizeCategoryKey = (category: unknown): CategoryKey => {
-  if (category === 'School') {
-    return 'X';
+  if (category === 'School' || category === 'X') {
+    return 'Writing';
   }
 
   return CATEGORY_KEYS.includes(category as CategoryKey) ? (category as CategoryKey) : 'Other';
