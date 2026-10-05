@@ -2,28 +2,83 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>BubbleTasks</title>
+    <link rel="icon" type="image/png" href="assets/icon128.png" />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <main class="app-shell">
-      <header class="app-header">
-        <h1>BubbleTasks</h1>
-        <form id="task-form" class="task-form">
-          <input id="task-title" aria-label="Task title" placeholder="Task title" required />
-          <select id="task-category" aria-label="Category"></select>
-          <select id="task-story" aria-label="Story"></select>
-          <input id="task-date" type="date" aria-label="Due date" />
-          <input id="task-priority" type="number" min="1" max="5" value="3" aria-label="Priority (1-5)" />
-          <button type="submit">Add Task</button>
-        </form>
-        <button id="layout-toggle" class="soft-button" type="button">Layout: tabs</button>
-      </header>
+    <div id="app">
+      <aside class="sidebar panel">
+        <section class="card" id="dateTimeCard"></section>
+        <section class="card" id="agendaCard"></section>
+        <section class="card" id="feedCard"></section>
+        <section class="card" id="completionCard"></section>
+      </aside>
 
-      <nav id="category-tabs" class="category-tabs" aria-label="Task categories"></nav>
-      <section id="task-board" aria-live="polite"></section>
-    </main>
+      <main class="main panel">
+        <header class="card controls">
+          <div class="title-row">
+            <h1>BubbleTasks</h1>
+            <div class="accent-stars" aria-hidden="true">
+              <img src="assets/singlestar3.gif" alt="" class="tiny-star tiny-star-lg" />
+              <img src="assets/singlestar3.gif" alt="" class="tiny-star" />
+              <img src="assets/singlestar3.gif" alt="" class="tiny-star tiny-star-sm" />
+            </div>
+          </div>
+          <div class="task-form">
+            <input id="taskTitleInput" aria-label="Task title" placeholder="Task title" />
+            <select id="taskCategoryInput" aria-label="Category"></select>
+            <select id="taskStoryInput" aria-label="Story" hidden></select>
+            <input id="taskDueDateInput" aria-label="Due date" type="date" />
+            <input id="taskPriorityInput" aria-label="Priority (1-5)" type="number" min="1" max="5" placeholder="Priority (1-5)" />
+            <button id="addTaskButton">Add Task</button>
+          </div>
+          <div class="toolbar">
+            <button id="layoutToggleButton">Switch Layout</button>
+            <button id="backupTasksButton">Backup Tasks</button>
+            <button id="loadBackupButton">Load Backup</button>
+            <button id="openArchiveButton">Archive</button>
+            <button id="openBoredButton">Bored List</button>
+          </div>
+        </header>
+
+        <section id="boardContainer" class="board"></section>
+      </main>
+    </div>
+
+    <div id="archiveModal" class="modal hidden" aria-hidden="true">
+      <div class="modal-body">
+        <h2>Archive</h2>
+        <div id="archiveList"></div>
+        <div class="modal-actions">
+          <button id="clearArchiveButton">Delete All</button>
+          <button id="resetInsightsButton">Reset Insights</button>
+          <button id="closeArchiveButton">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="boredModal" class="modal hidden" aria-hidden="true">
+      <div class="modal-body">
+        <h2>Bored Tasks</h2>
+        <div class="bored-form-row">
+          <input id="boredInput" placeholder="Something quick to do" />
+          <button id="addBoredButton">Add</button>
+        </div>
+        <div id="boredList"></div>
+        <div class="modal-actions">
+          <button id="closeBoredButton">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <a class="floating-logo" href="https://github.com/ratioactivity" target="_blank" rel="noreferrer">
+      <img src="assets/icon128.png" alt="BubbleTasks logo" />
+    </a>
+    <input id="backupFileInput" type="file" accept="application/json,.json" hidden />
+
     <script src="script.js"></script>
   </body>
 </html>
+
