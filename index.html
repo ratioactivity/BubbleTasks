@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>BubbleTasks</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="app-header">
+        <h1>BubbleTasks</h1>
+        <form id="task-form" class="task-form">
+          <input id="task-title" aria-label="Task title" placeholder="Task title" required />
+          <select id="task-category" aria-label="Category"></select>
+          <select id="task-story" aria-label="Story"></select>
+          <input id="task-date" type="date" aria-label="Due date" />
+          <input id="task-priority" type="number" min="1" max="5" value="3" aria-label="Priority (1-5)" />
+          <button type="submit">Add Task</button>
+        </form>
+        <button id="layout-toggle" class="soft-button" type="button">Layout: tabs</button>
+      </header>
+
+      <nav id="category-tabs" class="category-tabs" aria-label="Task categories"></nav>
+      <section id="task-board" aria-live="polite"></section>
+    </main>
+    <script src="script.js"></script>
+  </body>
+</html>
