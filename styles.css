@@ -20,7 +20,9 @@ input, select, button { min-height: 44px; border: 1px solid rgba(255,255,255,.7)
 .task-card { position: relative; min-height: 330px; overflow: hidden; border: 2px solid rgba(255,255,255,.8); border-radius: 22px; background-position: center; background-size: cover; box-shadow: 0 8px 20px rgba(46,49,86,.16); }
 .task-card::before { content:""; position:absolute; inset:0; background:rgba(255,255,255,.6); backdrop-filter: blur(1px); }
 .card-content { position: relative; padding: 14px; }
-.story-banner { display: block; width: 100%; height: 115px; object-fit: cover; border-radius: 14px; border: 2px solid rgba(255,255,255,.8); }
+.has-banner .card-content { padding: 0; }
+.has-banner .card-body { padding: 14px; }
+.story-banner { display: block; width: 100%; height: 150px; object-fit: cover; }
 .task-card h2 { margin: 12px 0 8px; font: 38px/1 "Big Besty", cursive; color: #fff; text-shadow: 0 3px 3px #47627c; }
 .task-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
 .task-item { display:flex; gap:8px; align-items:flex-start; padding:10px; border-radius:12px; background:rgba(255,255,255,.82); }

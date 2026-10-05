@@ -1,10 +1,10 @@
 const CATEGORIES = ["Work", "Business", "Home", "Personal", "Creative", "Writing", "Other"];
 const STORIES = [
-  ["BOTA", "BOTAbkg.gif"], ["APEX", "apexbkg.gif"], ["Parallel", "parallelbkg.gif"],
-  ["Black & Blue", "blackandbluebkg.gif"], ["Wild Skies", "wildskiesbkg.gif"],
-  ["Mask", "maskbkg.gif"], ["Teeth", "teethbkg.gif"], ["Ruse", "rusebkg.gif"],
-  ["Horizon Line", "horizonlinebkg.gif"], ["Sleeper", "sleeperbkg.gif"],
-  ["Coup", "coupbkg.gif"], ["Kaleidoscope", "kaleidoscopebkg.gif"]
+  ["BOTA", "BOTAbkg.gif", "placeholder.png"], ["APEX", "apexbkg.gif", "placeholder.png"], ["Parallel", "parallelbkg.gif", "placeholder.png"],
+  ["Black & Blue", "blackandbluebkg.gif", "blackandblue.png"], ["Wild Skies", "wildskiesbkg.gif", "placeholder.png"],
+  ["Mask", "maskbkg.gif", "placeholder.png"], ["Teeth", "teethbkg.gif", "placeholder.png"], ["Ruse", "rusebkg.gif", "placeholder.png"],
+  ["Horizon Line", "horizonlinebkg.gif", "placeholder.png"], ["Sleeper", "sleeperbkg.gif", "placeholder.png"],
+  ["Coup", "coupbkg.gif", "placeholder.png"], ["Kaleidoscope", "kaleidoscopebkg.gif", "placeholder.png"]
 ];
 const CARD_LIMIT = 5;
 
@@ -44,15 +44,15 @@ window.addEventListener("DOMContentLoaded", () => {
       <button class="delete-task" data-delete="${task.id}" aria-label="Delete ${escapeHtml(task.title)}">×</button></li>`;
   }
 
-  function cardMarkup({ title, background, banner, items, showStory = false, key }) {
+  function cardMarkup({ title, background, banner, items, showStory = false, showTitle = true, key }) {
     const count = visibleCounts[key] || CARD_LIMIT;
     const shown = items.slice(0, count);
-    return `<article class="task-card" style="background-image:url('${background}')"><div class="card-content">
-      ${banner ? `<img class="story-banner" src="assets/banners/placeholder.png" alt="${escapeHtml(title)} banner">` : ""}
-      <h2>${escapeHtml(title)}</h2>
+    return `<article class="task-card ${banner ? "has-banner" : ""}" style="background-image:url('${background}')"><div class="card-content">
+      ${banner ? `<img class="story-banner" src="assets/banners/${banner}" alt="${escapeHtml(title)} banner">` : ""}
+      <div class="card-body">${showTitle ? `<h2>${escapeHtml(title)}</h2>` : ""}
       ${shown.length ? `<ul class="task-list">${shown.map((task) => taskMarkup(task, showStory)).join("")}</ul>` : `<p class="empty-state">No tasks</p>`}
       ${items.length > count ? `<button class="load-more" data-load="${key}">Load more (${items.length - count})</button>` : ""}
-    </div></article>`;
+      </div></div></article>`;
   }
 
   function renderTabs() {
@@ -64,7 +64,7 @@ window.addEventListener("DOMContentLoaded", () => {
     tabs.hidden = layout === "columns";
     if (layout === "tabs" && activeCategory === "Writing") {
       board.className = "board-grid writing-grid";
-      board.innerHTML = STORIES.map(([story, gif]) => cardMarkup({ title: story, background: `assets/backgrounds/${gif}`, banner: true, items: sortedTasks("Writing", story), key: `story:${story}` })).join("");
+      board.innerHTML = STORIES.map(([story, gif, banner]) => cardMarkup({ title: story, background: `assets/backgrounds/${gif}`, banner, showTitle: false, items: sortedTasks("Writing", story), key: `story:${story}` })).join("");
     } else if (layout === "tabs") {
       board.className = "board-grid";
       board.innerHTML = cardMarkup({ title: activeCategory, background: `assets/${activeCategory === "Writing" ? "blue" : "teal"}.gif`, items: sortedTasks(activeCategory), key: `category:${activeCategory}` });
