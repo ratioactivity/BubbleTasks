@@ -14,6 +14,8 @@ window.addEventListener('DOMContentLoaded', () => {
   ];
   const categoryByWeekday = ['Home', 'Personal', 'Work', 'Writing', 'Business', 'Creative', 'Other'];
 
+  const STORY_TASK_LIMIT = 3;
+  const storyVisibleCounts = {};
   const stories = [
     ['BOTA', 'BOTAbkg.gif', 'placeholder.png'], ['APEX', 'apexbkg.gif', 'placeholder.png'],
     ['Parallel', 'parallelbkg.gif', 'placeholder.png'], ['Black & Blue', 'blackandbluebkg.gif', 'blackandblue.png'],
@@ -184,6 +186,10 @@ window.addEventListener('DOMContentLoaded', () => {
 
   const sortedTasks = (tasks) => {
     return [...tasks].sort((a, b) => {
+      if (a.category === 'Writing' && b.category === 'Writing') {
+        const priorityDifference = (Number(b.priority) || 0) - (Number(a.priority) || 0);
+        if (priorityDifference) return priorityDifference;
+      }
       const da = a.dueDate ? new Date(a.dueDate).getTime() : null;
       const db = b.dueDate ? new Date(b.dueDate).getTime() : null;
       if (da !== null && db !== null) {
@@ -363,11 +369,11 @@ window.addEventListener('DOMContentLoaded', () => {
       `;
       if (active.key === 'Writing') {
         const renderStory = ([title, gif, banner], tasks, key) => {
-          const limit = state.boardVisibleByCategory[key] || 5;
-          return `<section class="category-column story-column" style="background-color:var(--school);background-image:url('assets/backgrounds/${gif}')">
+          const limit = storyVisibleCounts[key] || STORY_TASK_LIMIT;
+          return `<section class="category-column story-column" data-story="${escapeHtml(title)}" style="background-color:var(--school);background-image:url('assets/backgrounds/${gif}')">
             <img class="story-banner" src="assets/banners/${banner}" alt="${escapeHtml(title)} banner">
             ${banner === 'placeholder.png' ? `<h3>${escapeHtml(title)}</h3>` : ''}
-            ${tasks.slice(0, limit).map(taskCardHTML).join('') || '<p>No tasks</p>'}
+            ${sortedTasks(tasks).slice(0, limit).map(taskCardHTML).join('') || '<p>No tasks</p>'}
             ${tasks.length > limit ? `<button data-action="load-story" data-story-key="${key}">Load more (${tasks.length - limit})</button>` : ''}
           </section>`;
         };
@@ -594,7 +600,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
   elements.taskCategoryInput.innerHTML = categories.map((c) => `<option>${c.key}</option>`).join('');
 
-  elements.taskStoryInput.innerHTML = stories.map(([name]) => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join('');
+  elements.taskStoryInput.innerHTML = '<option value="">Other</option>' + stories.map(([name]) => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join('');
   const updateStoryControl = () => {
     const writing = elements.taskCategoryInput.value === 'Writing';
     elements.taskStoryInput.hidden = !writing;
@@ -642,7 +648,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
     if (target.dataset.action === 'load-story') {
       const key = target.dataset.storyKey;
-      state.boardVisibleByCategory[key] = (state.boardVisibleByCategory[key] || 5) + 5;
+      storyVisibleCounts[key] = (storyVisibleCounts[key] || STORY_TASK_LIMIT) + STORY_TASK_LIMIT;
       renderAll();
     }
     const card = target.closest('.task-card');

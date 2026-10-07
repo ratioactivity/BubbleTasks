@@ -164,3 +164,26 @@ input::placeholder { color: rgba(255,255,255,.85); }
 .story-chip { color: #244467; font-weight: bold; }
 @media (max-width: 1300px) { .task-form { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 520px) { .task-form { grid-template-columns: 1fr; } }
+
+/* Story-specific reading colors; preserve headings except Teeth. */
+.story-column { --story-text: #ffffff; }
+.story-column[data-story="BOTA"],
+.story-column[data-story="Other Writing"] { --story-text: #240000; }
+.story-column[data-story="Parallel"] { --story-text: #e8f6ff; }
+.story-column[data-story="Teeth"] { --story-text: #350000; }
+.story-column,
+.story-column .task-card,
+.story-column .task-card strong,
+.story-column .task-meta,
+.story-column .story-chip,
+.story-column .task-card button { color: var(--story-text); }
+.story-column .task-meta { opacity: 1; }
+.story-column .task-card { background: rgba(0,0,0,.45); }
+.story-column .task-card button { background: rgba(0,0,0,.4); }
+.story-column[data-story="BOTA"] .task-card,
+.story-column[data-story="Other Writing"] .task-card,
+.story-column[data-story="Teeth"] .task-card { background: rgba(255,255,255,.7); }
+.story-column[data-story="BOTA"] .task-card button,
+.story-column[data-story="Other Writing"] .task-card button,
+.story-column[data-story="Teeth"] .task-card button { background: rgba(255,255,255,.75); }
+.story-column[data-story="Teeth"] h3 { color: #000000; text-shadow: 0 1px 2px rgba(255,255,255,.5); }
