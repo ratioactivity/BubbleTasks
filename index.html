@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>BubbleTasks</title>
     <link rel="icon" type="image/png" href="assets/icon128.png" />
-    <link rel="stylesheet" href="styles.css?v=writing-readability-3" />
+    <link rel="stylesheet" href="styles.css?v=story-pins-status-1" />
   </head>
   <body>
     <div id="app">
@@ -78,7 +78,26 @@
     </a>
     <input id="backupFileInput" type="file" accept="application/json,.json" hidden />
 
-    <script src="script.js?v=writing-readability-3"></script>
+    <dialog id="storyStatusDialog" aria-labelledby="storyStatusHeading">
+      <form id="storyStatusForm">
+        <h2 id="storyStatusHeading">Story status</h2>
+        <label>Label (optional, shown in bold)
+          <input name="statusLabel" maxlength="100" placeholder="e.g. Current Chapter:" />
+        </label>
+        <label>Status value
+          <input name="statusValue" maxlength="300" placeholder="e.g. 16 or outlining the ending" />
+        </label>
+        <label>Hover note (optional, shown over the value)
+          <textarea name="statusNote" maxlength="2000" rows="4" placeholder="Add a chapter description or extra context"></textarea>
+        </label>
+        <div class="modal-actions">
+          <button type="button" id="cancelStoryStatus">Cancel</button>
+          <button type="submit">Save status</button>
+        </div>
+      </form>
+    </dialog>
+    <script src="script.js?v=story-pins-status-1"></script>
   </body>
 </html>
+
 

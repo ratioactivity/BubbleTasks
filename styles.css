@@ -187,3 +187,27 @@ input::placeholder { color: rgba(255,255,255,.85); }
 .story-column[data-story="Other Writing"] .task-card button,
 .story-column[data-story="Teeth"] .task-card button { background: rgba(255,255,255,.75); }
 .story-column[data-story="Teeth"] h3 { color: #000000; text-shadow: 0 1px 2px rgba(255,255,255,.5); }
+
+
+.story-column { position: relative; padding-bottom: 48px; }
+.story-pin { position: absolute; bottom: 8px; right: 8px; width: 34px; height: 34px; border: 1px solid currentColor; color: var(--story-text); background: rgba(0,0,0,.3); opacity: .65; }
+.story-pin[aria-pressed="true"] { opacity: 1; background: #fff3b0; border-color: #634900; box-shadow: 0 0 0 2px #634900; }
+.story-pin:hover, .story-pin:focus-visible { opacity: 1; }
+.story-status-row { margin: 8px 0 12px; }
+.story-status { color: var(--story-text); display: flex; flex-wrap: wrap; align-items: baseline; gap: .35em; width: 100%; padding: 8px; border-radius: 8px; background: rgba(0,0,0,.45); text-align: left; overflow-wrap: anywhere; }
+.story-status strong { font-size: 1.12em; }
+.story-column[data-story="BOTA"] .story-status,
+.story-column[data-story="Teeth"] .story-status,
+.story-column[data-story="Other Writing"] .story-status { background: rgba(255,255,255,.7); }
+.story-status-value { position: relative; white-space: pre-wrap; }
+.story-status-value[aria-describedby] { text-decoration: underline dotted; text-underline-offset: 4px; }
+.story-status-note { display: none; position: absolute; left: 0; bottom: calc(100% + 7px); z-index: 10; width: max-content; max-width: min(260px, 65vw); padding: 10px; border-radius: 8px; background: #242035; color: white; box-shadow: 0 4px 12px #0005; font-size: 1rem; font-weight: normal; white-space: pre-wrap; }
+.story-status-value:hover .story-status-note,
+.story-status:focus-visible .story-status-note { display: block; }
+#storyStatusDialog { width: min(460px, 92vw); max-height: 90vh; overflow: auto; border: 0; border-radius: 16px; padding: 20px; background: #ffd8ee; color: #26334c; }
+#storyStatusDialog::backdrop { background: #19142888; }
+#storyStatusForm { display: grid; gap: 16px; }
+#storyStatusForm label { display: grid; gap: 6px; }
+#storyStatusForm input, #storyStatusForm textarea { width: 100%; box-sizing: border-box; border-radius: 8px; padding: 10px; border: 1px solid #9c7393; background: white; color: #26334c; font: inherit; }
+#storyStatusForm h2 { color: #26334c; text-shadow: none; }
+#storyStatusForm button { background: #684db9; color: white; }

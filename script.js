@@ -36,6 +36,7 @@ window.addEventListener('DOMContentLoaded', () => {
   const agendaDefaults = ['Update daily tasks', 'Track previous day'];
 
   const state = {
+    storyDetails: {},
     tasks: [],
     archived: [],
     bored: [],
@@ -81,6 +82,38 @@ window.addEventListener('DOMContentLoaded', () => {
     closeBoredButton: document.getElementById('closeBoredButton'),
   };
 
+  const normalizeStoryDetails = (details) => Object.fromEntries(
+    [...stories.map(([name]) => name), 'Other Writing'].map((name) => {
+      const detail = details && typeof details === 'object' ? details[name] : null;
+      return [name, {
+        pinned: detail?.pinned === true,
+        label: typeof detail?.label === 'string' ? detail.label.slice(0, 100) : '',
+        value: typeof detail?.value === 'string' ? detail.value.slice(0, 300) : '',
+        note: typeof detail?.note === 'string' ? detail.note.slice(0, 2000) : '',
+      }];
+    }),
+  );
+  const statusDialog = document.getElementById('storyStatusDialog');
+  const statusForm = document.getElementById('storyStatusForm');
+  let editingStory = null;
+  let statusOpener = null;
+  statusForm.addEventListener('submit', (event) => {
+    event.preventDefault();
+    if (!editingStory) return;
+    state.storyDetails[editingStory] = {
+      ...state.storyDetails[editingStory],
+      label: statusForm.elements.statusLabel.value.trim(),
+      value: statusForm.elements.statusValue.value.trim(),
+      note: statusForm.elements.statusNote.value.trim(),
+    };
+    statusDialog.close();
+    renderAll();
+    [...elements.boardContainer.querySelectorAll('[data-story-action="edit"]')]
+      .find((button) => button.dataset.storyName === editingStory)?.focus();
+  });
+  document.getElementById('cancelStoryStatus').addEventListener('click', () => statusDialog.close());
+  statusDialog.addEventListener('close', () => statusOpener?.isConnected && statusOpener.focus());
+
   const save = () => localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   const normalizeCategoryKey = (categoryKey) => {
     if (categoryKey === 'School' || categoryKey === 'X') return 'Writing';
@@ -94,6 +127,7 @@ window.addEventListener('DOMContentLoaded', () => {
       state.tasks = (state.tasks || []).map((task) => ({ ...task, category: normalizeCategoryKey(task.category) }));
       state.archived = (state.archived || []).map((task) => ({ ...task, category: normalizeCategoryKey(task.category) }));
     }
+    state.storyDetails = normalizeStoryDetails(state.storyDetails);
     state.tasks = (state.tasks || []).map(normalizeTask);
     state.archived = (state.archived || []).map(normalizeTask);
     if (!state.migratedV2Tasks) {
@@ -370,16 +404,26 @@ window.addEventListener('DOMContentLoaded', () => {
       if (active.key === 'Writing') {
         const renderStory = ([title, gif, banner], tasks, key) => {
           const limit = storyVisibleCounts[key] || STORY_TASK_LIMIT;
+          const detail = state.storyDetails[title] || {};
+          const hasStatus = detail.label || detail.value;
           return `<section class="category-column story-column" data-story="${escapeHtml(title)}" style="background-color:var(--school);background-image:url('assets/backgrounds/${gif}')">
             <img class="story-banner" src="assets/banners/${banner}" alt="${escapeHtml(title)} banner">
             ${banner === 'placeholder.png' ? `<h3>${escapeHtml(title)}</h3>` : ''}
+            <div class="story-status-row">
+              <button type="button" class="story-status" data-story-action="edit" data-story-name="${escapeHtml(title)}" aria-label="Edit status for ${escapeHtml(title)}">
+                ${hasStatus ? `${detail.label ? `<strong>${escapeHtml(detail.label)}</strong>` : ''}${detail.value ? `<span class="story-status-value" ${detail.note ? `aria-describedby="note-${key}"` : ''}>${escapeHtml(detail.value)}${detail.note ? `<span class="story-status-note" role="tooltip" id="note-${key}">${escapeHtml(detail.note)}</span>` : ''}</span>` : ''}` : '<span class="story-status-placeholder">Add status…</span>'}
+              </button>
+            </div>
             ${sortedTasks(tasks).slice(0, limit).map(taskCardHTML).join('') || '<p>No tasks</p>'}
             ${tasks.length > limit ? `<button data-action="load-story" data-story-key="${key}">Load more (${tasks.length - limit})</button>` : ''}
+            <button type="button" class="story-pin" data-story-action="pin" data-story-name="${escapeHtml(title)}" aria-label="${detail.pinned ? 'Unpin' : 'Pin'} ${escapeHtml(title)}" aria-pressed="${Boolean(detail.pinned)}" title="${detail.pinned ? 'Unpin story' : 'Pin story first'}">📌</button>
           </section>`;
         };
-        const storyCards = stories.map((story, index) => renderStory(story, grouped.Writing.filter((task) => task.story === story[0]), `story-${index}`));
+        const storyEntries = stories.map((story, index) => ({ story, tasks: grouped.Writing.filter((task) => task.story === story[0]), key: `story-${index}` }));
         const unassigned = grouped.Writing.filter((task) => !stories.some(([name]) => name === task.story));
-        if (unassigned.length) storyCards.push(renderStory(['Other Writing', 'BOTAbkg.gif', 'placeholder.png'], unassigned, 'story-other'));
+        if (unassigned.length || state.storyDetails['Other Writing']?.pinned || state.storyDetails['Other Writing']?.label || state.storyDetails['Other Writing']?.value) storyEntries.push({ story: ['Other Writing', 'BOTAbkg.gif', 'placeholder.png'], tasks: unassigned, key: 'story-other' });
+        storyEntries.sort((a, b) => Number(Boolean(state.storyDetails[b.story[0]]?.pinned)) - Number(Boolean(state.storyDetails[a.story[0]]?.pinned)));
+        const storyCards = storyEntries.map(({story, tasks, key}) => renderStory(story, tasks, key));
         const categorySection = elements.boardContainer.querySelector('.category-column');
         categorySection.outerHTML = `<div class="writing-grid">${storyCards.join('')}</div>`;
       }
@@ -512,6 +556,7 @@ window.addEventListener('DOMContentLoaded', () => {
       layout: state.layout,
       activeTab: state.activeTab,
       agenda: state.agenda,
+      storyDetails: state.storyDetails,
     };
 
     const backupBlob = new Blob([JSON.stringify(backupPayload, null, 2)], { type: 'application/json' });
@@ -569,6 +614,7 @@ window.addEventListener('DOMContentLoaded', () => {
         state.layout = parsed.layout;
       }
       state.activeTab = normalizeCategoryKey(parsed?.activeTab);
+      if (parsed?.storyDetails && typeof parsed.storyDetails === 'object') state.storyDetails = normalizeStoryDetails(parsed.storyDetails);
       if (parsed?.agenda && typeof parsed.agenda === 'object') state.agenda = parsed.agenda;
     } catch (error) {
       window.alert('Invalid backup file format. Please select a BubbleTasks backup JSON file.');
@@ -626,6 +672,28 @@ window.addEventListener('DOMContentLoaded', () => {
   elements.boardContainer.addEventListener('click', (event) => {
     const target = event.target;
     if (!(target instanceof HTMLElement)) return;
+
+    const storyControl = target.closest('[data-story-action]');
+    if (storyControl) {
+      const name = storyControl.dataset.storyName;
+      if (!Object.hasOwn(state.storyDetails, name)) return;
+      if (storyControl.dataset.storyAction === 'pin') {
+        state.storyDetails[name].pinned = !state.storyDetails[name].pinned;
+        renderAll();
+        [...elements.boardContainer.querySelectorAll('[data-story-action="pin"]')]
+          .find((button) => button.dataset.storyName === name)?.focus();
+      } else {
+        editingStory = name;
+        statusOpener = storyControl;
+        document.getElementById('storyStatusHeading').textContent = `${name} status`;
+        const detail = state.storyDetails[name];
+        statusForm.elements.statusLabel.value = detail.label;
+        statusForm.elements.statusValue.value = detail.value;
+        statusForm.elements.statusNote.value = detail.note;
+        statusDialog.showModal();
+      }
+      return;
+    }
 
     const tab = target.dataset.tab;
     if (tab) {
@@ -824,4 +892,5 @@ window.addEventListener('DOMContentLoaded', () => {
   renderAll();
   console.log('✅ script validated');
 });
+
 
