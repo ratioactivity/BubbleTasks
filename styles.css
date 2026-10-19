@@ -211,3 +211,14 @@ input::placeholder { color: rgba(255,255,255,.85); }
 #storyStatusForm input, #storyStatusForm textarea { width: 100%; box-sizing: border-box; border-radius: 8px; padding: 10px; border: 1px solid #9c7393; background: white; color: #26334c; font: inherit; }
 #storyStatusForm h2 { color: #26334c; text-shadow: none; }
 #storyStatusForm button { background: #684db9; color: white; }
+
+/* Compact task controls, with room for long titles on narrow cards. */
+.task-card-compact { display: grid; grid-template-columns: minmax(0, 1fr) 68px; grid-template-rows: auto 1fr; column-gap: 8px; row-gap: 8px; min-height: 88px; }
+.task-card-compact .task-copy { grid-column: 1; grid-row: 1 / 3; min-width: 0; overflow-wrap: anywhere; }
+.task-card-compact .task-meta { min-height: 0; margin-top: 8px; }
+.task-quick-actions, .task-quick-edit { display: flex; gap: 4px; justify-content: flex-end; }
+.task-quick-actions { grid-column: 2; grid-row: 1; align-self: start; }
+.task-quick-edit { grid-column: 2; grid-row: 2; align-self: end; }
+.task-card-compact .task-quick-actions button,
+.task-card-compact .task-quick-edit button { width: 32px; height: 32px; padding: 0; border-radius: 8px; font-size: 19px; line-height: 1; display: grid; place-items: center; }
+.task-card-compact button:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
