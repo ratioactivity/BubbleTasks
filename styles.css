@@ -222,3 +222,17 @@ input::placeholder { color: rgba(255,255,255,.85); }
 .task-card-compact .task-quick-actions button,
 .task-card-compact .task-quick-edit button { width: 32px; height: 32px; padding: 0; border-radius: 8px; font-size: 19px; line-height: 1; display: grid; place-items: center; }
 .task-card-compact button:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+
+/* Story chips remain useful in columns, but repeat the Writing tab's headings. */
+.board.tabs .story-column .task-card .story-chip { display: none; }
+.board.columns .category-column, .board.tabs .category-column { position: relative; }
+.card-add-task { position: absolute; top: 8px; left: 8px; z-index: 2; width: 28px; height: 28px; padding: 0; border-radius: 50%; background: rgba(255,255,255,.65); color: #26334c; font: 24px/1 sans-serif; opacity: .75; display: grid; place-items: center; }
+.card-add-task:hover, .card-add-task:focus-visible { opacity: 1; }
+.category-column:has(> .card-add-task) > .category-title { padding-left: 36px; min-height: 30px; }
+#cardTaskDialog { width: min(420px, 92vw); border: 0; border-radius: 16px; padding: 20px; background: #ffd8ee; color: #26334c; max-height: 90vh; overflow: auto; }
+#cardTaskDialog::backdrop { background: #19142888; }
+#cardTaskForm { display: grid; gap: 14px; }
+#cardTaskForm label { display: grid; gap: 6px; }
+#cardTaskForm input { width: 100%; box-sizing: border-box; border-radius: 8px; padding: 10px; border: 1px solid #9c7393; background: white; color: #26334c; font: inherit; }
+#cardTaskForm h2 { color: #26334c; text-shadow: none; }
+#cardTaskForm button { background: #684db9; color: white; }

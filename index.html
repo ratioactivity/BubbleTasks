@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>BubbleTasks</title>
     <link rel="icon" type="image/png" href="assets/icon128.png" />
-    <link rel="stylesheet" href="styles.css?v=compact-task-icons-1" />
+    <link rel="stylesheet" href="styles.css?v=card-add-1" />
   </head>
   <body>
     <div id="app">
@@ -98,6 +98,19 @@
     </dialog>
     <script src="script.js?v=story-pins-status-1"></script>
     <script src="compact-task-controls.js?v=1"></script>
+    <dialog id="cardTaskDialog" aria-labelledby="cardTaskHeading">
+      <form id="cardTaskForm">
+        <h2 id="cardTaskHeading">Add task</h2>
+        <label>Task title<input name="cardTitle" required autofocus /></label>
+        <label>Due date (optional)<input name="cardDue" type="date" /></label>
+        <label>Priority (1–5)<input name="cardPriority" type="number" min="1" max="5" /></label>
+        <div class="modal-actions">
+          <button type="button" id="cancelCardTask">Cancel</button>
+          <button type="submit">Add task</button>
+        </div>
+      </form>
+    </dialog>
+    <script src="card-task-controls.js?v=1"></script>
   </body>
 </html>
 
