@@ -236,3 +236,6 @@ input::placeholder { color: rgba(255,255,255,.85); }
 #cardTaskForm input { width: 100%; box-sizing: border-box; border-radius: 8px; padding: 10px; border: 1px solid #9c7393; background: white; color: #26334c; font: inherit; }
 #cardTaskForm h2 { color: #26334c; text-shadow: none; }
 #cardTaskForm button { background: #684db9; color: white; }
+
+.task-card-compact .task-quick-actions button img,
+.task-card-compact .task-quick-edit button img { display: block; width: 24px; height: 24px; object-fit: contain; pointer-events: none; }

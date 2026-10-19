@@ -12,8 +12,8 @@ window.addEventListener('DOMContentLoaded', () => {
       });
       card.appendChild(copy);
       const controls = [
-        ['task-quick-actions', [['status', '🔄', 'Mark in progress'], ['complete', '✅', 'Complete task']]],
-        ['task-quick-edit', [['edit', '✏️', 'Edit task'], ['delete', '❌', 'Delete task']]],
+        ['task-quick-actions', [['status', 'reload.png', 'Mark in progress'], ['complete', 'check.png', 'Complete task']]],
+        ['task-quick-edit', [['edit', 'pencil.png', 'Edit task'], ['delete', 'delete.png', 'Delete task']]],
       ];
       controls.forEach(([className, actions]) => {
         const group = document.createElement('div');
@@ -23,7 +23,13 @@ window.addEventListener('DOMContentLoaded', () => {
           button.type = 'button';
           button.dataset.action = action;
           if (action === 'status') button.dataset.status = 'In Progress';
-          button.textContent = icon;
+          const image = document.createElement('img');
+          image.src = 'assets/' + icon;
+          image.alt = '';
+          image.width = 24;
+          image.height = 24;
+          image.draggable = false;
+          button.appendChild(image);
           button.setAttribute('aria-label', label);
           button.title = label;
           group.appendChild(button);
