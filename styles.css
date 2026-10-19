@@ -239,3 +239,9 @@ input::placeholder { color: rgba(255,255,255,.85); }
 
 .task-card-compact .task-quick-actions button img,
 .task-card-compact .task-quick-edit button img { display: block; width: 24px; height: 24px; object-fit: contain; pointer-events: none; }
+
+/* Lift the whole active card so its note clears neighboring card layers. */
+.writing-grid > .story-column { overflow: visible; }
+.writing-grid > .story-column:has(.story-status-value:hover),
+.writing-grid > .story-column:has(.story-status:focus-visible) { z-index: 1000; }
+.story-status-note { z-index: 1001; }
