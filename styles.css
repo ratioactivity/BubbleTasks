@@ -245,3 +245,6 @@ input::placeholder { color: rgba(255,255,255,.85); }
 .writing-grid > .story-column:has(.story-status-value:hover),
 .writing-grid > .story-column:has(.story-status:focus-visible) { z-index: 1000; }
 .story-status-note { z-index: 1001; }
+
+/* Wrap notes and shift them inward when their anchor is near a screen edge. */
+.story-status-note { box-sizing: border-box; max-width: min(280px, calc(100vw - 32px)); overflow-wrap: anywhere; transform: translateX(var(--note-shift-x, 0px)); }
