@@ -248,3 +248,6 @@ input::placeholder { color: rgba(255,255,255,.85); }
 
 /* Wrap notes and shift them inward when their anchor is near a screen edge. */
 .story-status-note { box-sizing: border-box; max-width: min(280px, calc(100vw - 32px)); overflow-wrap: anywhere; transform: translateX(var(--note-shift-x, 0px)); }
+
+/* White task-action artwork for the lighter-text story cards. */
+.story-column:is([data-story="Ruse"], [data-story="APEX"], [data-story="Parallel"], [data-story="Black & Blue"], [data-story="Wild Skies"], [data-story="Mask"], [data-story="Horizon Line"], [data-story="Sleeper"], [data-story="Coup"], [data-story="Kaleidoscope"]) :is(.task-quick-actions, .task-quick-edit) img { filter: brightness(0) invert(1); }
