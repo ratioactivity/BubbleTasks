@@ -263,3 +263,24 @@ input::placeholder { color: rgba(255,255,255,.85); }
 #cloudAuthForm h2 { color: #26334c; text-shadow: none; }
 #cloudAuthForm button { background: #684db9; color: white; }
 
+
+/* A softer glass frame for the dashboard chrome. */
+.sidebar.panel { background: rgba(230,211,240,.42); border: 1px solid rgba(160,103,156,.32); padding: 10px; box-shadow: 0 8px 26px rgba(87,66,119,.08); }
+.sidebar > .card, .controls.card { background: linear-gradient(135deg, rgba(125,195,235,.76), rgba(185,181,229,.64)); border: 1px solid rgba(137,105,166,.4); box-shadow: inset 0 1px 0 rgba(255,255,255,.65), 0 6px 20px rgba(72,80,129,.09); backdrop-filter: blur(12px); color: #304568; }
+.sidebar > .card { padding: 14px; border-radius: 16px; }
+.controls.card { padding: 16px; border-radius: 18px; }
+.sidebar h2, .controls h1, .sidebar .time-big { color: #fff; }
+.controls .toolbar button, .cloud-sync button, .sidebar button { color: #34456e; background: rgba(255,255,255,.5); border: 1px solid rgba(137,105,166,.22); }
+.controls .toolbar button:hover, .cloud-sync button:hover, .sidebar button:hover { background: rgba(255,255,255,.75); }
+.controls .task-form input, .controls .task-form select, .sidebar .agenda-add-row input { color: #304568; background: rgba(255,255,255,.62); border: 1px solid rgba(137,105,166,.3); }
+.controls .task-form input::placeholder, .sidebar input::placeholder { color: #566486; }
+.controls .task-form > button { background: #7265a6; color: #fff; }
+.controls .cloud-sync { background: rgba(255,255,255,.24); border: 1px solid rgba(137,105,166,.2); }
+.story-column > button[data-action="load-story"] { display: none; }
+.story-page-controls { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.story-page-controls button { color: var(--story-text); background: rgba(255,255,255,.22); }
+.story-pin { display: grid; place-items: center; }
+.story-pin img { width: 22px; height: 22px; object-fit: contain; pointer-events: none; }
+@media (prefers-reduced-transparency: reduce) {
+  .sidebar > .card, .controls.card { background: #a8c6e7; backdrop-filter: none; }
+}
