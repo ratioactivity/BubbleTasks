@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>BubbleTasks</title>
     <link rel="icon" type="image/png" href="assets/icon128.png" />
-    <link rel="stylesheet" href="styles.css?v=white-story-task-icons-1" />
+    <link rel="stylesheet" href="styles.css?v=cloud-sync-1" />
   </head>
   <body>
     <div id="app">
@@ -41,6 +41,17 @@
             <button id="openArchiveButton">Archive</button>
             <button id="openBoredButton">Bored List</button>
           </div>
+          <section id="cloudSyncPanel" class="cloud-sync" aria-label="Online sync">
+            <span data-sync-status role="status" aria-live="polite">Local save · not signed in</span>
+            <small data-account></small>
+            <div class="cloud-sync-actions">
+              <button type="button" data-cloud-login>Sign in / Create account</button>
+              <button type="button" data-sync-now hidden>Sync now</button>
+              <button type="button" data-cloud-upload hidden>Upload this device’s save</button>
+              <button type="button" data-cloud-download hidden>Use online save</button>
+              <button type="button" data-cloud-logout hidden>Sign out</button>
+            </div>
+          </section>
         </header>
 
         <section id="boardContainer" class="board"></section>
@@ -112,7 +123,24 @@
     </dialog>
     <script src="card-task-controls.js?v=1"></script>
     <script src="story-note-position.js?v=1"></script>
+    <dialog id="cloudAuthDialog" aria-labelledby="cloudAuthHeading">
+      <form id="cloudAuthForm">
+        <h2 id="cloudAuthHeading">Sync across devices</h2>
+        <p>Use the same account on each device. Your local save stays available when you’re offline.</p>
+        <label>Email<input name="email" type="email" autocomplete="email" required /></label>
+        <label>Password<input name="password" type="password" autocomplete="current-password" /></label>
+        <p id="cloudAuthFeedback" role="status" aria-live="polite"></p>
+        <div class="cloud-auth-actions">
+          <button type="submit" value="login">Sign in</button>
+          <button type="submit" value="signup">Create account</button>
+          <button type="submit" value="link">Email me a sign-in link</button>
+          <button type="button" id="cancelCloudAuth">Cancel</button>
+        </div>
+      </form>
+    </dialog>
+    <script src="cloud-sync.js?v=1"></script>
   </body>
 </html>
+
 
 
