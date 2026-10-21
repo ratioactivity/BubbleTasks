@@ -284,3 +284,8 @@ input::placeholder { color: rgba(255,255,255,.85); }
 @media (prefers-reduced-transparency: reduce) {
   .sidebar > .card, .controls.card { background: #a8c6e7; backdrop-filter: none; }
 }
+
+/* Center the pin artwork without the shared button padding. */
+.story-pin { padding: 0; }
+.story-column:is([data-story="Ruse"], [data-story="APEX"], [data-story="Parallel"], [data-story="Black & Blue"], [data-story="Wild Skies"], [data-story="Mask"], [data-story="Horizon Line"], [data-story="Sleeper"], [data-story="Coup"], [data-story="Kaleidoscope"]) .story-pin img { filter: brightness(0) invert(1); }
+.story-column:is([data-story="Ruse"], [data-story="APEX"], [data-story="Parallel"], [data-story="Black & Blue"], [data-story="Wild Skies"], [data-story="Mask"], [data-story="Horizon Line"], [data-story="Sleeper"], [data-story="Coup"], [data-story="Kaleidoscope"]) .story-pin[aria-pressed="true"] { background: rgba(67,54,94,.9); }
