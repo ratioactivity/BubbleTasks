@@ -4,6 +4,7 @@
   const API_KEY = 'sb_publishable_Qe_bJpZQLlm-CGoPnmhqFQ_aOxXtGhN';
   const SAVE = 'bubbletasks_plain_v1';
   const SESSION = 'bubbletasks_cloud_session_v1';
+  const BACKUP_OPTION = 'bubbletasks_cloud_download_backup_v1';
   const OWNER = 'bubbletasks_cloud_owner_v1';
   const META = 'bubbletasks_cloud_meta_v1:';
   const FIELDS = ['tasks', 'archived', 'bored', 'completions', 'agenda', 'storyDetails'];
@@ -107,7 +108,7 @@
   };
   const showConflict = (remote, text) => {
     ready = false; conflict = true; pendingRemote = remote;
-    setMessage(text || 'Both saves changed. Choose which to keep; a backup is saved before replacing either.');
+    setMessage(text || 'Both saves changed. Choose which version to keep.');
   };
   const acknowledge = (remote, sent) => {
     meta = {revision:remote.revision, base:stable(sent)};
@@ -176,7 +177,7 @@
   };
   async function chooseUpload() {
     if (!session?.user?.id || running) return;
-    if (!confirm('Upload this device’s current save? If an online save exists, it will be replaced. A backup of the current online save will be downloaded first.')) return;
+    if (!confirm('Upload this device’s current save? If an online save exists, it will be replaced.' + (ui.querySelector('[data-cloud-backup]').checked ? ' A backup of the online save will be downloaded first.' : ''))) return;
     running = true; paint();
     const id = session.user.id, version = epoch;
     try {
@@ -184,9 +185,11 @@
       if (epoch !== version) return;
       if (remote) {
         keepRecovery('Online save before explicit replacement', remote.data);
+        if (ui.querySelector('[data-cloud-backup]').checked) {
         const a = document.createElement('a');
         a.href=URL.createObjectURL(new Blob([JSON.stringify(remote.data,null,2)],{type:'application/json'}));
         a.download='bubbletasks-online-before-replace-'+Date.now()+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+        }
       }
       keepRecovery('Before uploading this device');
       const sent = snapshot();
@@ -201,14 +204,18 @@
     ui = document.getElementById('cloudSyncPanel');
     authDialog = document.getElementById('cloudAuthDialog');
     if (!ui || !authDialog) return;
+    const backupOption = ui.querySelector('[data-cloud-backup]');
+    backupOption.checked = read(BACKUP_OPTION) === true;
+    backupOption.addEventListener('change', () => write(BACKUP_OPTION, backupOption.checked));
     paint();
     ui.querySelector('[data-cloud-login]').onclick=()=>authDialog.showModal();
     ui.querySelector('[data-sync-now]').onclick=sync;
     ui.querySelector('[data-cloud-upload]').onclick=chooseUpload;
     ui.querySelector('[data-cloud-download]').onclick=()=>{
       if (!pendingRemote || !session) return;
-      if (!confirm('Load the online save on this device? A copy of this device’s current save will be downloaded first.')) return;
-      downloadLocal(); applyRemote(pendingRemote);
+      if (!confirm('Load the online save on this device? This replaces the current local save.' + (backupOption.checked ? ' A backup of this device’s save will be downloaded first.' : ''))) return;
+      if (backupOption.checked) downloadLocal();
+      applyRemote(pendingRemote);
     };
     ui.querySelector('[data-cloud-logout]').onclick=async()=>{
       if(running)return;

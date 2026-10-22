@@ -44,6 +44,7 @@
           <section id="cloudSyncPanel" class="cloud-sync" aria-label="Online sync">
             <span data-sync-status role="status" aria-live="polite">Local save · not signed in</span>
             <small data-account></small>
+            <label class="cloud-backup-option"><input type="checkbox" data-cloud-backup /> Download a backup before replacing a save</label>
             <div class="cloud-sync-actions">
               <button type="button" data-cloud-login>Sign in / Create account</button>
               <button type="button" data-sync-now hidden>Sync now</button>
@@ -138,7 +139,7 @@
         </div>
       </form>
     </dialog>
-    <script src="cloud-sync.js?v=1"></script>
+    <script src="cloud-sync.js?v=optional-backup-2"></script>
     <script src="story-card-controls.js?v=1"></script>
   </body>
 </html>

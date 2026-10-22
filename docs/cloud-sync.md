@@ -7,7 +7,7 @@ The app uses the Supabase `public.bubbletasks_saves` table configured in the SQL
 1. Export a local backup on the device with the most complete save.
 2. Choose **Sign in / Create account**. Create an account and confirm its email, or request an email sign-in link. Use the same account on all devices.
 3. On the main device, choose **Upload this device’s save**. No local data is uploaded until this explicit choice.
-4. On the other devices, sign in and choose **Use online save**. A backup of their local data downloads first.
+4. On the other devices, sign in and choose **Use online save**. Backup downloads are optional. Enable **Download a backup before replacing a save** if you want a downloaded copy first.
 
 Tasks, archived tasks, Bored List, completion history, agenda, and story pins/statuses/notes sync. Layout, selected tab, card paging, and weather remain device-local. Check for the **Synced** indicator before switching devices.
 
@@ -15,7 +15,7 @@ The app checks online saves about every 15 seconds while visible, on returning t
 
 ## Offline edits and simultaneous changes
 
-All edits are saved locally first. Uploads use a revision comparison to prevent replacing a save that changed after the device last read it. If two versions changed, automatic syncing pauses. Choose **Use online save** to load the online version, or **Upload this device’s save** to replace it deliberately. Both choices download a backup of the version they replace. There is no automatic merge.
+All edits are saved locally first. Uploads use a revision comparison to prevent replacing a save that changed after the device last read it. If two versions changed, automatic syncing pauses. Choose **Use online save** to load the online version, or **Upload this device’s save** to replace it deliberately. Both choices can download a backup of the version they replace when **Download a backup before replacing a save** is enabled. This device-local preference defaults to off. There is no automatic merge.
 
 Recent local recovery snapshots are also retained in this browser under `bubbletasks_recovery_v1`. Exported backups contain saves, not login tokens. Signing out keeps the local save on the device.
 
