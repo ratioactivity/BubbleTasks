@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>BubbleTasks</title>
     <link rel="icon" type="image/png" href="assets/icon128.png" />
-    <link rel="stylesheet" href="styles.css?v=centered-matching-pins-1" />
+    <link rel="stylesheet" href="styles.css?v=monthly-calendar-1" />
   </head>
   <body>
     <div id="app">
@@ -139,10 +139,31 @@
         </div>
       </form>
     </dialog>
-    <script src="cloud-sync.js?v=optional-backup-2"></script>
+    <script src="cloud-sync.js?v=calendar-events-3"></script>
     <script src="story-card-controls.js?v=1"></script>
+    <dialog id="calendarEventDialog" aria-labelledby="calendarEventHeading">
+      <form id="calendarEventForm">
+        <h2 id="calendarEventHeading">Add event</h2>
+        <label>Event title<input name="eventTitle" maxlength="200" required /></label>
+        <label>Date<input name="eventDate" type="date" required /></label>
+        <label>Event category<select name="eventCategory"></select></label>
+        <label class="calendar-all-day"><input name="eventAllDay" type="checkbox" checked /> All-day event</label>
+        <div class="calendar-time-fields" hidden>
+          <label>Start time<input name="eventStart" type="time" /></label>
+          <label>End time (optional)<input name="eventEnd" type="time" /></label>
+        </div>
+        <p id="calendarEventError" role="alert"></p>
+        <div class="modal-actions">
+          <button type="button" id="deleteCalendarEvent" hidden>Delete event</button>
+          <button type="button" id="cancelCalendarEvent">Cancel</button>
+          <button type="submit">Save event</button>
+        </div>
+      </form>
+    </dialog>
+    <script src="monthly-calendar.js?v=1"></script>
   </body>
 </html>
+
 
 
 

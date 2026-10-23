@@ -7,7 +7,7 @@
   const BACKUP_OPTION = 'bubbletasks_cloud_download_backup_v1';
   const OWNER = 'bubbletasks_cloud_owner_v1';
   const META = 'bubbletasks_cloud_meta_v1:';
-  const FIELDS = ['tasks', 'archived', 'bored', 'completions', 'agenda', 'storyDetails'];
+  const FIELDS = ['tasks', 'archived', 'bored', 'completions', 'agenda', 'storyDetails', 'calendarEvents'];
   const rawSet = Storage.prototype.setItem;
   const read = (key) => { try { return JSON.parse(localStorage.getItem(key)); } catch { return null; } };
   const write = (key, value) => rawSet.call(localStorage, key, JSON.stringify(value));
@@ -20,7 +20,8 @@
   const valid = (data) => data && typeof data === 'object' && !Array.isArray(data)
     && ['tasks','archived','bored','completions'].every(k => Array.isArray(data[k]))
     && data.agenda && typeof data.agenda === 'object' && !Array.isArray(data.agenda)
-    && data.storyDetails && typeof data.storyDetails === 'object' && !Array.isArray(data.storyDetails);
+    && data.storyDetails && typeof data.storyDetails === 'object' && !Array.isArray(data.storyDetails)
+    && (data.calendarEvents === undefined || Array.isArray(data.calendarEvents));
   let session = read(SESSION), meta = null, ready = false, running = false, epoch = 0, refreshPromise = null;
   let conflict = false, pendingRemote = null, timer = null, ui, authDialog;
   let message = 'Local save · not signed in';
@@ -262,3 +263,4 @@
     });
   });
 })();
+

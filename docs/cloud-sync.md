@@ -9,7 +9,7 @@ The app uses the Supabase `public.bubbletasks_saves` table configured in the SQL
 3. On the main device, choose **Upload this device’s save**. No local data is uploaded until this explicit choice.
 4. On the other devices, sign in and choose **Use online save**. Backup downloads are optional. Enable **Download a backup before replacing a save** if you want a downloaded copy first.
 
-Tasks, archived tasks, Bored List, completion history, agenda, and story pins/statuses/notes sync. Layout, selected tab, card paging, and weather remain device-local. Check for the **Synced** indicator before switching devices.
+Tasks, archived tasks, Bored List, completion history, agenda, calendar events, and story pins/statuses/notes sync. Layout, selected tab, calendar month, card paging, and weather remain device-local. Check for the **Synced** indicator before switching devices.
 
 The app checks online saves about every 15 seconds while visible, on returning to the tab, and after local changes. Incoming saves reload the app when no text field or dialog is being edited; otherwise **Use online save** appears so the user can finish first. Changes made while signed out remain local until the next sign-in.
 
@@ -28,3 +28,4 @@ RLS must allow only `auth.uid() = user_id` for reads and writes, and the anonymo
 ## Validation
 
 Browser tests simulate two isolated devices and the Supabase API, including initial upload/download, automatic push/pull, offline changes, conflicts, a revision race, backups, sign-out, token refresh, and email-link callbacks. A real user sign-in is still needed to verify this project's authentication settings and SQL policies. No test signs up a real user or uploads real saves.
+
