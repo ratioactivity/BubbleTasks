@@ -152,6 +152,7 @@
         const parsed=JSON.parse(await file.text());const tasks=Array.isArray(parsed)?parsed:parsed.tasks;
         if(!Array.isArray(tasks)||tasks.some(t=>!t||typeof t!=='object'))throw new Error('Invalid backup');
         if(parsed.calendarEvents!==undefined){if(!Array.isArray(parsed.calendarEvents))throw new Error('Invalid events');events=normalize(parsed.calendarEvents);}
+        window.dispatchEvent(new CustomEvent('bubbletasks-backup-import',{detail:parsed}));
         restoring=true;backupInput.dispatchEvent(new Event('change',{bubbles:true}));restoring=false;
       }catch{alert('Invalid backup file. Please choose a BubbleTasks JSON backup.');backupInput.value='';restoring=false;}
     },true);

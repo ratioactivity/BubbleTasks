@@ -353,3 +353,6 @@ input::placeholder { color: rgba(255,255,255,.85); }
 .bubbletasks-compact .google-calendar-event > a,
 .bubbletasks-compact .calendar-task-done { display: none !important; }
 #compactToggleButton[aria-pressed="true"] { background: #7265a6; color: white; border-color: #65558f; }
+
+.google-event-category { display: block; width: 100%; min-width: 0; margin-top: 7px; padding: 4px 5px; border: 1px solid #52688c55; border-radius: 6px; background: #ffffffb3; color: #263f64; font: inherit; font-size: .8rem; text-overflow: ellipsis; }
+.google-event-category:focus-visible { outline: 2px solid #635797; outline-offset: 2px; }

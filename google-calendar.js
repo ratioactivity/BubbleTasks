@@ -10,6 +10,28 @@ window.addEventListener('DOMContentLoaded', () => {
   const connect = panel.querySelector('[data-google-connect]');
   const refresh = panel.querySelector('[data-google-refresh]');
   const disconnect = panel.querySelector('[data-google-disconnect]');
+  const SAVE = 'bubbletasks_plain_v1';
+  const TYPES = [
+    ['birthdays','Birthdays & Holidays','#ff9999'], ['family','Family & Friends','#ffca99'],
+    ['appointments','Appointments','#ffe799'], ['work','Work','#c2ff99'],
+    ['goals','Business & Creative Goals','#99ffda'], ['reminders','Reminders & Tasks','#99ceff'],
+    ['misc','Miscellaneous Events','#af99ff'],
+  ];
+  const readSave = () => { try { return JSON.parse(localStorage.getItem(SAVE)) || {}; } catch { return {}; } };
+  const normalizeCategories = (data) => Object.fromEntries(
+    Object.entries(data && typeof data==='object' && !Array.isArray(data) ? data : {})
+      .filter(([id,category]) => id.length <= 1024 && TYPES.some(([value])=>value===category)));
+  let categories = normalizeCategories(readSave().googleEventCategories);
+  const previousSet = Storage.prototype.setItem;
+  Storage.prototype.setItem = function(key,value) {
+    if(this===localStorage && key===SAVE) {
+      const data=JSON.parse(value);data.googleEventCategories=categories;value=JSON.stringify(data);
+    }
+    return previousSet.call(this,key,value);
+  };
+  window.addEventListener('bubbletasks-backup-import',event=>{
+    if(event.detail?.googleEventCategories!==undefined)categories=normalizeCategories(event.detail.googleEventCategories);
+  });
   const cache = new Map();
   let user = cloud.getUserId(), connected = false, needsReconnect = false, busy = false, generation = 0;
   let controller = null, scheduled = 0, callbackNotice = '';
@@ -75,11 +97,26 @@ window.addEventListener('DOMContentLoaded', () => {
         const intersects = span.allDay ? day>=span.start&&day<span.end : span.start<endOfDay&&span.end>startOfDay;
         if (!intersects) continue;
         const bubble=document.createElement('article');bubble.className='google-calendar-event';bubble.dataset.googleEventId=String(event.id);
+        const category=TYPES.find(([id])=>id===categories[event.id]);
+        if(category){bubble.style.backgroundColor=category[2];bubble.style.borderColor=category[2];}
         append('small','Google · read-only',bubble);append('strong',String(event.title||'Untitled event'),bubble);
         const label=span.allDay?'All day':(formatDate(span.start)===day?time(span.start):'Continues')+' – '+(span.end<=endOfDay?time(span.end):'continues');
         append('time',label,bubble);
         const link=googleLink(event.htmlLink);
         if(link){const a=append('a','Open in Google',bubble);a.href=link;a.target='_blank';a.rel='noopener noreferrer';}
+        const picker=document.createElement('select');picker.className='google-event-category';
+        picker.setAttribute('aria-label','Color category for '+String(event.title||'Untitled event'));
+        picker.title='Choose a BubbleTasks color category; Google Calendar stays unchanged';
+        picker.add(new Option('Default Google color',''));
+        TYPES.forEach(([value,label])=>picker.add(new Option(label,value)));
+        picker.value=category?category[0]:'';
+        picker.addEventListener('change',()=>{
+          if(picker.value)categories[event.id]=picker.value;else delete categories[event.id];
+          localStorage.setItem(SAVE,JSON.stringify({...readSave(),googleEventCategories:categories}));
+          draw();
+          [...board.querySelectorAll('.google-calendar-event')].find(el=>el.dataset.googleEventId===String(event.id))?.querySelector('select')?.focus();
+        });
+        bubble.appendChild(picker);
         cell.appendChild(bubble);
       }
     }
