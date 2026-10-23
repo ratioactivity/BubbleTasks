@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>BubbleTasks</title>
     <link rel="icon" type="image/png" href="assets/icon128.png" />
-    <link rel="stylesheet" href="styles.css?v=google-calendar-1" />
+    <link rel="stylesheet" href="styles.css?v=compact-mode-1" />
   </head>
   <body>
     <div id="app">
@@ -36,6 +36,7 @@
           </div>
           <div class="toolbar">
             <button id="layoutToggleButton">Switch Layout</button>
+            <button id="compactToggleButton" type="button" aria-pressed="false">Compact: off</button>
             <button id="backupTasksButton">Backup Tasks</button>
             <button id="loadBackupButton">Load Backup</button>
             <button id="openArchiveButton">Archive</button>
@@ -171,6 +172,7 @@
     </dialog>
     <script src="monthly-calendar.js?v=1"></script>
     <script src="google-calendar.js?v=1"></script>
+    <script src="compact-mode.js?v=1"></script>
   </body>
 </html>
 

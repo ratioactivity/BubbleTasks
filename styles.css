@@ -345,3 +345,11 @@ input::placeholder { color: rgba(255,255,255,.85); }
 .google-calendar-event time, .google-calendar-event a { font-size: .85rem; margin-top: 4px; }
 .google-calendar-event a { color: #304f91; text-underline-offset: 3px; }
 
+
+/* Compact is a visual preference only; syncing and stored events keep running. */
+.bubbletasks-compact #cloudSyncPanel,
+.bubbletasks-compact #googleCalendarPanel,
+.bubbletasks-compact .google-calendar-event > small,
+.bubbletasks-compact .google-calendar-event > a,
+.bubbletasks-compact .calendar-task-done { display: none !important; }
+#compactToggleButton[aria-pressed="true"] { background: #7265a6; color: white; border-color: #65558f; }
