@@ -28,8 +28,21 @@
   const dirty = () => !meta || stable(snapshot()) !== meta.base;
   const persistMeta = () => write(META + session.user.id, meta);
   const setMessage = (text) => { message = text; paint(); };
+  let announcedUser = undefined;
+  window.BubbleTasksCloud = {
+    getUserId: () => session?.user?.id || null,
+    getAccessToken: async () => {
+      if (!session?.user?.id) throw new Error('Sign in to BubbleTasks first.');
+      return await token();
+    },
+  };
   const paint = () => {
     if (!ui) return;
+    const user = session?.user?.id || null;
+    if (announcedUser !== user) {
+      announcedUser = user;
+      window.dispatchEvent(new CustomEvent('bubbletasks-account-changed', {detail:{userId:user}}));
+    }
     ui.querySelector('[data-sync-status]').textContent = message;
     ui.querySelector('[data-account]').textContent = session?.user?.email || '';
     ui.querySelector('[data-cloud-login]').hidden = !!session?.user && !message.includes('sign in again');
@@ -263,4 +276,5 @@
     });
   });
 })();
+
 

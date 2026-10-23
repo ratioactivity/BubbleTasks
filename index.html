@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>BubbleTasks</title>
     <link rel="icon" type="image/png" href="assets/icon128.png" />
-    <link rel="stylesheet" href="styles.css?v=monthly-calendar-1" />
+    <link rel="stylesheet" href="styles.css?v=google-calendar-1" />
   </head>
   <body>
     <div id="app">
@@ -51,6 +51,15 @@
               <button type="button" data-cloud-upload hidden>Upload this device’s save</button>
               <button type="button" data-cloud-download hidden>Use online save</button>
               <button type="button" data-cloud-logout hidden>Sign out</button>
+            </div>
+          </section>
+          <section id="googleCalendarPanel" class="google-calendar-panel" aria-label="Google Calendar connection">
+            <div><strong>Google Calendar</strong> <small>Read-only · primary calendar</small></div>
+            <span data-google-status role="status" aria-live="polite">Sign in to BubbleTasks to connect Google Calendar.</span>
+            <div class="google-calendar-actions">
+              <button type="button" data-google-connect hidden>Connect Google Calendar</button>
+              <button type="button" data-google-refresh hidden>Refresh Google events</button>
+              <button type="button" data-google-disconnect hidden>Disconnect Google</button>
             </div>
           </section>
         </header>
@@ -139,7 +148,7 @@
         </div>
       </form>
     </dialog>
-    <script src="cloud-sync.js?v=calendar-events-3"></script>
+    <script src="cloud-sync.js?v=google-auth-bridge-4"></script>
     <script src="story-card-controls.js?v=1"></script>
     <dialog id="calendarEventDialog" aria-labelledby="calendarEventHeading">
       <form id="calendarEventForm">
@@ -161,8 +170,10 @@
       </form>
     </dialog>
     <script src="monthly-calendar.js?v=1"></script>
+    <script src="google-calendar.js?v=1"></script>
   </body>
 </html>
+
 
 
 
