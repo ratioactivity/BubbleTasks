@@ -69,6 +69,36 @@ window.addEventListener('DOMContentLoaded', () => {
       return data;
     } finally { clearTimeout(timeout); if(controller===activeController)controller = null; }
   };
+  let editingCategory=null, categoryOpener=null;
+  const categoryDialog=document.createElement('dialog');categoryDialog.className='google-category-dialog';
+  categoryDialog.setAttribute('aria-labelledby','googleCategoryHeading');
+  const categoryHeading=document.createElement('h2');categoryHeading.id='googleCategoryHeading';categoryHeading.textContent='Event category';
+  const categoryTitle=document.createElement('p'), categoryChoices=document.createElement('div');categoryChoices.className='google-category-choices';
+  const cancelCategory=document.createElement('button');cancelCategory.type='button';cancelCategory.textContent='Cancel';
+  cancelCategory.addEventListener('click',()=>categoryDialog.close());
+  categoryDialog.append(categoryHeading,categoryTitle,categoryChoices,cancelCategory);document.body.appendChild(categoryDialog);
+  categoryDialog.addEventListener('close',()=>{if(categoryOpener?.isConnected)categoryOpener.focus();});
+  function openCategory(event,opener){
+    editingCategory={id:event.id,user};categoryOpener=opener;categoryTitle.textContent=String(event.title||'Untitled event');
+    categoryChoices.replaceChildren();
+    [['','Default Google color','#e4edff'],...TYPES].forEach(([value,label,color])=>{
+      const choice=document.createElement('button');choice.type='button';choice.className='google-category-choice';
+      choice.setAttribute('aria-pressed',String((categories[event.id]||'')===value));
+      const swatch=document.createElement('span');swatch.style.backgroundColor=color;
+      choice.append(swatch,document.createTextNode(label));
+      choice.addEventListener('click',()=>{
+        if(!editingCategory||editingCategory.user!==user)return;
+        const id=editingCategory.id;
+        if(value)categories[id]=value;else delete categories[id];
+        localStorage.setItem(SAVE,JSON.stringify({...readSave(),googleEventCategories:categories}));
+        categoryDialog.close();draw();
+        [...board.querySelectorAll('.google-calendar-event')].find(el=>el.dataset.googleEventId===String(id))?.querySelector('.google-category-dot')?.focus();
+      });
+      categoryChoices.appendChild(choice);
+    });
+    categoryDialog.showModal();
+    (categoryChoices.querySelector('[aria-pressed="true"]')||categoryChoices.firstElementChild)?.focus();
+  }
   const formatDate = (date) => `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
   const validDay = (value) => typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value);
   const eventSpan = (event) => {
@@ -104,19 +134,13 @@ window.addEventListener('DOMContentLoaded', () => {
         append('time',label,bubble);
         const link=googleLink(event.htmlLink);
         if(link){const a=append('a','Open in Google',bubble);a.href=link;a.target='_blank';a.rel='noopener noreferrer';}
-        const picker=document.createElement('select');picker.className='google-event-category';
-        picker.setAttribute('aria-label','Color category for '+String(event.title||'Untitled event'));
-        picker.title='Choose a BubbleTasks color category; Google Calendar stays unchanged';
-        picker.add(new Option('Default Google color',''));
-        TYPES.forEach(([value,label])=>picker.add(new Option(label,value)));
-        picker.value=category?category[0]:'';
-        picker.addEventListener('change',()=>{
-          if(picker.value)categories[event.id]=picker.value;else delete categories[event.id];
-          localStorage.setItem(SAVE,JSON.stringify({...readSave(),googleEventCategories:categories}));
-          draw();
-          [...board.querySelectorAll('.google-calendar-event')].find(el=>el.dataset.googleEventId===String(event.id))?.querySelector('select')?.focus();
-        });
-        bubble.appendChild(picker);
+        const dot=document.createElement('button');dot.type='button';dot.className='google-category-dot';
+        dot.setAttribute('aria-label','Change category for '+String(event.title||'Untitled event'));
+        dot.title=category?category[1]:'Choose color/category';
+        const swatch=document.createElement('span');swatch.style.backgroundColor=category?category[2]:'#e4edff';
+        dot.appendChild(swatch);
+        dot.addEventListener('click',()=>openCategory(event,dot));
+        bubble.appendChild(dot);
         cell.appendChild(bubble);
       }
     }
@@ -176,6 +200,7 @@ window.addEventListener('DOMContentLoaded', () => {
     finally{if(version===generation){busy=false;paint();}}
   });
   window.addEventListener('bubbletasks-account-changed',()=>{
+    categoryDialog.close();editingCategory=null;
     generation++;controller?.abort();busy=false;user=cloud.getUserId();connected=false;needsReconnect=false;cache.clear();draw();paint();
     if(user)checkConnection();else message('Sign in to BubbleTasks to connect Google Calendar.');
   });
