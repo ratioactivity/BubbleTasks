@@ -1,0 +1,40 @@
+#notesToggleButton[aria-pressed="true"] { background:#f8e4fa; color:#5c4b82; box-shadow:inset 0 0 0 1px #9982bb; }
+.notes-view { min-width:0; padding:16px; border:1px solid #d7c3e4; border-radius:18px; background:linear-gradient(135deg,#f5effbe8,#fff6fae8); color:#354767; }
+.notes-top { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:16px; }
+.notes-view h2 { color:#79629c; text-shadow:0 2px 2px #fff; }
+.notes-view button, .notes-dialog button { font-size:1rem; color:#4c5379; background:#e9def4; }
+.notes-view .notes-primary, .notes-dialog .notes-primary { background:#7762a0; color:#fff; padding:9px 16px; }
+.notes-search { width:100%; padding:12px 14px; border-radius:12px; border:1px solid #c2b1d4; background:#fffcff; color:#354767; font:inherit; font-size:1.15rem; }
+.notes-quick-tags, .note-tags, .notes-editor-tags { display:flex; align-items:center; gap:7px; flex-wrap:wrap; }
+.notes-quick-tags { margin-top:12px; }
+.notes-count { margin:12px 0; color:#676180; }
+.notes-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(min(270px,100%),1fr)); gap:14px; align-items:start; }
+.note-card { min-width:0; padding:18px; border:1px solid #d8c6e5; border-radius:15px; background:#fffafde8; box-shadow:0 5px 15px #6b528c0d; }
+.note-card h3 { font-family:Papernotes,sans-serif; font-size:1.4rem; letter-spacing:0; text-shadow:none; }
+.note-card .note-title { font:inherit; font-weight:bold; padding:0; text-align:left; color:#4f4870; border-radius:3px; background:transparent; overflow-wrap:anywhere; }
+.note-body { white-space:pre-wrap; overflow-wrap:anywhere; margin:12px 0; line-height:1.5; max-height:20rem; overflow:auto; }
+.notes-tag { max-width:100%; overflow-wrap:anywhere; padding:5px 10px; border:1px solid #d1bee3; }
+.notes-tag[aria-pressed="true"] { background:#7762a0; color:white; }
+.note-footer { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-top:15px; color:#79718c; }
+.note-footer .note-edit { background:transparent; text-decoration:underline; }
+.notes-empty { padding:20px 4px; }
+.notes-dialog { width:min(620px,94vw); max-height:90vh; overflow:auto; padding:24px; border:1px solid #bfa7cf; border-radius:18px; color:#354767; background:#faf0fa; }
+.notes-dialog::backdrop { background:#26203888; }
+.notes-dialog h2 { font-size:2rem; color:#756090; text-shadow:none; margin-bottom:18px; }
+.notes-dialog form { display:flex; flex-direction:column; gap:12px; }
+.notes-dialog label { display:flex; flex-direction:column; gap:5px; font-size:1.1rem; }
+.notes-dialog input, .notes-dialog textarea { width:100%; padding:10px; border:1px solid #c5b1d2; border-radius:9px; background:#fffdfd; color:#354767; font:inherit; font-size:1.1rem; }
+.notes-dialog textarea { resize:vertical; min-height:150px; line-height:1.5; }
+.notes-tag-input { position:relative; min-width:0; }
+.notes-tag-input #noteTagInput, .notes-tag-ghost { font-family:monospace; font-size:16px; line-height:24px; letter-spacing:0; padding:10px; }
+.notes-tag-input #noteTagInput { position:relative; background:transparent; }
+.notes-tag-ghost { position:absolute; inset:0; overflow:hidden; white-space:pre; border:1px solid transparent; color:#9681b0; background:#fffdfd; border-radius:9px; pointer-events:none; }
+.notes-dialog .notes-completion { align-self:start; padding:3px 7px; font-size:.95rem; background:transparent; text-decoration:underline; text-align:left; }
+.notes-dialog small { color:#736480; }
+.notes-error { color:#96345f; margin:0; }
+.notes-error:empty { display:none; }
+.notes-editor-actions { display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; margin-top:8px; }
+.notes-editor-actions .notes-delete { margin-right:auto; background:#f7dfeb; color:#983653; }
+.notes-view :focus-visible, .notes-dialog :focus-visible { outline:2px solid #8368ae; outline-offset:3px; }
+@media(max-width:600px) { .notes-view { padding:12px; } .notes-dialog { padding:16px; } .notes-top h2 { font-size:1.8rem; } }
+.notes-search::placeholder, .notes-dialog input::placeholder, .notes-dialog textarea::placeholder { color:#81718e; opacity:1; }
