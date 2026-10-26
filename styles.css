@@ -339,7 +339,7 @@ input::placeholder { color: rgba(255,255,255,.85); }
 .google-calendar-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .google-calendar-actions button { color: #34456e; background: rgba(255,255,255,.5); border: 1px solid rgba(137,105,166,.22); }
 .google-calendar-actions button:disabled { opacity: .55; cursor: wait; }
-.google-calendar-event { background: #e4edff; color: #263f64; border: 1px solid #9db9e6; border-left: 3px solid #6e94cf; border-radius: 10px; padding: 7px; margin-top: 6px; line-height: 1.3; overflow-wrap: anywhere; }
+.google-calendar-event { --event-color: #cad8ef; background: var(--event-color); color: #263f64; border: 1px solid #9db9e6; border-left: 3px solid #6e94cf; border-radius: 10px; padding: 7px; margin-top: 6px; line-height: 1.3; overflow-wrap: anywhere; }
 .google-calendar-event small, .google-calendar-event strong, .google-calendar-event time, .google-calendar-event a { display: block; }
 .google-calendar-event small { font-size: .75rem; color: #52688c; }
 .google-calendar-event time, .google-calendar-event a { font-size: .85rem; margin-top: 4px; }
@@ -371,3 +371,25 @@ input::placeholder { color: rgba(255,255,255,.85); }
 .google-category-choice { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border: 1px solid #b8a0cd66; border-radius: 8px; background: #ffffffa6; color: #304568; text-align: left; }
 .google-category-choice[aria-pressed="true"] { border-color: #7265a6; background: #e6def7; font-weight: bold; }
 .google-category-dialog > button { color: white; background: #7265a6; }
+
+
+/* Soft category colors and a shared pearly finish for the calendar. */
+.calendar-event, .calendar-task, .google-calendar-event, .calendar-legend li {
+  background-color: var(--event-color, #cad8ef);
+  background-image: linear-gradient(135deg, #ffffff70 0%, #fff7fd24 52%, #c6b9e229 100%);
+  border: 1px solid color-mix(in srgb, var(--event-color, #cad8ef) 60%, #9e8ab5);
+  box-shadow: inset 0 1px 0 #ffffffa6, 0 3px 8px #70578c12;
+  color: #354568;
+}
+.calendar-event, .calendar-task, .google-calendar-event {
+  border-radius: 12px;
+  border-left: 3px solid color-mix(in srgb, var(--event-color, #cad8ef) 65%, #8c76a8);
+  padding: 8px;
+}
+.calendar-legend li { border-radius: 999px; }
+.google-category-dot > span, .google-category-choice > span {
+  background-image: linear-gradient(135deg, #ffffff66, #c6b9e21f);
+  box-shadow: 0 0 0 1px #7e6c9b66;
+}
+.google-calendar-event small { color: #596382; }
+.google-calendar-event a { color: #57508b; }

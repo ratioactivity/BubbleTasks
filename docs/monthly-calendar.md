@@ -4,15 +4,15 @@ The former Day layout is now Calendar. Cycle the Layout button from Columns to T
 
 Use Previous month, Next month, Today, or the month picker to navigate. The viewed month is remembered on this device; past events are kept until explicitly deleted. Each date's + opens an event form for that date. Events may be all-day or have a start time and optional same-day end time. Click an event's displayed time to edit, with the start-time field focused automatically. Events do not automatically repeat annually.
 
-Colors:
+Soft base colors (shared by Google events, native events, the legend, and category dots). Bubbles add a subtle pearly gradient and lavender-tinted borders:
 
-- Birthdays & Holidays: `#ff9999`
-- Family & Friends: `#ffca99`
-- Appointments: `#ffe799`
-- Work: `#c2ff99`
-- Business & Creative Goals: `#99ffda`
-- Reminders & Tasks: `#99ceff`
-- Miscellaneous Events: `#af99ff`
+- Birthdays & Holidays: `#e8aec5`
+- Family & Friends: `#edc5ae`
+- Appointments: `#e9dbac`
+- Work: `#bbd8b6`
+- Business & Creative Goals: `#add8d0`
+- Reminders & Tasks: `#aecdec`
+- Miscellaneous Events: `#c9b7e8`
 
 Tasks with valid due dates appear on their respective dates. Completed dated tasks from the archive remain visible with a completion label and struck-through title. Undated tasks are omitted. Event times and dates use local calendar values and are not converted to UTC. On narrow screens, scroll the calendar horizontally; the rest of the app stays within the screen.
 

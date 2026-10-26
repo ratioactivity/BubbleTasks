@@ -12,10 +12,10 @@ window.addEventListener('DOMContentLoaded', () => {
   const disconnect = panel.querySelector('[data-google-disconnect]');
   const SAVE = 'bubbletasks_plain_v1';
   const TYPES = [
-    ['birthdays','Birthdays & Holidays','#ff9999'], ['family','Family & Friends','#ffca99'],
-    ['appointments','Appointments','#ffe799'], ['work','Work','#c2ff99'],
-    ['goals','Business & Creative Goals','#99ffda'], ['reminders','Reminders & Tasks','#99ceff'],
-    ['misc','Miscellaneous Events','#af99ff'],
+    ['birthdays','Birthdays & Holidays','#e8aec5'], ['family','Family & Friends','#edc5ae'],
+    ['appointments','Appointments','#e9dbac'], ['work','Work','#bbd8b6'],
+    ['goals','Business & Creative Goals','#add8d0'], ['reminders','Reminders & Tasks','#aecdec'],
+    ['misc','Miscellaneous Events','#c9b7e8'],
   ];
   const readSave = () => { try { return JSON.parse(localStorage.getItem(SAVE)) || {}; } catch { return {}; } };
   const normalizeCategories = (data) => Object.fromEntries(
@@ -89,7 +89,7 @@ window.addEventListener('DOMContentLoaded', () => {
   function openCategory(event,opener){
     editingCategory={id:event.id,user};categoryOpener=opener;categoryTitle.textContent=String(event.title||'Untitled event');
     categoryChoices.replaceChildren();
-    [['','Default Google color','#e4edff'],...TYPES].forEach(([value,label,color])=>{
+    [['','Default Google color','#cad8ef'],...TYPES].forEach(([value,label,color])=>{
       const choice=document.createElement('button');choice.type='button';choice.className='google-category-choice';
       choice.setAttribute('aria-pressed',String((categories[event.id]||'')===value));
       const swatch=document.createElement('span');swatch.style.backgroundColor=color;
@@ -135,7 +135,7 @@ window.addEventListener('DOMContentLoaded', () => {
         if (!intersects) continue;
         const bubble=document.createElement('article');bubble.className='google-calendar-event';bubble.dataset.googleEventId=String(event.id);
         const category=TYPES.find(([id])=>id===categories[event.id]);
-        if(category){bubble.style.backgroundColor=category[2];bubble.style.borderColor=category[2];}
+        if(category){bubble.style.setProperty('--event-color',category[2]);}
         append('small','Google · read-only',bubble);append('strong',String(event.title||'Untitled event'),bubble);
         const label=span.allDay?'All day':(formatDate(span.start)===day?time(span.start):'Continues')+' – '+(span.end<=endOfDay?time(span.end):'continues');
         append('time',label,bubble);
@@ -144,7 +144,7 @@ window.addEventListener('DOMContentLoaded', () => {
         const dot=document.createElement('button');dot.type='button';dot.className='google-category-dot';
         dot.setAttribute('aria-label','Change category for '+String(event.title||'Untitled event'));
         dot.title=category?category[1]:'Choose color/category';
-        const swatch=document.createElement('span');swatch.style.backgroundColor=category?category[2]:'#e4edff';
+        const swatch=document.createElement('span');swatch.style.backgroundColor=category?category[2]:'#cad8ef';
         dot.appendChild(swatch);
         dot.addEventListener('click',()=>openCategory(event,dot));
         bubble.appendChild(dot);

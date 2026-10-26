@@ -3,13 +3,13 @@
   const SAVE = 'bubbletasks_plain_v1';
   const MONTH = 'bubbletasks_calendar_month_v1';
   const TYPES = [
-    ['birthdays', 'Birthdays & Holidays', '#ff9999'],
-    ['family', 'Family & Friends', '#ffca99'],
-    ['appointments', 'Appointments', '#ffe799'],
-    ['work', 'Work', '#c2ff99'],
-    ['goals', 'Business & Creative Goals', '#99ffda'],
-    ['reminders', 'Reminders & Tasks', '#99ceff'],
-    ['misc', 'Miscellaneous Events', '#af99ff'],
+    ['birthdays', 'Birthdays & Holidays', '#e8aec5'],
+    ['family', 'Family & Friends', '#edc5ae'],
+    ['appointments', 'Appointments', '#e9dbac'],
+    ['work', 'Work', '#bbd8b6'],
+    ['goals', 'Business & Creative Goals', '#add8d0'],
+    ['reminders', 'Reminders & Tasks', '#aecdec'],
+    ['misc', 'Miscellaneous Events', '#c9b7e8'],
   ];
   const read = () => { try { return JSON.parse(localStorage.getItem(SAVE)) || {}; } catch { return {}; } };
   const validDate = (value) => {
@@ -114,7 +114,7 @@
         });
         tasks.filter(t=>t.dueDate===dateKey).sort((a,b)=>(Number(b.priority)||0)-(Number(a.priority)||0)).forEach(task=>{
           const done=task.status==='Complete';const bubble=node('article','calendar-task'+(done?' calendar-task-done':''));
-          bubble.style.setProperty('--event-color','#99ceff');bubble.append(node('small','',done?'Completed task':'Task due'),node('strong','',task.title));
+          bubble.style.setProperty('--event-color','#aecdec');bubble.append(node('small','',done?'Completed task':'Task due'),node('strong','',task.title));
           cell.appendChild(bubble);
         });
         grid.appendChild(cell);
