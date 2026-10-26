@@ -151,6 +151,7 @@
       try{
         const parsed=JSON.parse(await file.text());const tasks=Array.isArray(parsed)?parsed:parsed.tasks;
         if(!Array.isArray(tasks)||tasks.some(t=>!t||typeof t!=='object'))throw new Error('Invalid backup');
+        if(parsed.googleEventImports!==undefined&&!Array.isArray(parsed.googleEventImports))throw new Error('Invalid imported events');
         if(parsed.notes!==undefined&&!Array.isArray(parsed.notes))throw new Error('Invalid notes');
         if(parsed.calendarEvents!==undefined){if(!Array.isArray(parsed.calendarEvents))throw new Error('Invalid events');events=normalize(parsed.calendarEvents);}
         window.dispatchEvent(new CustomEvent('bubbletasks-backup-import',{detail:parsed}));

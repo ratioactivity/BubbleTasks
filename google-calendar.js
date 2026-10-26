@@ -1,4 +1,4 @@
-/* Google events are view-only and never enter BubbleTasks saves or Google write APIs. */
+/* Google is read-only. First-seen event snapshots are saved; refreshes only add new IDs. */
 window.addEventListener('DOMContentLoaded', () => {
   const ENDPOINT = 'https://ejrnkaigdstalaypyhhp.supabase.co/functions/v1/google-calendar-auth';
   const PUBLIC_KEY = 'sb_publishable_Qe_bJpZQLlm-CGoPnmhqFQ_aOxXtGhN';
@@ -21,16 +21,24 @@ window.addEventListener('DOMContentLoaded', () => {
   const normalizeCategories = (data) => Object.fromEntries(
     Object.entries(data && typeof data==='object' && !Array.isArray(data) ? data : {})
       .filter(([id,category]) => id.length <= 1024 && TYPES.some(([value])=>value===category)));
+  const normalizeImports = data => Array.isArray(data) ? data.filter(e=>e&&typeof e.userId==='string'&&typeof e.id==='string'&&e.id&&e.start&&e.end)
+    .map(e=>({userId:e.userId,id:e.id,title:String(e.title||'Untitled event').slice(0,2000),
+      start:{...(typeof e.start.date==='string'?{date:e.start.date}:{}),...(typeof e.start.dateTime==='string'?{dateTime:e.start.dateTime}:{})},
+      end:{...(typeof e.end.date==='string'?{date:e.end.date}:{}),...(typeof e.end.dateTime==='string'?{dateTime:e.end.dateTime}:{})},
+      ...(typeof e.htmlLink==='string'?{htmlLink:e.htmlLink}:{})})) : [];
   let categories = normalizeCategories(readSave().googleEventCategories);
+  let imports = normalizeImports(readSave().googleEventImports);
   const previousSet = Storage.prototype.setItem;
   Storage.prototype.setItem = function(key,value) {
     if(this===localStorage && key===SAVE) {
-      const data=JSON.parse(value);data.googleEventCategories=categories;value=JSON.stringify(data);
+      const data=JSON.parse(value);data.googleEventCategories=categories;data.googleEventImports=imports;value=JSON.stringify(data);
     }
     return previousSet.call(this,key,value);
   };
   window.addEventListener('bubbletasks-backup-import',event=>{
     if(event.detail?.googleEventCategories!==undefined)categories=normalizeCategories(event.detail.googleEventCategories);
+    if(event.detail?.googleEventImports!==undefined)imports=normalizeImports(event.detail.googleEventImports);
+    draw();
   });
   const cache = new Map();
   let user = cloud.getUserId(), connected = false, needsReconnect = false, busy = false, generation = 0;
@@ -114,12 +122,11 @@ window.addEventListener('DOMContentLoaded', () => {
   const draw = () => {
     board.querySelectorAll('.google-calendar-event').forEach(el=>el.remove());
     const view = range();
-    const saved = view && cache.get(view.key);
-    if (!user || !connected || !saved || saved.user !== user) return;
+    if (!user || !view) return;
     const cells = [...board.querySelectorAll('.calendar-day[data-date]')];
     const time = (value) => value.toLocaleTimeString([], {hour:'numeric',minute:'2-digit'});
     const append = (tag, text, parent) => { const el=document.createElement(tag);el.textContent=text;parent.appendChild(el);return el; };
-    for (const event of saved.events) {
+    for (const event of imports.filter(e=>e.userId===user)) {
       const span = eventSpan(event);if(!span)continue;
       for (const cell of cells) {
         const day = cell.dataset.date;
@@ -156,16 +163,23 @@ window.addEventListener('DOMContentLoaded', () => {
       const data=await request({action:'events',start:view.start,end:view.end},version);
       if(version!==generation||account!==user)return;
       if(!Array.isArray(data.events))throw new Error('Google returned an unexpected event response.');
-      const events=[...new Map(data.events.filter(e=>e&&e.id).map(e=>[e.id,e])).values()];
-      cache.set(view.key,{user:account,events,time:Date.now()});
-      // Keep a small in-memory cache; no Google events or tokens are added to task backups.
+      const known = new Set(imports.filter(e=>e.userId===account).map(e=>e.id));
+      const additions = normalizeImports(data.events.filter(e=>e&&e.status!=='cancelled').map(e=>({...e,userId:account})))
+        .filter(e=>{if(!eventSpan(e)||known.has(e.id))return false;known.add(e.id);return true;});
+      if(additions.length) {
+        const previous=imports;imports=[...imports,...additions];
+        try {localStorage.setItem(SAVE,JSON.stringify({...readSave(),googleEventImports:imports}));}
+        catch(error){imports=previous;throw new Error('New Google events could not be saved on this device. Free some browser storage and try again.');}
+      }
+      cache.set(view.key,{user:account,time:Date.now()});
+      // Only fetch timestamps are cached; saved event snapshots never expire.
       if(cache.size>12)cache.delete(cache.keys().next().value);
       draw();
-      message(data.partial?'Some Google events could not fit in this range. Open Google Calendar to see the full list.':'Google events updated · '+new Date().toLocaleTimeString([], {hour:'numeric',minute:'2-digit'}));
+      message(data.partial?'Some Google events could not fit in this range. Open Google Calendar to see the full list.':'Google events checked · '+additions.length+' new · '+new Date().toLocaleTimeString([], {hour:'numeric',minute:'2-digit'}));
     } catch(error) {
       if(version!==generation)return;
       if(error.code==='reconnect_required'||error.code==='connect_required'){needsReconnect=true;draw();}
-      message(error.name==='AbortError'?'Google Calendar timed out. Try Refresh.':error.message+' Existing loaded events are kept until you refresh successfully.');
+      message(error.name==='AbortError'?'Google Calendar timed out. Try Refresh.':error.message+' Previously imported events and their colors are kept.');
     } finally {
       if(version===generation){busy=false;paint();const next=range();if(next&&next.key!==view.key)schedule();}
     }
@@ -177,7 +191,7 @@ window.addEventListener('DOMContentLoaded', () => {
       const data=await request({action:'status'},version);
       if(version!==generation)return;
       connected=data.connected===true;needsReconnect=false;
-      message(callbackNotice + (connected?'Connected · your primary Google calendar is read-only.':'Connect Google Calendar to show its events here.'));
+      message(callbackNotice + (connected?'Connected · imports add new events only; existing events and colors stay unchanged.':'Connect Google Calendar to add new events. Previously imported events are kept.'));
     } catch(error) {if(version===generation)message(error.message);}
     finally {if(version===generation){busy=false;paint();if(connected)loadEvents();}}
   }
@@ -193,9 +207,9 @@ window.addEventListener('DOMContentLoaded', () => {
   });
   refresh.addEventListener('click',()=>loadEvents(true));
   disconnect.addEventListener('click',async()=>{
-    if(busy||!confirm('Disconnect Google Calendar? Its events will disappear from this view. Nothing is deleted from Google Calendar or your BubbleTasks events.'))return;
+    if(busy||!confirm('Disconnect Google Calendar? New events will stop importing. Previously imported events and their colors will stay in BubbleTasks.'))return;
     busy=true;paint();const version=generation;
-    try{await request({action:'disconnect'},version);if(version!==generation)return;connected=false;needsReconnect=false;cache.clear();draw();message('Google Calendar disconnected.');}
+    try{await request({action:'disconnect'},version);if(version!==generation)return;connected=false;needsReconnect=false;cache.clear();draw();message('Google Calendar disconnected. Previously imported events and colors are kept.');}
     catch(error){if(version===generation)message(error.message);}
     finally{if(version===generation){busy=false;paint();}}
   });
@@ -212,5 +226,6 @@ window.addEventListener('DOMContentLoaded', () => {
   if(result){const clean=new URL(location.href);clean.searchParams.delete('google_calendar');history.replaceState(null,'',clean.pathname+clean.search+clean.hash);
     if(result!=='connected'){callbackNotice=result==='cancelled'?'Google connection cancelled. ':'Google connection was not completed. Try Connect again and allow Calendar read access. ';message(callbackNotice);}
   }
-  paint();if(user)checkConnection();
+  paint();draw();if(user)checkConnection();
 });
+
