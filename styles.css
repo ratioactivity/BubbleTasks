@@ -250,7 +250,7 @@ input::placeholder { color: rgba(255,255,255,.85); }
 .story-status-note { box-sizing: border-box; max-width: min(280px, calc(100vw - 32px)); overflow-wrap: anywhere; transform: translateX(var(--note-shift-x, 0px)); }
 
 /* White task-action artwork for the lighter-text story cards. */
-.story-column:is([data-story="Ruse"], [data-story="APEX"], [data-story="Parallel"], [data-story="Black & Blue"], [data-story="Wild Skies"], [data-story="Mask"], [data-story="Horizon Line"], [data-story="Sleeper"], [data-story="Coup"], [data-story="Kaleidoscope"]) :is(.task-quick-actions, .task-quick-edit) img { filter: brightness(0) invert(1); }
+.story-column:is([data-story="Ruse"], [data-story="APEX"], [data-story="Parallel"], [data-story="Black & Blue"], [data-story="Wild Sky"], [data-story="Mask"], [data-story="Horizon Line"], [data-story="Sleeper"], [data-story="Coup"], [data-story="Kaleidoscope"]) :is(.task-quick-actions, .task-quick-edit) img { filter: brightness(0) invert(1); }
 
 .cloud-sync { margin-top: 12px; padding: 10px; background: rgba(255,255,255,.18); border-radius: 12px; display: grid; gap: 6px; overflow-wrap: anywhere; }
 .cloud-sync-actions, .cloud-auth-actions { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -287,8 +287,8 @@ input::placeholder { color: rgba(255,255,255,.85); }
 
 /* Center the pin artwork without the shared button padding. */
 .story-pin { padding: 0; }
-.story-column:is([data-story="Ruse"], [data-story="APEX"], [data-story="Parallel"], [data-story="Black & Blue"], [data-story="Wild Skies"], [data-story="Mask"], [data-story="Horizon Line"], [data-story="Sleeper"], [data-story="Coup"], [data-story="Kaleidoscope"]) .story-pin img { filter: brightness(0) invert(1); }
-.story-column:is([data-story="Ruse"], [data-story="APEX"], [data-story="Parallel"], [data-story="Black & Blue"], [data-story="Wild Skies"], [data-story="Mask"], [data-story="Horizon Line"], [data-story="Sleeper"], [data-story="Coup"], [data-story="Kaleidoscope"]) .story-pin[aria-pressed="true"] { background: rgba(67,54,94,.9); }
+.story-column:is([data-story="Ruse"], [data-story="APEX"], [data-story="Parallel"], [data-story="Black & Blue"], [data-story="Wild Sky"], [data-story="Mask"], [data-story="Horizon Line"], [data-story="Sleeper"], [data-story="Coup"], [data-story="Kaleidoscope"]) .story-pin img { filter: brightness(0) invert(1); }
+.story-column:is([data-story="Ruse"], [data-story="APEX"], [data-story="Parallel"], [data-story="Black & Blue"], [data-story="Wild Sky"], [data-story="Mask"], [data-story="Horizon Line"], [data-story="Sleeper"], [data-story="Coup"], [data-story="Kaleidoscope"]) .story-pin[aria-pressed="true"] { background: rgba(67,54,94,.9); }
 
 /* Month calendar */
 .board.calendar { display: grid; gap: 12px; min-width: 0; align-content: start; }

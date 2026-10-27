@@ -19,7 +19,7 @@ window.addEventListener('DOMContentLoaded', () => {
   const stories = [
     ['BOTA', 'BOTAbkg.gif', 'placeholder.png'], ['APEX', 'apexbkg.gif', 'placeholder.png'],
     ['Parallel', 'parallelbkg.gif', 'placeholder.png'], ['Black & Blue', 'blackandbluebkg.gif', 'blackandblue.png'],
-    ['Wild Skies', 'wildskiesbkg.gif', 'placeholder.png'], ['Mask', 'maskbkg.gif', 'placeholder.png'],
+    ['Wild Sky', 'wildskiesbkg.gif', 'wildsky.png'], ['Mask', 'maskbkg.gif', 'placeholder.png'],
     ['Teeth', 'teethbkg.gif', 'placeholder.png'], ['Ruse', 'rusebkg.gif', 'ruse.png'],
     ['Horizon Line', 'horizonlinebkg.gif', 'placeholder.png'], ['Sleeper', 'sleeperbkg.gif', 'placeholder.png'],
     ['Coup', 'coupbkg.gif', 'placeholder.png'], ['Kaleidoscope', 'kaleidoscopebkg.gif', 'placeholder.png'],
@@ -27,9 +27,10 @@ window.addEventListener('DOMContentLoaded', () => {
   const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
   })[char]);
+  const normalizeStoryName = (name) => name === 'Wild Skies' ? 'Wild Sky' : (name || '');
   const normalizeTask = (task) => ({
     ...task, id: String(task.id || crypto.randomUUID()), title: task.title || 'Untitled Task',
-    category: normalizeCategoryKey(task.category), story: task.story || '',
+    category: normalizeCategoryKey(task.category), story: normalizeStoryName(task.story),
     status: task.status || (task.done ? 'Complete' : 'Not Started'),
     dueDate: task.dueDate || task.due || null, createdAt: task.createdAt || nowISO(),
   });
@@ -84,7 +85,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
   const normalizeStoryDetails = (details) => Object.fromEntries(
     [...stories.map(([name]) => name), 'Other Writing'].map((name) => {
-      const detail = details && typeof details === 'object' ? details[name] : null;
+      const detail = details && typeof details === 'object' ? (details[name] || (name === 'Wild Sky' ? details['Wild Skies'] : null)) : null;
       return [name, {
         pinned: detail?.pinned === true,
         label: typeof detail?.label === 'string' ? detail.label.slice(0, 100) : '',
@@ -589,7 +590,7 @@ window.addEventListener('DOMContentLoaded', () => {
         id: task.id || crypto.randomUUID(),
         title: task.title || 'Untitled Task',
         category: normalizeCategoryKey(task.category),
-        story: task.story || '',
+        story: normalizeStoryName(task.story),
         status: task.status || (task.done ? 'Complete' : 'Not Started'),
         dueDate: task.dueDate || task.due || null,
         priority: Number.isFinite(task.priority) ? task.priority : null,
@@ -599,7 +600,7 @@ window.addEventListener('DOMContentLoaded', () => {
         id: task.id || crypto.randomUUID(),
         title: task.title || 'Untitled Task',
         category: normalizeCategoryKey(task.category),
-        story: task.story || '',
+        story: normalizeStoryName(task.story),
         status: 'Complete',
         dueDate: task.dueDate || task.due || null,
         priority: Number.isFinite(task.priority) ? task.priority : null,
