@@ -393,3 +393,6 @@ input::placeholder { color: rgba(255,255,255,.85); }
 }
 .google-calendar-event small { color: #596382; }
 .google-calendar-event a { color: #57508b; }
+
+/* Keep Writing quick-add buttons below the content, clear of story banners. */
+.board.tabs .story-column > .card-add-task { top: auto; right: auto; bottom: 11px; left: 8px; }
