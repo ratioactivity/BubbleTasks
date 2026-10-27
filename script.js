@@ -20,7 +20,7 @@ window.addEventListener('DOMContentLoaded', () => {
     ['BOTA', 'BOTAbkg.gif', 'placeholder.png'], ['APEX', 'apexbkg.gif', 'placeholder.png'],
     ['Parallel', 'parallelbkg.gif', 'placeholder.png'], ['Black & Blue', 'blackandbluebkg.gif', 'blackandblue.png'],
     ['Wild Skies', 'wildskiesbkg.gif', 'placeholder.png'], ['Mask', 'maskbkg.gif', 'placeholder.png'],
-    ['Teeth', 'teethbkg.gif', 'placeholder.png'], ['Ruse', 'rusebkg.gif', 'placeholder.png'],
+    ['Teeth', 'teethbkg.gif', 'placeholder.png'], ['Ruse', 'rusebkg.gif', 'ruse.png'],
     ['Horizon Line', 'horizonlinebkg.gif', 'placeholder.png'], ['Sleeper', 'sleeperbkg.gif', 'placeholder.png'],
     ['Coup', 'coupbkg.gif', 'placeholder.png'], ['Kaleidoscope', 'kaleidoscopebkg.gif', 'placeholder.png'],
   ];
