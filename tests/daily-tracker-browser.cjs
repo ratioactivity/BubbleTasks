@@ -29,7 +29,12 @@ const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'/opt/codex/cua_node/lib
  async function upload(p){await p.locator('[data-cloud-upload]').click();await p.waitForFunction(()=>document.querySelector('[data-sync-status]').textContent.startsWith('Synced'));}
 
 
- const a=await device();await a.locator('#dayToggleButton').click();await a.locator('#dailyTrackerView').waitFor();
+ const a=await device();await a.locator('.page-navigation [data-page=daily]').click();await a.locator('#dailyTrackerView').waitFor();
+ assert.deepEqual(await a.locator('.page-navigation button').allTextContents(),['Columns','Tabbed','Calendar','Notes','Daily Tracker']);
+ for(const [key,selector] of [['columns','.board.columns'],['tabs','.board.tabs'],['day','.board.calendar'],['notes','#notesView'],['daily','#dailyTrackerView'],['day','.board.calendar'],['columns','.board.columns'],['daily','#dailyTrackerView']]){
+   await a.locator('.page-navigation [data-page='+key+']').click();assert(await a.locator(selector).isVisible());
+   assert.equal(await a.locator('.page-navigation [aria-current=page]').getAttribute('data-page'),key);
+ }
  await a.getByLabel('Choose log date').fill('2026-10-31');
  assert.deepEqual(await a.locator('.day-grid > .day-widget > h3').allTextContents(),["Song of the Day","Mood","Pain","Sleep","Reproductive Health","Symptoms","Meals","What did you do today?","What are you watching?","What did you learn today?","Hyperfixations","Anything else?"]);
  assert(!(await a.locator('#dailyTrackerView').innerText()).includes('Update daily tasks'));
@@ -72,8 +77,12 @@ const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'/opt/codex/cua_node/lib
  await a.getByLabel('Daily notes',{exact:true}).fill('<script>safe plain text</script>');await widget(a,'Anything else?').getByRole('button',{name:'Save',exact:true}).click();
  let data=await a.evaluate(()=>JSON.parse(localStorage.getItem('bubbletasks_plain_v1')).dailyTracker);assert.equal(data.days['2026-10-31'].mood.length,2);assert.equal(data.days['2026-10-31'].symptoms.length,2);assert.equal(data.days['2026-10-31'].focus[0].worked,true);assert.equal(data.days['2026-10-31'].cycle.flow,'Spotting');
  await a.getByLabel('Choose log date').fill('2026-10-30');assert.match(await widget(a,'Mood').innerText(),/Not recorded/);await a.getByLabel('Choose log date').fill('2026-10-31');await a.reload();await a.locator('#dailyTrackerView').waitFor();assert.equal(await a.locator('.day-heading h2').innerText(),'Dreamboat Annie');
- await a.locator('#notesToggleButton').click();await a.locator('#notesView').waitFor();await a.locator('#dayToggleButton').click();await a.locator('#dailyTrackerView').waitFor();assert(!(await a.locator('#notesView').isVisible()));
- await a.getByLabel('Daily notes').fill('Keep this draft');await a.getByRole('button',{name:'Log mood 7',exact:true}).click();await saveEntry(a);assert.equal(await a.getByLabel('Daily notes').inputValue(),'Keep this draft');await widget(a,'Anything else?').getByRole('button',{name:'Save',exact:true}).click();
+ await a.locator('.page-navigation [data-page=notes]').click();await a.locator('#notesView').waitFor();await a.locator('.page-navigation [data-page=daily]').click();await a.locator('#dailyTrackerView').waitFor();assert(!(await a.locator('#notesView').isVisible()));
+ await a.getByLabel('Daily notes').fill('Keep this draft');a.removeAllListeners('dialog');a.once('dialog',d=>d.dismiss());
+ await a.locator('.page-navigation [data-page=columns]').click();
+ assert.equal(await a.locator('.page-navigation [aria-current=page]').getAttribute('data-page'),'daily');
+ assert.equal(await a.getByLabel('Daily notes').inputValue(),'Keep this draft');a.on('dialog',d=>d.accept());
+await a.getByRole('button',{name:'Log mood 7',exact:true}).click();await saveEntry(a);assert.equal(await a.getByLabel('Daily notes').inputValue(),'Keep this draft');await widget(a,'Anything else?').getByRole('button',{name:'Save',exact:true}).click();
  const dl=a.waitForEvent('download');await a.locator('#backupTasksButton').click();const backup=JSON.parse(fs.readFileSync(await (await dl).path()));assert.equal(backup.dailyTracker.days['2026-10-31'].mood.length,3);assert.equal(backup.dailyTracker.days['2026-10-31'].reproduction.length,2);
 
  await a.locator('.day-activity-presets summary').click();
@@ -86,6 +95,14 @@ const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'/opt/codex/cua_node/lib
  assert((await a.getByRole('button',{name:'Log mood 1',exact:true}).boundingBox()).height>=64);
  assert.equal(await a.getByRole('button',{name:'Log pain 1',exact:true}).evaluate(n=>getComputedStyle(n).backgroundColor),'rgb(255, 250, 250)');
  assert.equal(await a.getByRole('button',{name:'Log pain 10',exact:true}).evaluate(n=>getComputedStyle(n).backgroundColor),'rgb(184, 36, 56)');
+ await a.locator('.day-summary > summary').click();
+ assert.equal(await a.locator('.day-summary pre').count(),0);
+ assert(await a.locator('.day-summary-section').count()>5);
+ assert(!(await a.locator('.day-summary-body').innerText()).includes('2026-10-31T08:00'));
+ assert((await a.locator('.day-summary-body').innerText()).includes('6.5 hours'));
+ assert(!(await a.locator('.day-summary-body').innerText()).includes('Updated aftercare'));
+ await a.locator('.day-summary-private > summary').first().click();assert((await a.locator('.day-summary-body').innerText()).includes('Updated aftercare'));
+ await a.locator('.day-summary-private > summary').first().click();
  await a.screenshot({path:'/tmp/bubbletasks-day-desktop.png',fullPage:true});
  await a.waitForTimeout(300);
  assert.equal(await a.locator('.day-grid').evaluate(n=>getComputedStyle(n).gap),'10px');
@@ -97,9 +114,10 @@ await a.setViewportSize({width:390,height:844});assert.equal(await a.evaluate(()
  await login(a);await upload(a);assert.equal(remote.data.dailyTracker.days['2026-10-31'].mood.length,3);
  await a.getByLabel('Automatically upload saved days to Notion').check();await a.waitForFunction(()=>document.querySelector('[data-day-sync-status]').textContent.startsWith('Uploaded'));assert(notionCalls>=1);
  const b=await device();await login(b);await b.locator('[data-cloud-download]').click();await b.waitForFunction(()=>JSON.parse(localStorage.getItem('bubbletasks_plain_v1')).dailyTracker?.days?.['2026-10-31']?.mood.length===3);
- await b.locator('#dayToggleButton').click();await b.getByLabel('Choose log date').fill('2026-10-31');assert.equal(await b.locator('.day-heading h2').innerText(),'Dreamboat Annie');assert.equal(await b.evaluate(()=>JSON.parse(localStorage.getItem('bubbletasks_plain_v1')).dailyTracker.days['2026-10-31'].reproduction[0].aftercare),'Updated aftercare');
+ await b.locator('.page-navigation [data-page=daily]').click();await b.getByLabel('Choose log date').fill('2026-10-31');assert.equal(await b.locator('.day-heading h2').innerText(),'Dreamboat Annie');assert.equal(await b.evaluate(()=>JSON.parse(localStorage.getItem('bubbletasks_plain_v1')).dailyTracker.days['2026-10-31'].reproduction[0].aftercare),'Updated aftercare');
  await b.getByLabel('Daily notes').fill('Updated on second device');await widget(b,'Anything else?').getByRole('button',{name:'Save',exact:true}).click();await b.waitForFunction(()=>document.querySelector('[data-sync-status]').textContent.startsWith('Synced'));
  await a.locator('[data-sync-now]').click();await a.waitForFunction(()=>JSON.parse(localStorage.getItem('bubbletasks_plain_v1')).dailyTracker.days['2026-10-31'].notes==='Updated on second device');await a.locator('#dailyTrackerView').waitFor();assert.equal(await a.getByLabel('Daily notes').inputValue(),'Updated on second device');
  assert.deepEqual(errors,[]);await browser.close();console.log('PASS: all Day widgets, average mood, symptom completion/group recall, focus history, sleep duration, notes/Day navigation, draft preservation, backups, reload, mobile sizing, two-device sync, and revision-aware Notion upload. Simulated services.');
 })().catch(e=>{console.error(e);process.exit(1)});
+
 

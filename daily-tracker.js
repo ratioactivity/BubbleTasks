@@ -180,6 +180,34 @@
       });
     }
     function navigate(date){if(!M.validDate(date)||!confirmLeave())return;selected=date;dirtyForms.clear();sessionStorage.setItem(DATE,date);render();}
+    function summaryContent(d){
+      const body=el('div','day-summary-body'),intro=el('header','day-summary-intro');
+      intro.append(el('h3','',d.music.title||'Daily Overview'),el('p','',new Date(selected+'T12:00:00').toLocaleDateString([],{weekday:'long',month:'long',day:'numeric',year:'numeric'})));body.append(intro);
+      const stats=el('div','day-summary-stats');
+      for(const [label,value] of [['Sleep',M.sleepHours(d)===null?null:M.sleepHours(d).toFixed(1)+' hours'],['Average Mood',M.mean(d.mood)===null?null:M.mean(d.mood).toFixed(1)+' / 10'],['Average Pain',M.mean(d.pain)===null?null:M.mean(d.pain).toFixed(1)+' / 10'],['Peak Pain',d.pain.length?Math.max(...d.pain.map(e=>e.rating))+' / 10':null]]){
+        if(value===null)continue;const stat=el('div','day-summary-stat');stat.append(el('span','',label),el('strong','',value));stats.append(stat);
+      }
+      if(stats.children.length)body.append(stats);
+      function section(title){const box=el('section','day-summary-section');box.append(el('h3','',title));body.append(box);return box;}
+      function pairs(box,items){const dl=el('dl','day-summary-facts');items.forEach(([label,value])=>{if(value===null||value===undefined||value==='')return;dl.append(el('dt','',label),el('dd','',String(value)));});if(dl.children.length)box.append(dl);}
+      function entry(box,label,note){const item=el('div','day-summary-item');item.append(el('strong','',label));if(note)item.append(el('p','',note));box.append(item);}
+      if(d.music.artists.length||M.genres(d,tracker).length){const box=section('Song of the Day');pairs(box,[['Artists',d.music.artists.join(', ')],['Genres',M.genres(d,tracker).join(', ')]]);}
+      for(const type of ['mood','pain'])if(d[type].length){const box=section(type==='mood'?'Mood Readings':'Pain Readings');for(const e of d[type])entry(box,clock(e.time)+' · '+e.rating+'/10',e.note);}
+      if(d.sleep.bed||d.sleep.wake){const box=section('Sleep');const dateTime=value=>value?new Date(value).toLocaleString([],{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}):null;pairs(box,[['Went to Sleep',dateTime(d.sleep.bed)],['Woke Up',dateTime(d.sleep.wake)]]);}
+      if(d.cycle.menstruating!==null||d.cycle.note||d.reproduction.length){
+        const box=section('Reproductive Health');pairs(box,[['Menstruating',d.cycle.menstruating===null?null:d.cycle.menstruating?'Yes':'No'],['Flow',d.cycle.menstruating===true?d.cycle.flow:null],['Cycle Notes',d.cycle.note]]);
+        for(const e of d.reproduction){const details=el('details','day-summary-private');details.append(el('summary','',(e.kind==='sex'?'👉👌':'❤️‍🔥')+' · '+clock(e.time)));pairs(details,[['Preparation',e.preparation],['Aftercare',e.aftercare],['Pain',e.pain===null?null:e.pain?'Yes · '+(e.painLevel??'—')+'/10':'No'],['Orgasm',e.orgasm===null?null:e.orgasm?'Yes · '+(e.pleasureLevel??'—')+'/10 pleasure':'No'],['Notes',e.note]]);box.append(details);}
+      }
+      if(d.symptoms.length){const box=section('Symptoms');for(const e of d.symptoms)entry(box,clock(e.time)+' · '+e.name+(e.rating?' · '+e.rating+'/10':''),e.area+(e.note?'\n'+e.note:''));}
+      if(d.meals.length){const box=section('Meals');for(const e of d.meals)entry(box,clock(e.time)+(e.label?' · '+e.label:''),e.text);}
+      if(d.activities.length){const box=section('Activities'),tags=el('div','day-tags');d.activities.forEach(v=>tags.append(el('span','day-summary-tag',v)));box.append(tags);}
+      if(d.watching.length){const box=section('Watching');d.watching.forEach(e=>entry(box,e.name,e.note));}
+      if(d.learned.length){const box=section('Learned Today');d.learned.forEach(e=>entry(box,clock(e.time),e.text));}
+      if(d.focus.length){const box=section('Hyperfixations');for(const e of d.focus)entry(box,e.name,[e.onMind?'On my mind':'',e.worked?'Worked on':'',e.note].filter(Boolean).join('\n'));}
+      if(d.notes){const box=section('Anything Else?');box.append(el('p','day-summary-note',d.notes));}
+      if(body.children.length===1)body.append(el('p','day-help','Save something in a widget above to build your daily summary.'));
+      return body;
+    }
     function render(){
       if(!showing||dirtyForms.size)return;const scrollTop=window.scrollY,scrollLeft=window.scrollX;dirtyForms.clear();view.replaceChildren();const d=current();
       const top=el('header','day-heading');top.style.setProperty('--day-mood',M.moodColor(d));
@@ -247,7 +275,7 @@
       const nf=formFor(noteBox,form=>save(day=>day.notes=note.value,form));nf.form.append(field('Daily notes',note),nf.submit);grid.append(noteBox);
       const widgetOrder=["Song of the Day","Mood","Pain","Sleep","Reproductive Health","Symptoms","Meals","What did you do today?","What are you watching?","What did you learn today?","Hyperfixations","Anything else?"];
       [...grid.children].sort((a,b)=>widgetOrder.indexOf(a.querySelector('h3').textContent)-widgetOrder.indexOf(b.querySelector('h3').textContent)).forEach(card=>grid.append(card));
-      const summary=el('details','day-summary'),summaryTitle=el('summary','','Daily Summary'),pre=el('pre','',M.summary(selected,d,tracker,stamp));summary.append(summaryTitle,pre,btn('Download summary',()=>download(M.summary(selected,current(),tracker,stamp),'bubbletasks-'+selected+'.txt','text/plain')));view.append(summary);
+      const summary=el('details','day-summary'),summaryTitle=el('summary','','Daily Summary'),content=summaryContent(d);summary.append(summaryTitle,content,btn('Download summary',()=>download(M.summary(selected,current(),tracker,stamp),'bubbletasks-'+selected+'.txt','text/plain')));view.append(summary);
       const sync=widget('Notion Uploads','Uploads update the same page for this date. Your token stays in the backend.');
       const status=el('p');status.dataset.daySyncStatus='';status.setAttribute('role','status');
       const enabled=input('checkbox');enabled.checked=isEnabled();enabled.addEventListener('change',()=>{const user=window.BubbleTasksCloud?.getUserId();if(!user){enabled.checked=false;message('Sign in to BubbleTasks first.');return;}localStorage.setItem('bubbletasks_notion_auto_v1:'+user,String(enabled.checked));paintSync();if(enabled.checked)syncPending();});
@@ -289,4 +317,5 @@
     apply();render();
   });
 })();
+
 

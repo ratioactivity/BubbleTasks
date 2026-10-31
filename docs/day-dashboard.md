@@ -1,6 +1,6 @@
 # Day dashboard and Notion uploads
 
-Open **Day** beside Layout. Calendar and Notes remain available. Each widget saves independently. Mood and pain are timestamped 1–10 readings. Blank means unrecorded, not zero. The header follows average mood in a pastel purple-to-pink rainbow.
+Open **Daily Tracker** in the main page navigation. Columns, Tabbed, Calendar, and Notes each have their own button; backup tools are in a separate, smaller row. Each widget saves independently. Mood and pain are timestamped 1–10 readings. Blank means unrecorded, not zero. The header follows average mood in a pastel purple-to-pink rainbow.
 
 Sleep belongs to the day you wake up. Store explicit dates and times: after-midnight bedtimes use the wake-up date; before-midnight bedtimes use the previous date. UTC instants preserve elapsed sleep across daylight-saving transitions.
 
@@ -8,7 +8,7 @@ Symptoms offer inline phrase completion, a remembered body-area group, and optio
 
 Artist genres are reusable defaults; each song can override them. Editing an artist's defaults queues affected days for re-upload. Song of the Day becomes the day title; otherwise Notion uses the date.
 
-Saved daily summaries can be downloaded as text. Day records and reusable artists/tags are stored under dailyTracker in the normal JSON save, so existing online sync and backups include them. Older backups without dailyTracker preserve current daily data. Unsaved text widgets remain intact when another entry is added; save or discard them before switching dates.
+The Daily Summary groups recorded information into readable sections, highlights sleep and mood/pain statistics, and formats dates and times for display. Reproductive entry details remain collapsed until explicitly opened. Summaries can still be downloaded as plain text. Day records and reusable artists/tags are stored under dailyTracker in the normal JSON save, so existing online sync and backups include them. Older backups without dailyTracker preserve current daily data. Unsaved text widgets remain intact when another entry is added; save or discard them before switching dates.
 
 ## Reproductive Health
 

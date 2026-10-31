@@ -113,3 +113,33 @@
 .day-reproductive-actions { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin: 14px 0; }
 .day-reproductive-actions button { min-height: 52px; font: 1.6rem/1.2 sans-serif; border: 1px solid #bba6cf; background: #ffffff88; border-radius: 14px; }
 .day-reproductive-actions button[aria-expanded="true"] { background: #ead1e3; box-shadow: inset 0 0 0 1px #a77ca0; }
+
+
+/* Primary pages have their own prominent navigation, separate from save tools. */
+#layoutToggleButton, #dayToggleButton, #notesToggleButton { display: none !important; }
+.page-navigation { display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; padding-bottom:12px; border-bottom:1px solid #9682b433; }
+.page-navigation button { min-height:44px; padding:10px 19px; border:1px solid #a18ab9; border-radius:13px; background:linear-gradient(135deg,#fff5fbe8,#e5e9fae8); color:#514c75; font-size:1.15rem; font-weight:700; box-shadow:inset 0 1px 0 #fff9,0 2px 5px #67517e12; }
+.page-navigation button[aria-current="page"] { color:white; background:linear-gradient(135deg,#8b6dab,#6e68a2); border-color:#716096; box-shadow:inset 0 1px 0 #ffffff40,0 3px 8px #67517e26; }
+.page-navigation button:focus-visible { outline:2px solid #63508a; outline-offset:3px; }
+.day-summary > summary { font-weight:700; padding:3px 0; }
+.day-summary-body { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,270px),1fr)); gap:12px; margin:16px 0; }
+.day-summary-intro, .day-summary-stats { grid-column:1/-1; }
+.day-summary-intro h3 { color:#514b76; text-shadow:none; font-size:1.9rem; }
+.day-summary-intro p { margin:6px 0 0; color:#5c6280; }
+.day-summary-stats { display:flex; flex-wrap:wrap; gap:9px; }
+.day-summary-stat { flex:1 1 130px; padding:12px; border:1px solid #b8a4ce; border-radius:12px; background:#fff9fbc9; }
+.day-summary-stat span,.day-summary-stat strong { display:block; }
+.day-summary-stat span { color:#716580; font-size:.9rem; }
+.day-summary-stat strong { margin-top:5px; color:#514970; font-size:1.25rem; }
+.day-summary-section { padding:14px; border:1px solid #c2afd5; border-radius:13px; background:#fff9fbd4; min-width:0; }
+.day-summary-section h3 { color:#66527f; text-shadow:none; font-size:1.3rem; margin-bottom:12px; }
+.day-summary-facts { display:grid; grid-template-columns:minmax(85px,auto) minmax(0,1fr); gap:7px 12px; margin:8px 0; }
+.day-summary-facts dt { color:#736080; font-weight:700; }
+.day-summary-facts dd { margin:0; white-space:pre-wrap; overflow-wrap:anywhere; }
+.day-summary-item + .day-summary-item { margin-top:10px; padding-top:10px; border-top:1px solid #d9cce4; }
+.day-summary-item strong { color:#4e5378; }
+.day-summary-item p,.day-summary-note { white-space:pre-wrap; overflow-wrap:anywhere; line-height:1.5; margin:5px 0 0; }
+.day-summary-tag { padding:5px 10px; border:1px solid #c6b2d9; border-radius:999px; background:#eae0f4; }
+.day-summary-private { padding:8px 0; }
+.day-summary-private summary { cursor:pointer; }
+@media(max-width:600px) { .page-navigation { gap:6px; }.page-navigation button { flex:1 1 auto; padding:9px 12px; font-size:1rem; } }

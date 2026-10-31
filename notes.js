@@ -82,6 +82,7 @@
     }
     // Add Notes after Calendar in the layout cycle, while retaining direct access from the toolbar.
     layout.addEventListener('click',event=>{
+      if(layout.dataset.directNavigation==='true')return;
       if(showing){setView(false);return;}
       if(board.classList.contains('calendar')){event.stopImmediatePropagation();setView(true);}
     },true);
@@ -179,4 +180,5 @@
     applyView();render();
   });
 })();
+
 
