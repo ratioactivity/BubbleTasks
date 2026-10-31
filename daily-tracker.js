@@ -22,7 +22,6 @@
     let showing=localStorage.getItem(VIEW)==='true', selected=sessionStorage.getItem(DATE);
     if(!M.validDate(selected))selected=M.dateKey(new Date());
     if(showing&&notesButton?.getAttribute('aria-pressed')==='true')notesButton.click();
-    let packingObserver=null;
     let dirtyForms=new Set(),lastUser=window.BubbleTasksCloud?.getUserId(),uploading=false,uploadEpoch=0;
     const dayButton=btn('Day',()=>{if(showing)leave();else enter();});dayButton.id='dayToggleButton';layout.after(dayButton);
     const dialog=el('dialog','day-dialog');dialog.id='dailyEntryDialog';document.body.append(dialog);
@@ -151,7 +150,7 @@
     }
     function navigate(date){if(!M.validDate(date)||!confirmLeave())return;selected=date;dirtyForms.clear();sessionStorage.setItem(DATE,date);render();}
     function render(){
-      if(!showing||dirtyForms.size)return;const scrollTop=window.scrollY,scrollLeft=window.scrollX;dirtyForms.clear();packingObserver?.disconnect();view.replaceChildren();const d=current();
+      if(!showing||dirtyForms.size)return;const scrollTop=window.scrollY,scrollLeft=window.scrollX;dirtyForms.clear();view.replaceChildren();const d=current();
       const top=el('header','day-heading');top.style.setProperty('--day-mood',M.moodColor(d));
       const heading=el('div');heading.append(el('h2','',d.music.title||'Today’s Daybook'),el('p','',new Date(selected+'T12:00:00').toLocaleDateString([],{weekday:'long',month:'long',day:'numeric',year:'numeric'})));
       const nav=el('div','day-actions'),pick=input('date',selected,'Choose log date');pick.addEventListener('change',()=>navigate(pick.value));
@@ -213,9 +212,6 @@
       if(owner){const setup=el('details');setup.append(el('summary','','Connection setup'),el('p','day-help','Supabase secret NOTION_OWNER_USER_ID must match your signed-in BubbleTasks account ID:'),el('code','',owner));const guide=el('a','','Notion setup instructions');guide.href='https://github.com/ratioactivity/BubbleTasks/blob/v2.0/docs/day-dashboard.md';guide.target='_blank';guide.rel='noopener noreferrer';setup.append(guide);sync.append(setup);}
       else sync.append(el('p','day-help','Sign in using the online-sync panel to enable uploads.'));
       view.append(sync);paintSync();apply();
-      const pack=card=>{const span=String(Math.ceil(card.getBoundingClientRect().height));if(card.style.gridRowEnd!=='span '+span)card.style.gridRowEnd='span '+span;};
-      packingObserver=new ResizeObserver(entries=>entries.forEach(entry=>pack(entry.target)));
-      [...grid.children].forEach(card=>{pack(card);packingObserver.observe(card);});
       window.scrollTo({top:scrollTop,left:scrollLeft,behavior:'instant'});
     }
     function download(content,name,type){const a=el('a');a.href=URL.createObjectURL(new Blob([content],{type}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}

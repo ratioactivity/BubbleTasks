@@ -48,10 +48,17 @@
 .daily-view code { display:block; overflow-wrap:anywhere; user-select:all; padding:10px; background:#f1e8f7; }
 @media(max-width:600px) { .day-heading { padding:14px; }.day-heading h2 {font-size:1.8rem}.day-widget {padding:12px}.day-actions input {width:145px} }
 
-/* Close-packed, independently sized bubbles instead of rows padded to their tallest card. */
-.daily-view { gap: 8px; }
+/* Responsive, aligned widget rows with the same spacing as the sidebar. */
+.daily-view { gap: 10px; }
 .day-feedback:empty { display: none; }
-.day-grid { grid-auto-rows: 1px; grid-auto-flow: row dense; gap: 0; }
+.day-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, max(310px, calc((100% - 30px) / 4))), 1fr));
+  grid-auto-rows: auto;
+  grid-auto-flow: row;
+  align-items: stretch;
+  gap: 10px;
+}
+.day-grid > .day-widget { height: 100%; }
 .day-widget {
   background: linear-gradient(135deg, #b8d9edee, #d8cbeaee);
   border-color: #aa94c6;

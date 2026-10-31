@@ -59,11 +59,11 @@ const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'/opt/codex/cua_node/lib
  const dl=a.waitForEvent('download');await a.locator('#backupTasksButton').click();const backup=JSON.parse(fs.readFileSync(await (await dl).path()));assert.equal(backup.dailyTracker.days['2026-10-31'].mood.length,3);
  await a.screenshot({path:'/tmp/bubbletasks-day-desktop.png',fullPage:true});
  await a.waitForTimeout(300);
- assert(await a.locator('.day-grid > .day-widget').evaluateAll(cards=>cards.every(card=>card.style.gridRowEnd.startsWith('span '))));
+ assert.equal(await a.locator('.day-grid').evaluate(n=>getComputedStyle(n).gap),'10px');
  await a.setViewportSize({width:1920,height:1080});await a.waitForTimeout(300);
  await a.screenshot({path:'/tmp/bubbletasks-day-wide.png',fullPage:true});
  const layout=await a.locator('.day-grid > .day-widget').evaluateAll(cards=>cards.map(c=>({x:c.offsetLeft,y:c.offsetTop,height:c.getBoundingClientRect().height})));
- assert(layout.slice(0,4).some((v,i)=>i&&Math.abs(v.height-layout[0].height)>50));
+ assert(layout.slice(0,4).every(v=>Math.abs(v.y-layout[0].y)<1 && Math.abs(v.height-layout[0].height)<1));
 await a.setViewportSize({width:390,height:844});assert.equal(await a.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);await a.screenshot({path:'/tmp/bubbletasks-day-mobile.png',fullPage:true});await a.setViewportSize({width:1280,height:900});
  await login(a);await upload(a);assert.equal(remote.data.dailyTracker.days['2026-10-31'].mood.length,3);
  await a.getByLabel('Automatically upload saved days to Notion').check();await a.waitForFunction(()=>document.querySelector('[data-day-sync-status]').textContent.startsWith('Uploaded'));assert(notionCalls>=1);
