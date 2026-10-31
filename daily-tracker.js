@@ -22,6 +22,7 @@
     let showing=localStorage.getItem(VIEW)==='true', selected=sessionStorage.getItem(DATE);
     if(!M.validDate(selected))selected=M.dateKey(new Date());
     if(showing&&notesButton?.getAttribute('aria-pressed')==='true')notesButton.click();
+    let packingObserver=null;
     let dirtyForms=new Set(),lastUser=window.BubbleTasksCloud?.getUserId(),uploading=false,uploadEpoch=0;
     const dayButton=btn('Day',()=>{if(showing)leave();else enter();});dayButton.id='dayToggleButton';layout.after(dayButton);
     const dialog=el('dialog','day-dialog');dialog.id='dailyEntryDialog';document.body.append(dialog);
@@ -128,7 +129,7 @@
       dialog.querySelector('[type=submit]').textContent='Close';
     }
     function noteEntry(type,entry){
-      openDialog(type==='meals'?'Meal':'Learned today',(form,error)=>{
+      openDialog(type==='meals'?'Meal':'Learned Today',(form,error)=>{
         const time=input('datetime-local',entry?local(entry.time):nowTime());time.required=true;
         const text=el('textarea');text.rows=4;text.required=true;text.maxLength=4000;text.value=entry?.text||'';
         const label=el('select');label.setAttribute('aria-label','Meal');['','Breakfast','Lunch','Dinner','Snack','Other'].forEach(v=>label.add(new Option(v||'No meal label',v)));label.value=entry?.label||'';
@@ -150,13 +151,13 @@
     }
     function navigate(date){if(!M.validDate(date)||!confirmLeave())return;selected=date;dirtyForms.clear();sessionStorage.setItem(DATE,date);render();}
     function render(){
-      if(!showing||dirtyForms.size)return;const scrollTop=window.scrollY,scrollLeft=window.scrollX;dirtyForms.clear();view.replaceChildren();const d=current();
+      if(!showing||dirtyForms.size)return;const scrollTop=window.scrollY,scrollLeft=window.scrollX;dirtyForms.clear();packingObserver?.disconnect();view.replaceChildren();const d=current();
       const top=el('header','day-heading');top.style.setProperty('--day-mood',M.moodColor(d));
-      const heading=el('div');heading.append(el('h2','',d.music.title||'Today’s daybook'),el('p','',new Date(selected+'T12:00:00').toLocaleDateString([],{weekday:'long',month:'long',day:'numeric',year:'numeric'})));
+      const heading=el('div');heading.append(el('h2','',d.music.title||'Today’s Daybook'),el('p','',new Date(selected+'T12:00:00').toLocaleDateString([],{weekday:'long',month:'long',day:'numeric',year:'numeric'})));
       const nav=el('div','day-actions'),pick=input('date',selected,'Choose log date');pick.addEventListener('change',()=>navigate(pick.value));
       const move=n=>{const date=new Date(selected+'T12:00:00');date.setDate(date.getDate()+n);navigate(M.dateKey(date));};
       nav.append(btn('‹',()=>move(-1)),btn('Today',()=>navigate(M.dateKey(new Date()))),btn('›',()=>move(1)),pick);top.append(heading,nav);view.append(top,feedback);
-      const agenda=widget('Tasks & events','Your scheduled events, due tasks, and today’s agenda.');
+      const agenda=widget('Tasks & Events','Your scheduled events, due tasks, and today’s agenda.');
       const data=read(), agendaItems=data.agenda?.dateKey===selected?data.agenda.items||[]:[];
       const due=[...(data.tasks||[]),...(data.archived||[])].filter(t=>t.dueDate===selected);
       const events=(data.calendarEvents||[]).filter(e=>e.date===selected).map(e=>(e.allDay?'All day':e.startTime||'')+' · '+e.title);
@@ -165,7 +166,7 @@
       for(const line of [...events,...due.map(t=>t.title+' · '+t.status),...agendaItems.map(t=>t.text||t.title||'Agenda item')])agenda.append(el('p','day-schedule-line',line));
       if(!events.length&&!due.length&&!agendaItems.length)agenda.append(el('p','day-help','Nothing scheduled for this date.'));
       view.append(agenda);const grid=el('div','day-grid');view.append(grid);
-      const music=widget('Song of the Day','The title of your day. Artist genres are remembered and reused.');
+      const music=widget('Song Of The Day','The title of your day. Artist genres are remembered and reused.');
       const song=input('text',d.music.title,'Song title');song.maxLength=200;
       const sf=formFor(music,()=>save(day=>day.music.title=song.value.trim(),sf.form));sf.form.append(field('Song title',song),sf.submit);
       const artistChips=el('div','day-tags');d.music.artists.forEach(name=>artistChips.append(btn(name+' · genres',()=>artistGenres(name),'day-tag'),btn('×',()=>{if(save(day=>day.music.artists=day.music.artists.filter(n=>n!==name)))render();},'day-tag-remove')));
@@ -187,31 +188,35 @@
       const areaFilter=el('select');areaFilter.setAttribute('aria-label','Filter symptoms by body area');['All areas',...M.AREAS].forEach(a=>areaFilter.add(new Option(a,a)));const symptomRows=el('div');
       const showSymptoms=()=>{symptomRows.replaceChildren();d.symptoms.filter(e=>areaFilter.value==='All areas'||e.area===areaFilter.value).forEach(e=>symptomRows.append(btn(clock(e.time)+' · '+e.name+' · '+e.area+(e.rating?' · '+e.rating+'/10':''),()=>reading('symptoms',e),'day-entry')));};areaFilter.addEventListener('change',showSymptoms);showSymptoms();
       symptoms.append(btn('+ Log symptom',()=>reading('symptoms')),areaFilter,symptomRows);grid.append(symptoms);
-      const cycle=widget('Menstrual cycle','A separate record; leaving it blank means not recorded.');
+      const cycle=widget('Menstrual Cycle','A separate record; leaving it blank means not recorded.');
       const yes=el('select');yes.setAttribute('aria-label','Menstruating?');[['','Not recorded'],['no','No'],['yes','Yes']].forEach(([v,l])=>yes.add(new Option(l,v)));yes.value=d.cycle.menstruating===null?'':d.cycle.menstruating?'yes':'no';
       const flow=el('select');flow.setAttribute('aria-label','Flow');['','Spotting','Light','Medium','Heavy'].forEach(v=>flow.add(new Option(v||'Choose flow',v)));flow.value=d.cycle.flow;
       const flowLabel=field('Flow',flow);flowLabel.hidden=yes.value!=='yes';yes.addEventListener('change',()=>flowLabel.hidden=yes.value!=='yes');
       const cycleNote=el('textarea');cycleNote.rows=3;cycleNote.maxLength=2000;cycleNote.value=d.cycle.note;
       const cf=formFor(cycle,form=>save(day=>day.cycle={menstruating:yes.value===''?null:yes.value==='yes',flow:yes.value==='yes'?flow.value:'',note:cycleNote.value},form));
       cf.form.append(field('Menstruating?',yes),flowLabel,field('Notes',cycleNote),cf.submit);grid.append(cycle);
-      const activities=widget('What did you do today?');const activityChips=el('div','day-tags');d.activities.forEach(name=>activityChips.append(btn(name+' ×',()=>{if(save(day=>day.activities=day.activities.filter(v=>v!==name)))render();},'day-tag')));activities.append(activityChips,tagEntry('Add activity',()=>known('activities'),name=>{if(save(day=>day.activities=M.tags([...day.activities,name])))render();}).box);grid.append(activities);
+      const activities=widget('What Did You Do Today?');const activityChips=el('div','day-tags');d.activities.forEach(name=>activityChips.append(btn(name+' ×',()=>{if(save(day=>day.activities=day.activities.filter(v=>v!==name)))render();},'day-tag')));activities.append(activityChips,tagEntry('Add activity',()=>known('activities'),name=>{if(save(day=>day.activities=M.tags([...day.activities,name])))render();}).box);grid.append(activities);
       for(const type of ['focus','watching']){
-        const box=widget(type==='focus'?'Hyperfixations':'What are you watching?',type==='focus'?'“On my mind” and “Worked on” can both be true. Each interest has its own progress note.':null);
+        const box=widget(type==='focus'?'Hyperfixations':'What Are You Watching?',type==='focus'?'“On my mind” and “Worked on” can both be true. Each interest has its own progress note.':null);
         box.append(tagEntry(type==='focus'?'Story, game, or interest':'Show or movie',()=>M.tags([...known(type),...(type==='focus'?['BOTA','APEX','Parallel','Black & Blue','Wild Sky','Mask','Teeth','Ruse','Horizon Line','Sleeper','Coup','Kaleidoscope']:[])]),name=>focusEntry(type,null,name)).box);
         d[type].forEach(e=>{const row=el('div','day-interest');row.append(btn(e.name+(type==='focus'?' · '+[e.onMind?'On my mind':'',e.worked?'Worked on':''].filter(Boolean).join(' / '):''),()=>focusEntry(type,e),'day-entry'));if(e.note)row.append(el('p','',e.note));if(type==='focus')row.append(btn('History',()=>history(e.name),'day-history'));box.append(row);});grid.append(box);
       }
-      for(const type of ['meals','learned']){const box=widget(type==='meals'?'Meals':'Learned today');box.append(btn('+ Add entry',()=>noteEntry(type)));d[type].forEach(e=>box.append(btn(clock(e.time)+' · '+(e.label?e.label+' · ':'')+e.text,()=>noteEntry(type,e),'day-entry')));grid.append(box);}
-      const noteBox=widget('Anything else?');const note=el('textarea');note.rows=5;note.maxLength=10000;note.value=d.notes;
+      for(const type of ['meals','learned']){const box=widget(type==='meals'?'Meals':'Learned Today');box.append(btn('+ Add entry',()=>noteEntry(type)));d[type].forEach(e=>box.append(btn(clock(e.time)+' · '+(e.label?e.label+' · ':'')+e.text,()=>noteEntry(type,e),'day-entry')));grid.append(box);}
+      const noteBox=widget('Anything Else?');const note=el('textarea');note.rows=5;note.maxLength=10000;note.value=d.notes;
       const nf=formFor(noteBox,form=>save(day=>day.notes=note.value,form));nf.form.append(field('Daily notes',note),nf.submit);grid.append(noteBox);
-      const summary=el('details','day-summary'),summaryTitle=el('summary','','Daily summary'),pre=el('pre','',M.summary(selected,d,tracker,stamp));summary.append(summaryTitle,pre,btn('Download summary',()=>download(M.summary(selected,current(),tracker,stamp),'bubbletasks-'+selected+'.txt','text/plain')));view.append(summary);
-      const sync=widget('Notion uploads','Uploads update the same page for this date. Your token stays in the backend.');
+      const summary=el('details','day-summary'),summaryTitle=el('summary','','Daily Summary'),pre=el('pre','',M.summary(selected,d,tracker,stamp));summary.append(summaryTitle,pre,btn('Download summary',()=>download(M.summary(selected,current(),tracker,stamp),'bubbletasks-'+selected+'.txt','text/plain')));view.append(summary);
+      const sync=widget('Notion Uploads','Uploads update the same page for this date. Your token stays in the backend.');
       const status=el('p');status.dataset.daySyncStatus='';status.setAttribute('role','status');
       const enabled=input('checkbox');enabled.checked=isEnabled();enabled.addEventListener('change',()=>{const user=window.BubbleTasksCloud?.getUserId();if(!user){enabled.checked=false;message('Sign in to BubbleTasks first.');return;}localStorage.setItem('bubbletasks_notion_auto_v1:'+user,String(enabled.checked));paintSync();if(enabled.checked)syncPending();});
       sync.append(field('Automatically upload saved days to Notion',enabled),status,btn('Upload this date now',()=>syncDate(selected,true)));
       const owner=window.BubbleTasksCloud?.getUserId();
       if(owner){const setup=el('details');setup.append(el('summary','','Connection setup'),el('p','day-help','Supabase secret NOTION_OWNER_USER_ID must match your signed-in BubbleTasks account ID:'),el('code','',owner));const guide=el('a','','Notion setup instructions');guide.href='https://github.com/ratioactivity/BubbleTasks/blob/v2.0/docs/day-dashboard.md';guide.target='_blank';guide.rel='noopener noreferrer';setup.append(guide);sync.append(setup);}
       else sync.append(el('p','day-help','Sign in using the online-sync panel to enable uploads.'));
-      view.append(sync);paintSync();apply();window.scrollTo({top:scrollTop,left:scrollLeft,behavior:'instant'});
+      view.append(sync);paintSync();apply();
+      const pack=card=>{const span=String(Math.ceil(card.getBoundingClientRect().height));if(card.style.gridRowEnd!=='span '+span)card.style.gridRowEnd='span '+span;};
+      packingObserver=new ResizeObserver(entries=>entries.forEach(entry=>pack(entry.target)));
+      [...grid.children].forEach(card=>{pack(card);packingObserver.observe(card);});
+      window.scrollTo({top:scrollTop,left:scrollLeft,behavior:'instant'});
     }
     function download(content,name,type){const a=el('a');a.href=URL.createObjectURL(new Blob([content],{type}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}
     const isEnabled=()=>{const user=window.BubbleTasksCloud?.getUserId();return user&&localStorage.getItem('bubbletasks_notion_auto_v1:'+user)==='true';};

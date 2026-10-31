@@ -47,3 +47,24 @@
 .daily-view input::placeholder,.daily-view textarea::placeholder,.day-dialog input::placeholder,.day-dialog textarea::placeholder { color:#82758c; opacity:1; }
 .daily-view code { display:block; overflow-wrap:anywhere; user-select:all; padding:10px; background:#f1e8f7; }
 @media(max-width:600px) { .day-heading { padding:14px; }.day-heading h2 {font-size:1.8rem}.day-widget {padding:12px}.day-actions input {width:145px} }
+
+/* Close-packed, independently sized bubbles instead of rows padded to their tallest card. */
+.daily-view { gap: 8px; }
+.day-feedback:empty { display: none; }
+.day-grid { grid-auto-rows: 1px; grid-auto-flow: row dense; gap: 0; }
+.day-widget {
+  background: linear-gradient(135deg, #b8d9edee, #d8cbeaee);
+  border-color: #aa94c6;
+  box-shadow: inset 0 1px 0 #ffffffaa, 0 4px 12px #79608d12;
+}
+.day-widget h3, .day-heading h2 {
+  color: #fff;
+  text-shadow: 0 2px 3px #30417070, 0 4px 8px #843a7040;
+}
+.day-heading {
+  background: linear-gradient(125deg, color-mix(in srgb, var(--day-mood, #eee8f7) 45%, #a9cfe9), color-mix(in srgb, var(--day-mood, #eee8f7) 32%, #d1c5e8));
+  border-left: 5px solid var(--day-mood, #c5b1dd);
+  box-shadow: inset 0 1px 0 #ffffffaa;
+}
+.day-help { color: #505d7c; }
+.day-summary { background: linear-gradient(135deg, #c8dfee, #e0d2ee); }
