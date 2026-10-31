@@ -1,0 +1,15 @@
+const assert=require('node:assert/strict');
+const M=require('../daily-tracker-model.js');
+assert.equal(M.mean([]),null);assert.equal(M.rating(0),null);assert.equal(M.rating(11),null);assert.equal(M.rating(5.5),null);
+const d=M.emptyDay();d.mood=[{rating:2},{rating:10}];assert.equal(M.mean(d.mood),6);assert.equal(M.moodColor(d),M.COLORS[5]);
+d.sleep={bed:'2026-10-31T08:00',wake:'2026-10-31T14:30'};assert.equal(M.sleepHours(d),6.5);
+d.sleep={bed:'2026-10-30T23:00',wake:'2026-10-31T07:30'};assert.equal(M.sleepHours(d),8.5);
+d.sleep={bed:'2026-11-01T00:30',wake:'2026-11-01T07:30',bedAt:'2026-11-01T05:30:00Z',wakeAt:'2026-11-01T13:30:00Z'};assert.equal(M.sleepHours(d),8);
+d.sleep={bed:'2026-10-31T10:00',wake:'2026-10-31T09:00'};assert.equal(M.sleepHours(d),null);
+assert.equal(M.validDate('2028-02-29'),true);assert.equal(M.validDate('2027-02-29'),false);assert.equal(M.validDate('2026-13-01'),false);
+assert.deepEqual(M.tags(['#Parallel','parallel','Bladder cramps','Силуэт']),['parallel','Bladder cramps','Силуэт']);
+assert.equal(M.normalize(undefined).version,1);assert.throws(()=>M.normalize([]));assert.throws(()=>M.normalize({version:2}));
+const t=M.normalize({version:1,days:{'2026-10-31':{music:{title:'A song',artists:['AURORA']},cycle:{menstruating:false},focus:[{id:'f',name:'Cove',onMind:true,worked:true,note:'chapter 31'}],notes:'<script> stays plain text'}},artists:[{name:'AURORA',genres:['Art Pop']}]});
+assert.equal(t.days['2026-10-31'].mood.length,0);assert.equal(t.days['2026-10-31'].cycle.menstruating,false);assert.deepEqual(M.genres(t.days['2026-10-31'],t),['Art Pop']);
+const summary=M.summary('2026-10-31',t.days['2026-10-31'],t);assert(summary.includes('A song'));assert(summary.includes('chapter 31'));assert(summary.includes('Art Pop'));assert(!summary.includes('Average pain: 0'));assert(summary.includes('Menstruating: No'));assert(summary.includes('\n\n'));
+console.log('PASS: date validation, blank vs zero, average mood colors, after-midnight sleep, DST duration, tags, summaries, and schema version checks.');

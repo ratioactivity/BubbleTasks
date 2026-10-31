@@ -75,6 +75,7 @@
       showing=on;localStorage.setItem(VIEW,String(on));applyView();if(on)render();
     }
     function applyView() {
+      if(!showing&&document.getElementById('dayToggleButton')?.getAttribute('aria-pressed')==='true')return;
       board.hidden=showing;taskForm.hidden=showing;view.hidden=!showing;toggle.setAttribute('aria-pressed',String(showing));
       const label=showing?'Layout: notes':'Layout: '+(board.classList.contains('calendar')?'calendar':board.classList.contains('tabs')?'tabs':'columns');
       if(layout.textContent!==label)layout.textContent=label;
@@ -178,3 +179,4 @@
     applyView();render();
   });
 })();
+
