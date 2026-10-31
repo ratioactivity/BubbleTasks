@@ -13,3 +13,14 @@ const t=M.normalize({version:1,days:{'2026-10-31':{music:{title:'A song',artists
 assert.equal(t.days['2026-10-31'].mood.length,0);assert.equal(t.days['2026-10-31'].cycle.menstruating,false);assert.deepEqual(M.genres(t.days['2026-10-31'],t),['Art Pop']);
 const summary=M.summary('2026-10-31',t.days['2026-10-31'],t);assert(summary.includes('A song'));assert(summary.includes('chapter 31'));assert(summary.includes('Art Pop'));assert(!summary.includes('Average pain: 0'));assert(summary.includes('Menstruating: No'));assert(summary.includes('\n\n'));
 console.log('PASS: date validation, blank vs zero, average mood colors, after-midnight sleep, DST duration, tags, summaries, and schema version checks.');
+
+
+const reproductive=M.day({cycle:{menstruating:true,flow:'Light',note:'Existing cycle note'},reproduction:[
+{id:'r1',time:'2026-10-31T18:00:00Z',kind:'sex',preparation:'Preparation note',aftercare:'Aftercare note',pain:true,painLevel:10,orgasm:true,pleasureLevel:9,note:'Details'},
+{id:'r2',time:'2026-10-31T20:00:00Z',kind:'selfPleasure',pain:false,painLevel:8,orgasm:false,pleasureLevel:8}
+]});
+assert.equal(reproductive.cycle.note,'Existing cycle note');assert.equal(reproductive.reproduction.length,2);
+assert.equal(reproductive.reproduction[0].painLevel,10);assert.equal(reproductive.reproduction[1].painLevel,null);assert.equal(reproductive.reproduction[1].pleasureLevel,null);
+const repSummary=M.summary('2026-10-31',reproductive,{artists:[]});assert(repSummary.includes('Aftercare note'));assert(repSummary.includes('10/10'));assert(repSummary.includes('Self-pleasure'));
+assert.equal(M.day({}).reproduction.length,0);
+console.log('PASS: reproductive entries preserve menstrual history, keep separate pain/pleasure levels, clear inapplicable levels, and appear in summaries.');

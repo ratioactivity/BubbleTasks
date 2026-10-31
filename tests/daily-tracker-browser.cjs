@@ -31,7 +31,7 @@ const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'/opt/codex/cua_node/lib
 
  const a=await device();await a.locator('#dayToggleButton').click();await a.locator('#dailyTrackerView').waitFor();
  await a.getByLabel('Choose log date').fill('2026-10-31');
- assert.deepEqual(await a.locator('.day-grid > .day-widget > h3').allTextContents(),["Song of the Day","Mood","Pain","Sleep","Menstrual Cycle","Symptoms","Meals","What did you do today?","What are you watching?","What did you learn today?","Hyperfixations","Anything else?"]);
+ assert.deepEqual(await a.locator('.day-grid > .day-widget > h3').allTextContents(),["Song of the Day","Mood","Pain","Sleep","Reproductive Health","Symptoms","Meals","What did you do today?","What are you watching?","What did you learn today?","Hyperfixations","Anything else?"]);
  assert(!(await a.locator('#dailyTrackerView').innerText()).includes('Update daily tasks'));
  assert(!(await a.locator('#dailyTrackerView').innerText()).includes('Track previous day'));
  const widget=(p,name)=>p.locator('.day-widget').filter({has:p.getByRole('heading',{name,exact:true})});
@@ -47,7 +47,22 @@ const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'/opt/codex/cua_node/lib
  assert.match(await widget(a,'Mood').innerText(),/Average: 6.0/);assert.match(await widget(a,'Pain').innerText(),/Peak: 6/);
  await a.getByRole('button',{name:'+ Log symptom',exact:true}).click();await a.getByLabel('Symptom',{exact:true}).fill('Bladder cramps');await a.getByLabel('Body area',{exact:true}).selectOption('Pelvic');await a.getByLabel('Rating',{exact:true}).fill('7');await saveEntry(a);
  await a.getByRole('button',{name:'+ Log symptom',exact:true}).click();await a.getByLabel('Symptom',{exact:true}).fill('bladder cr');await a.getByLabel('Symptom',{exact:true}).press('Tab');assert.equal(await a.getByLabel('Symptom',{exact:true}).inputValue(),'Bladder cramps');assert.equal(await a.getByLabel('Body area',{exact:true}).inputValue(),'Pelvic');await saveEntry(a);
- await a.getByLabel('Menstruating?',{exact:true}).selectOption('yes');await a.getByLabel('Flow',{exact:true}).selectOption('Spotting');await widget(a,'Menstrual Cycle').getByRole('button',{name:'Save',exact:true}).click();
+ await a.getByRole('button',{name:'Menstrual cycle',exact:true}).click();
+ await a.getByLabel('Menstruating?',{exact:true}).selectOption('yes');await a.getByLabel('Flow',{exact:true}).selectOption('Spotting');await widget(a,'Reproductive Health').getByRole('button',{name:'Save',exact:true}).click();
+
+ await a.getByRole('button',{name:'Log sex',exact:true}).click();
+ await a.getByLabel('Precautions / preparation',{exact:true}).fill('Preparation note');
+ await a.getByLabel('Aftercare',{exact:true}).fill('Aftercare note');
+ await a.getByLabel('Pain?',{exact:true}).selectOption('yes');await a.getByLabel('Pain level (1–10; 10 = highest pain)',{exact:true}).fill('10');
+ await a.getByLabel('Orgasm?',{exact:true}).selectOption('yes');await a.getByLabel('Pleasure level (1–10; 10 = highest pleasure)',{exact:true}).fill('9');
+ await a.locator('#dailyEntryDialog').getByLabel('Notes',{exact:true}).fill('Entry details');await saveEntry(a);
+ await a.getByRole('button',{name:'Log self-pleasure',exact:true}).click();
+ await a.getByLabel('Pain?',{exact:true}).selectOption('no');await a.getByLabel('Orgasm?',{exact:true}).selectOption('no');
+ assert(!(await a.getByLabel('Pain level (1–10; 10 = highest pain)',{exact:true}).isVisible()));await saveEntry(a);
+ let reproduction=await a.evaluate(()=>JSON.parse(localStorage.getItem('bubbletasks_plain_v1')).dailyTracker.days['2026-10-31'].reproduction);
+ assert.equal(reproduction.length,2);assert.equal(reproduction[0].painLevel,10);assert.equal(reproduction[1].pleasureLevel,null);
+ assert(!(await widget(a,'Reproductive Health').innerText()).includes('Entry details'));
+ await a.getByRole('button',{name:/^Edit sex entry at/}).click();assert.equal(await a.getByLabel('Aftercare',{exact:true}).inputValue(),'Aftercare note');await a.getByLabel('Aftercare',{exact:true}).fill('Updated aftercare');await saveEntry(a);
  await a.getByLabel('Add activity',{exact:true}).fill('Went out with parents');await a.getByLabel('Add activity',{exact:true}).press('Enter');
  await a.getByLabel('Story, game, or interest').fill('Cove');await a.getByLabel('Story, game, or interest').press('Enter');
  await a.getByLabel('On my mind',{exact:true}).check();await a.getByLabel('Worked on',{exact:true}).check();await a.getByLabel('Progress / note',{exact:true}).fill('Worked on chapter 31');await saveEntry(a);
@@ -59,7 +74,7 @@ const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'/opt/codex/cua_node/lib
  await a.getByLabel('Choose log date').fill('2026-10-30');assert.match(await widget(a,'Mood').innerText(),/Not recorded/);await a.getByLabel('Choose log date').fill('2026-10-31');await a.reload();await a.locator('#dailyTrackerView').waitFor();assert.equal(await a.locator('.day-heading h2').innerText(),'Dreamboat Annie');
  await a.locator('#notesToggleButton').click();await a.locator('#notesView').waitFor();await a.locator('#dayToggleButton').click();await a.locator('#dailyTrackerView').waitFor();assert(!(await a.locator('#notesView').isVisible()));
  await a.getByLabel('Daily notes').fill('Keep this draft');await a.getByRole('button',{name:'Log mood 7',exact:true}).click();await saveEntry(a);assert.equal(await a.getByLabel('Daily notes').inputValue(),'Keep this draft');await widget(a,'Anything else?').getByRole('button',{name:'Save',exact:true}).click();
- const dl=a.waitForEvent('download');await a.locator('#backupTasksButton').click();const backup=JSON.parse(fs.readFileSync(await (await dl).path()));assert.equal(backup.dailyTracker.days['2026-10-31'].mood.length,3);
+ const dl=a.waitForEvent('download');await a.locator('#backupTasksButton').click();const backup=JSON.parse(fs.readFileSync(await (await dl).path()));assert.equal(backup.dailyTracker.days['2026-10-31'].mood.length,3);assert.equal(backup.dailyTracker.days['2026-10-31'].reproduction.length,2);
 
  await a.locator('.day-activity-presets summary').click();
  assert.deepEqual(await a.locator('.day-activity-presets button').allTextContents(),["Stayed Home","Worked","On Vacation","Procedure","Doctor's Appointment","Dentist Appointment","Hair Appointment","Therapy Appointment","Family Gathering","Friend Gathering","Went Out with Jacob","Went Out with Parents","Went to See Parents","Saw a Movie","Went on a Hike","Played with the Dogs","Ran Errands","Grocery Shopping","Tea Shopping","Antique Shopping","Clothes Shopping","Drug Shopping","Did Chores","Worked on Writing","3D Printed","Made Art","Cooked at Home","Got Takeout","Ordered Delivery","Ate Out","Smoked","Drank Alcohol"]);
@@ -82,8 +97,9 @@ await a.setViewportSize({width:390,height:844});assert.equal(await a.evaluate(()
  await login(a);await upload(a);assert.equal(remote.data.dailyTracker.days['2026-10-31'].mood.length,3);
  await a.getByLabel('Automatically upload saved days to Notion').check();await a.waitForFunction(()=>document.querySelector('[data-day-sync-status]').textContent.startsWith('Uploaded'));assert(notionCalls>=1);
  const b=await device();await login(b);await b.locator('[data-cloud-download]').click();await b.waitForFunction(()=>JSON.parse(localStorage.getItem('bubbletasks_plain_v1')).dailyTracker?.days?.['2026-10-31']?.mood.length===3);
- await b.locator('#dayToggleButton').click();await b.getByLabel('Choose log date').fill('2026-10-31');assert.equal(await b.locator('.day-heading h2').innerText(),'Dreamboat Annie');
+ await b.locator('#dayToggleButton').click();await b.getByLabel('Choose log date').fill('2026-10-31');assert.equal(await b.locator('.day-heading h2').innerText(),'Dreamboat Annie');assert.equal(await b.evaluate(()=>JSON.parse(localStorage.getItem('bubbletasks_plain_v1')).dailyTracker.days['2026-10-31'].reproduction[0].aftercare),'Updated aftercare');
  await b.getByLabel('Daily notes').fill('Updated on second device');await widget(b,'Anything else?').getByRole('button',{name:'Save',exact:true}).click();await b.waitForFunction(()=>document.querySelector('[data-sync-status]').textContent.startsWith('Synced'));
  await a.locator('[data-sync-now]').click();await a.waitForFunction(()=>JSON.parse(localStorage.getItem('bubbletasks_plain_v1')).dailyTracker.days['2026-10-31'].notes==='Updated on second device');await a.locator('#dailyTrackerView').waitFor();assert.equal(await a.getByLabel('Daily notes').inputValue(),'Updated on second device');
  assert.deepEqual(errors,[]);await browser.close();console.log('PASS: all Day widgets, average mood, symptom completion/group recall, focus history, sleep duration, notes/Day navigation, draft preservation, backups, reload, mobile sizing, two-device sync, and revision-aware Notion upload. Simulated services.');
 })().catch(e=>{console.error(e);process.exit(1)});
+

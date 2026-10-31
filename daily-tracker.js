@@ -111,6 +111,35 @@
         },remove:entry?()=>save(d=>d[type]=d[type].filter(e=>e.id!==entry.id)):null};
       });
     }
+    function reproductiveEntry(kind,entry){
+      openDialog((entry?'Edit ':'Log ')+(kind==='sex'?'sex':'self-pleasure'),(form,error)=>{
+        const time=input('datetime-local',entry?local(entry.time):nowTime(),'Entry time');time.required=true;
+        const area=(value,label)=>{const n=el('textarea');n.rows=3;n.maxLength=2000;n.value=value||'';form.append(field(label,n));return n;};
+        form.append(field('When',time));
+        const preparation=area(entry?.preparation,'Precautions / preparation'),aftercare=area(entry?.aftercare,'Aftercare');
+        function choice(label,initial,level,labelLevel){
+          const answer=el('select');answer.setAttribute('aria-label',label);
+          [['','Not recorded'],['no','No'],['yes','Yes']].forEach(([v,l])=>answer.add(new Option(l,v)));
+          answer.value=initial===true?'yes':initial===false?'no':'';
+          const score=input('number',level??'',labelLevel);score.min='1';score.max='10';score.step='1';
+          const wrap=field(labelLevel,score);
+          const update=()=>{wrap.hidden=answer.value!=='yes';score.disabled=answer.value!=='yes';score.required=answer.value==='yes';};
+          answer.addEventListener('change',update);update();form.append(field(label,answer),wrap);
+          return {answer,score};
+        }
+        const pain=choice('Pain?',entry?.pain,entry?.painLevel,'Pain level (1–10; 10 = highest pain)');
+        const orgasm=choice('Orgasm?',entry?.orgasm,entry?.pleasureLevel,'Pleasure level (1–10; 10 = highest pleasure)');
+        const note=area(entry?.note,'Notes');
+        return {submit:()=>{
+          if(!M.localTime(time.value)||time.value.slice(0,10)!==selected){error.textContent='Use a time on the selected day.';return false;}
+          for(const pair of [pain,orgasm])if(pair.answer.value==='yes'&&M.rating(Number(pair.score.value))===null){error.textContent='Choose a whole-number level from 1 to 10.';return false;}
+          const value={id:entry?.id||identifier(),time:new Date(time.value).toISOString(),kind,preparation:preparation.value,aftercare:aftercare.value,
+            pain:pain.answer.value===''?null:pain.answer.value==='yes',painLevel:pain.answer.value==='yes'?Number(pain.score.value):null,
+            orgasm:orgasm.answer.value===''?null:orgasm.answer.value==='yes',pleasureLevel:orgasm.answer.value==='yes'?Number(orgasm.score.value):null,note:note.value};
+          return save(day=>day.reproduction=entry?day.reproduction.map(e=>e.id===entry.id?value:e):[...day.reproduction,value]);
+        },remove:entry?()=>save(day=>day.reproduction=day.reproduction.filter(e=>e.id!==entry.id)):null};
+      });
+    }
     function focusEntry(type,entry,name){
       openDialog((entry?'Edit ':'Add ')+(type==='focus'?'hyperfixation':'watching'),form=>{
         const title=input('text',entry?.name||name||'','Name');title.required=true;title.maxLength=100;
@@ -190,13 +219,22 @@
       const areaFilter=el('select');areaFilter.setAttribute('aria-label','Filter symptoms by body area');['All areas',...M.AREAS].forEach(a=>areaFilter.add(new Option(a,a)));const symptomRows=el('div');
       const showSymptoms=()=>{symptomRows.replaceChildren();d.symptoms.filter(e=>areaFilter.value==='All areas'||e.area===areaFilter.value).forEach(e=>symptomRows.append(btn(clock(e.time)+' · '+e.name+' · '+e.area+(e.rating?' · '+e.rating+'/10':''),()=>reading('symptoms',e),'day-entry')));};areaFilter.addEventListener('change',showSymptoms);showSymptoms();
       symptoms.append(btn('+ Log symptom',()=>reading('symptoms')),areaFilter,symptomRows);grid.append(symptoms);
-      const cycle=widget('Menstrual Cycle','A separate record; leaving it blank means not recorded.');
+      const cycle=widget('Reproductive Health');
       const yes=el('select');yes.setAttribute('aria-label','Menstruating?');[['','Not recorded'],['no','No'],['yes','Yes']].forEach(([v,l])=>yes.add(new Option(l,v)));yes.value=d.cycle.menstruating===null?'':d.cycle.menstruating?'yes':'no';
       const flow=el('select');flow.setAttribute('aria-label','Flow');['','Spotting','Light','Medium','Heavy'].forEach(v=>flow.add(new Option(v||'Choose flow',v)));flow.value=d.cycle.flow;
       const flowLabel=field('Flow',flow);flowLabel.hidden=yes.value!=='yes';yes.addEventListener('change',()=>flowLabel.hidden=yes.value!=='yes');
       const cycleNote=el('textarea');cycleNote.rows=3;cycleNote.maxLength=2000;cycleNote.value=d.cycle.note;
       const cf=formFor(cycle,form=>save(day=>day.cycle={menstruating:yes.value===''?null:yes.value==='yes',flow:yes.value==='yes'?flow.value:'',note:cycleNote.value},form));
-      cf.form.append(field('Menstruating?',yes),flowLabel,field('Notes',cycleNote),cf.submit);grid.append(cycle);
+      cf.form.append(field('Menstruating?',yes),flowLabel,field('Notes',cycleNote),cf.submit);
+      cf.form.hidden=true;
+      const reproductiveActions=el('div','day-reproductive-actions');
+      const menstrualButton=btn('🩸',()=>{cf.form.hidden=!cf.form.hidden;menstrualButton.setAttribute('aria-expanded',String(!cf.form.hidden));});
+      menstrualButton.setAttribute('aria-label','Menstrual cycle');menstrualButton.setAttribute('aria-expanded','false');
+      const sexButton=btn('👉👌',()=>reproductiveEntry('sex'));sexButton.setAttribute('aria-label','Log sex');
+      const selfButton=btn('❤️‍🔥',()=>reproductiveEntry('selfPleasure'));selfButton.setAttribute('aria-label','Log self-pleasure');
+      reproductiveActions.append(menstrualButton,sexButton,selfButton);cycle.querySelector('h3').after(reproductiveActions);
+      for(const entry of d.reproduction){const entryButton=btn((entry.kind==='sex'?'👉👌':'❤️‍🔥')+' · '+clock(entry.time),()=>reproductiveEntry(entry.kind,entry),'day-entry');entryButton.setAttribute('aria-label','Edit '+(entry.kind==='sex'?'sex':'self-pleasure')+' entry at '+clock(entry.time));cycle.append(entryButton);}
+      grid.append(cycle);
       const activities=widget('What did you do today?');const activityChips=el('div','day-tags');d.activities.forEach(name=>activityChips.append(btn(name+' ×',()=>{if(save(day=>day.activities=day.activities.filter(v=>v!==name)))render();},'day-tag')));activities.append(activityChips,tagEntry('Add activity',()=>known('activities'),name=>{if(save(day=>day.activities=M.tags([...day.activities,name])))render();}).box);const presets=el('details','day-activity-presets');presets.append(el('summary','','Quick Activities'));
       const presetButtons=el('div','day-tags');ACTIVITY_PRESETS.forEach(name=>{const selected=d.activities.some(v=>v.toLowerCase()===name.toLowerCase());const b=btn(name,()=>{if(save(day=>day.activities=selected?day.activities.filter(v=>v.toLowerCase()!==name.toLowerCase()):M.tags([...day.activities,name])))render();},'day-tag');b.setAttribute('aria-pressed',String(selected));presetButtons.append(b);});presets.append(presetButtons);activities.append(presets);grid.append(activities);
       for(const type of ['focus','watching']){
@@ -207,7 +245,7 @@
       for(const type of ['meals','learned']){const box=widget(type==='meals'?'Meals':'What did you learn today?');box.append(btn('+ Add entry',()=>noteEntry(type)));d[type].forEach(e=>box.append(btn(clock(e.time)+' · '+(e.label?e.label+' · ':'')+e.text,()=>noteEntry(type,e),'day-entry')));grid.append(box);}
       const noteBox=widget('Anything else?');const note=el('textarea');note.rows=5;note.maxLength=10000;note.value=d.notes;
       const nf=formFor(noteBox,form=>save(day=>day.notes=note.value,form));nf.form.append(field('Daily notes',note),nf.submit);grid.append(noteBox);
-      const widgetOrder=["Song of the Day","Mood","Pain","Sleep","Menstrual Cycle","Symptoms","Meals","What did you do today?","What are you watching?","What did you learn today?","Hyperfixations","Anything else?"];
+      const widgetOrder=["Song of the Day","Mood","Pain","Sleep","Reproductive Health","Symptoms","Meals","What did you do today?","What are you watching?","What did you learn today?","Hyperfixations","Anything else?"];
       [...grid.children].sort((a,b)=>widgetOrder.indexOf(a.querySelector('h3').textContent)-widgetOrder.indexOf(b.querySelector('h3').textContent)).forEach(card=>grid.append(card));
       const summary=el('details','day-summary'),summaryTitle=el('summary','','Daily Summary'),pre=el('pre','',M.summary(selected,d,tracker,stamp));summary.append(summaryTitle,pre,btn('Download summary',()=>download(M.summary(selected,current(),tracker,stamp),'bubbletasks-'+selected+'.txt','text/plain')));view.append(summary);
       const sync=widget('Notion Uploads','Uploads update the same page for this date. Your token stays in the backend.');
@@ -251,3 +289,4 @@
     apply();render();
   });
 })();
+

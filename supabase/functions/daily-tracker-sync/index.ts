@@ -13,7 +13,7 @@
   const sleepHours=day=>{const a=day.sleep?.bed,b=day.sleep?.wake;if(!localTime(a)||!localTime(b))return null;const hours=((day.sleep.bedAt&&day.sleep.wakeAt)?(new Date(day.sleep.wakeAt)-new Date(day.sleep.bedAt)):(new Date(b)-new Date(a)))/3600000;return hours>=0&&hours<=48?hours:null;};
   const moodColor=day=>{const avg=mean(day.mood);return avg===null?'#eee8f7':COLORS[Math.max(0,Math.min(9,Math.round(avg)-1))];};
   const moodBand=day=>{const m=mean(day.mood);return m===null?null:m<2.5?'Purple':m<4.5?'Blue':m<6.5?'Mint':m<7.5?'Yellow':m<9.5?'Peach':'Pink';};
-  function emptyDay(){return {revision:'',updatedAt:'',timezone:'',sleep:{bed:'',wake:'',bedAt:'',wakeAt:''},music:{title:'',artists:[],genres:null},mood:[],pain:[],symptoms:[],cycle:{menstruating:null,flow:'',note:''},activities:[],focus:[],watching:[],meals:[],learned:[],notes:''};}
+  function emptyDay(){return {revision:'',updatedAt:'',timezone:'',sleep:{bed:'',wake:'',bedAt:'',wakeAt:''},music:{title:'',artists:[],genres:null},mood:[],pain:[],symptoms:[],cycle:{menstruating:null,flow:'',note:''},reproduction:[],activities:[],focus:[],watching:[],meals:[],learned:[],notes:''};}
   function day(value){
     const v=value&&typeof value==='object'?value:{}, d=emptyDay();
     d.revision=text(v.revision,100);d.updatedAt=iso(v.updatedAt);d.timezone=text(v.timezone,100);
@@ -22,6 +22,11 @@
     for(const type of ['mood','pain'])d[type]=(Array.isArray(v[type])?v[type]:[]).slice(0,300).filter(e=>e&&text(e.id,100)&&iso(e.time)&&rating(e.rating)!==null).map(e=>({id:text(e.id,100),time:iso(e.time),rating:rating(e.rating),note:text(e.note)}));
     d.symptoms=(Array.isArray(v.symptoms)?v.symptoms:[]).slice(0,300).filter(e=>e&&text(e.id,100)&&text(e.name,100)&&iso(e.time)).map(e=>({id:text(e.id,100),time:iso(e.time),name:text(e.name,100),area:AREAS.includes(e.area)?e.area:'Misc.',rating:rating(e.rating),note:text(e.note)}));
     d.cycle={menstruating:typeof v.cycle?.menstruating==='boolean'?v.cycle.menstruating:null,flow:['Spotting','Light','Medium','Heavy'].includes(v.cycle?.flow)?v.cycle.flow:'',note:text(v.cycle?.note)};
+    d.reproduction=(Array.isArray(v.reproduction)?v.reproduction:[]).slice(0,300).filter(e=>e&&text(e.id,100)&&iso(e.time)&&['sex','selfPleasure'].includes(e.kind)).map(e=>({
+      id:text(e.id,100),time:iso(e.time),kind:e.kind,preparation:text(e.preparation),aftercare:text(e.aftercare),
+      pain:typeof e.pain==='boolean'?e.pain:null,painLevel:e.pain===true?rating(e.painLevel):null,
+      orgasm:typeof e.orgasm==='boolean'?e.orgasm:null,pleasureLevel:e.orgasm===true?rating(e.pleasureLevel):null,note:text(e.note)
+    }));
     d.activities=tags(v.activities);
     for(const type of ['focus','watching'])d[type]=(Array.isArray(v[type])?v[type]:[]).slice(0,100).filter(e=>e&&text(e.id,100)&&text(e.name,100)).map(e=>({id:text(e.id,100),name:text(e.name,100),note:text(e.note),...(type==='focus'?{onMind:e.onMind===true,worked:e.worked===true}:{})}));
     for(const type of ['meals','learned'])d[type]=(Array.isArray(v[type])?v[type]:[]).slice(0,100).filter(e=>e&&text(e.id,100)&&text(e.text,4000)&&iso(e.time)).map(e=>({id:text(e.id,100),time:iso(e.time),text:text(e.text,4000),...(type==='meals'?{label:text(e.label,30)}:{})}));
@@ -47,6 +52,12 @@
     for(const e of d.symptoms)add('Symptom',time(e.time)+' · '+e.area+' · '+e.name+(e.rating?' · '+e.rating+'/10':'')+(e.note?' · '+e.note:''));
     add('Menstruating',d.cycle.menstruating===null?null:d.cycle.menstruating?'Yes':'No');
     if(d.cycle.menstruating===true)add('Flow',d.cycle.flow);add('Cycle notes',d.cycle.note);
+    for(const e of d.reproduction){
+      add(e.kind==='sex'?'Sex':'Self-pleasure',time(e.time));
+      add('Precautions / preparation',e.preparation);add('Aftercare',e.aftercare);
+      add('Pain',e.pain===null?null:e.pain?'Yes'+(e.painLevel?' · '+e.painLevel+'/10':''):'No');
+      add('Orgasm',e.orgasm===null?null:e.orgasm?'Yes'+(e.pleasureLevel?' · '+e.pleasureLevel+'/10 pleasure':''):'No');add('Entry notes',e.note);
+    }
     add('Activities',d.activities.join(', '));
     for(const e of d.focus)add('Hyperfixation',e.name+' · '+[e.onMind?'On my mind':'',e.worked?'Worked on':'',e.note].filter(Boolean).join(' · '));
     for(const e of d.watching)add('Watching',e.name+(e.note?' · '+e.note:''));
@@ -58,6 +69,7 @@
   globalThis.BubbleTasksDailyModel=api;
   if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })();
+
 
 // Deploy as daily-tracker-sync. The source above bundles the same pure model as the browser.
 const MODEL=globalThis.BubbleTasksDailyModel;
@@ -166,3 +178,4 @@ Deno.serve(async req=>{
   }catch(error){return reply({error:error instanceof SyntaxError?'Invalid request.':error.message||'Upload failed. Your BubbleTasks save is safe.'},error instanceof SyntaxError?400:500);}
   finally{if(locked&&db)try{await db('rpc/bubbletasks_release_notion_sync','POST',{p_user_id:userId,p_date:'1900-01-01',p_lease:lease});}catch{/* Lease expires automatically; never expose backend response details. */}}
 });
+

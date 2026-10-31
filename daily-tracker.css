@@ -108,3 +108,8 @@
 .day-activity-presets { margin-top: 10px; }
 .day-activity-presets summary { cursor: pointer; color: #514e7a; }
 .day-activity-presets .day-tag[aria-pressed="true"] { background: #7963a0; color: white; border-color: #68518f; }
+
+
+.day-reproductive-actions { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin: 14px 0; }
+.day-reproductive-actions button { min-height: 52px; font: 1.6rem/1.2 sans-serif; border: 1px solid #bba6cf; background: #ffffff88; border-radius: 14px; }
+.day-reproductive-actions button[aria-expanded="true"] { background: #ead1e3; box-shadow: inset 0 0 0 1px #a77ca0; }

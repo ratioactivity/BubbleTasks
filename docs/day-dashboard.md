@@ -10,6 +10,14 @@ Artist genres are reusable defaults; each song can override them. Editing an art
 
 Saved daily summaries can be downloaded as text. Day records and reusable artists/tags are stored under dailyTracker in the normal JSON save, so existing online sync and backups include them. Older backups without dailyTracker preserve current daily data. Unsaved text widgets remain intact when another entry is added; save or discard them before switching dates.
 
+## Reproductive Health
+
+The widget uses 🩸 for menstrual tracking, 👉👌 for sex, and ❤️‍🔥 for self-pleasure. Menstrual fields stay in the existing cycle record, preserving old logs. The other two types support multiple timestamped entries with precautions/preparation, aftercare, pain yes/no plus 1–10 pain level, orgasm yes/no plus 1–10 pleasure level, and notes. Blank means unrecorded. Levels appear only for a Yes answer and are cleared when the answer changes to No.
+
+The dashboard shows only an emoji and time for saved entries; click one to read or edit the details. Those details are included in the collapsed daily summary, backups, online saves, and the Notion daily-summary paragraph. General pain and mood averages remain separate.
+
+If daily-tracker-sync has already been deployed, redeploy the updated full function source so its bundled model includes reproductive entries. No new SQL migration, Notion properties, or secrets are needed for this update.
+
 ## Supabase setup — required before Notion uploads work
 
 The function is prepared, but there is no live Notion backend until the owner deploys it.
