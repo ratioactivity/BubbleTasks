@@ -15,6 +15,8 @@
   const clock=s=>new Date(s).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
   const stamp=s=>new Date(s).toLocaleString([],{dateStyle:'medium',timeStyle:'short'});
   const local=s=>{const d=new Date(s);return M.dateKey(d)+'T'+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');};
+  const ACTIVITY_PRESETS=["Stayed Home","Worked","On Vacation","Procedure","Doctor's Appointment","Dentist Appointment","Hair Appointment","Therapy Appointment","Family Gathering","Friend Gathering","Went Out with Jacob","Went Out with Parents","Went to See Parents","Saw a Movie","Went on a Hike","Played with the Dogs","Ran Errands","Grocery Shopping","Tea Shopping","Antique Shopping","Clothes Shopping","Drug Shopping","Did Chores","Worked on Writing","3D Printed","Made Art","Cooked at Home","Got Takeout","Ordered Delivery","Ate Out","Smoked","Drank Alcohol"];
+  const PAIN_COLORS=['#fffafa','#fcecef','#f8d6e0','#f2baca','#e99db3','#df7e99','#d9627d','#ce4c64','#c8394e','#b82438'];
   const identifier=()=>crypto.randomUUID();
   window.addEventListener('DOMContentLoaded',()=>{
     const board=document.getElementById('boardContainer'),notes=document.getElementById('notesView'),layout=document.getElementById('layoutToggleButton'),notesButton=document.getElementById('notesToggleButton');
@@ -138,7 +140,7 @@
     }
     function known(type){
       if(type==='symptoms')return tracker.symptoms.map(s=>s.name);
-      return M.tags(Object.values(tracker.days).flatMap(d=>type==='artists'?d.music.artists:type==='genres'?M.genres(d,tracker):type==='activities'?d.activities:d[type].map(e=>e.name)));
+      return M.tags([...(type==='activities'?ACTIVITY_PRESETS:[]),...Object.values(tracker.days).flatMap(d=>type==='artists'?d.music.artists:type==='genres'?M.genres(d,tracker):type==='activities'?d.activities:d[type].map(e=>e.name))]);
     }
     function artistGenres(name){
       openDialog(name+' · default genres',form=>{
@@ -179,8 +181,9 @@
       sl.form.append(field('Went to sleep',bed),field('Woke up',wake),sl.submit);sleep.append(el('p','day-stat',M.sleepHours(d)===null?'Hours slept: not recorded':M.sleepHours(d).toFixed(1)+' hours slept'));grid.append(sleep);
       for(const type of ['mood','pain']){
         const w=widget(type==='mood'?'Mood':'Pain',type==='mood'?'1 = worst · 10 = best':'1 = least pain · 10 = most pain');
+        w.classList.add('day-rating-widget');
         const avg=M.mean(d[type]);w.append(el('p','day-stat',avg===null?'Not recorded':'Average: '+avg.toFixed(1)+' / 10'+(type==='pain'?' · Peak: '+Math.max(...d.pain.map(e=>e.rating)):''))); 
-        const ratings=el('div','day-rating-buttons');for(let n=1;n<=10;n++){const b=btn(String(n),()=>reading(type,null,n));b.setAttribute('aria-label','Log '+type+' '+n);if(type==='mood')b.style.background=M.COLORS[n-1];ratings.append(b);}w.append(ratings);
+        const ratings=el('div','day-rating-buttons');for(let n=1;n<=10;n++){const b=btn(String(n),()=>reading(type,null,n));b.setAttribute('aria-label','Log '+type+' '+n);b.style.backgroundColor=type==='mood'?M.COLORS[n-1]:PAIN_COLORS[n-1];if(type==='pain')b.style.color=n>=7?'#fff':'#443451';ratings.append(b);}w.append(ratings);
         d[type].forEach(e=>w.append(btn(clock(e.time)+' · '+e.rating+'/10'+(e.note?' · '+e.note:''),()=>reading(type,e),'day-entry')));grid.append(w);
       }
       const symptoms=widget('Symptoms','Type a symptom or create one. Each symptom remembers its body-area group.');
@@ -194,7 +197,8 @@
       const cycleNote=el('textarea');cycleNote.rows=3;cycleNote.maxLength=2000;cycleNote.value=d.cycle.note;
       const cf=formFor(cycle,form=>save(day=>day.cycle={menstruating:yes.value===''?null:yes.value==='yes',flow:yes.value==='yes'?flow.value:'',note:cycleNote.value},form));
       cf.form.append(field('Menstruating?',yes),flowLabel,field('Notes',cycleNote),cf.submit);grid.append(cycle);
-      const activities=widget('What did you do today?');const activityChips=el('div','day-tags');d.activities.forEach(name=>activityChips.append(btn(name+' ×',()=>{if(save(day=>day.activities=day.activities.filter(v=>v!==name)))render();},'day-tag')));activities.append(activityChips,tagEntry('Add activity',()=>known('activities'),name=>{if(save(day=>day.activities=M.tags([...day.activities,name])))render();}).box);grid.append(activities);
+      const activities=widget('What did you do today?');const activityChips=el('div','day-tags');d.activities.forEach(name=>activityChips.append(btn(name+' ×',()=>{if(save(day=>day.activities=day.activities.filter(v=>v!==name)))render();},'day-tag')));activities.append(activityChips,tagEntry('Add activity',()=>known('activities'),name=>{if(save(day=>day.activities=M.tags([...day.activities,name])))render();}).box);const presets=el('details','day-activity-presets');presets.append(el('summary','','Quick Activities'));
+      const presetButtons=el('div','day-tags');ACTIVITY_PRESETS.forEach(name=>{const selected=d.activities.some(v=>v.toLowerCase()===name.toLowerCase());const b=btn(name,()=>{if(save(day=>day.activities=selected?day.activities.filter(v=>v.toLowerCase()!==name.toLowerCase()):M.tags([...day.activities,name])))render();},'day-tag');b.setAttribute('aria-pressed',String(selected));presetButtons.append(b);});presets.append(presetButtons);activities.append(presets);grid.append(activities);
       for(const type of ['focus','watching']){
         const box=widget(type==='focus'?'Hyperfixations':'What are you watching?',type==='focus'?'“On my mind” and “Worked on” can both be true. Each interest has its own progress note.':null);
         box.append(tagEntry(type==='focus'?'Story, game, or interest':'Show or movie',()=>M.tags([...known(type),...(type==='focus'?['BOTA','APEX','Parallel','Black & Blue','Wild Sky','Mask','Teeth','Ruse','Horizon Line','Sleeper','Coup','Kaleidoscope']:[])]),name=>focusEntry(type,null,name)).box);

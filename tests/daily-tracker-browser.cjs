@@ -60,6 +60,17 @@ const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'/opt/codex/cua_node/lib
  await a.locator('#notesToggleButton').click();await a.locator('#notesView').waitFor();await a.locator('#dayToggleButton').click();await a.locator('#dailyTrackerView').waitFor();assert(!(await a.locator('#notesView').isVisible()));
  await a.getByLabel('Daily notes').fill('Keep this draft');await a.getByRole('button',{name:'Log mood 7',exact:true}).click();await saveEntry(a);assert.equal(await a.getByLabel('Daily notes').inputValue(),'Keep this draft');await widget(a,'Anything else?').getByRole('button',{name:'Save',exact:true}).click();
  const dl=a.waitForEvent('download');await a.locator('#backupTasksButton').click();const backup=JSON.parse(fs.readFileSync(await (await dl).path()));assert.equal(backup.dailyTracker.days['2026-10-31'].mood.length,3);
+
+ await a.locator('.day-activity-presets summary').click();
+ assert.deepEqual(await a.locator('.day-activity-presets button').allTextContents(),["Stayed Home","Worked","On Vacation","Procedure","Doctor's Appointment","Dentist Appointment","Hair Appointment","Therapy Appointment","Family Gathering","Friend Gathering","Went Out with Jacob","Went Out with Parents","Went to See Parents","Saw a Movie","Went on a Hike","Played with the Dogs","Ran Errands","Grocery Shopping","Tea Shopping","Antique Shopping","Clothes Shopping","Drug Shopping","Did Chores","Worked on Writing","3D Printed","Made Art","Cooked at Home","Got Takeout","Ordered Delivery","Ate Out","Smoked","Drank Alcohol"]);
+ await a.locator('.day-activity-presets').getByRole('button',{name:'Worked',exact:true}).click();
+ await a.getByLabel('Add activity',{exact:true}).fill('Grocery Sh');await a.getByLabel('Add activity',{exact:true}).press('Tab');
+ assert.equal(await a.getByLabel('Add activity',{exact:true}).inputValue(),'Grocery Shopping');await a.getByLabel('Add activity',{exact:true}).press('Enter');
+ const choices=await a.evaluate(()=>JSON.parse(localStorage.getItem('bubbletasks_plain_v1')).dailyTracker.days['2026-10-31'].activities);
+ assert(choices.includes('Worked'));assert(choices.includes('Grocery Shopping'));assert(!choices.includes('Smoked'));
+ assert((await a.getByRole('button',{name:'Log mood 1',exact:true}).boundingBox()).height>=64);
+ assert.equal(await a.getByRole('button',{name:'Log pain 1',exact:true}).evaluate(n=>getComputedStyle(n).backgroundColor),'rgb(255, 250, 250)');
+ assert.equal(await a.getByRole('button',{name:'Log pain 10',exact:true}).evaluate(n=>getComputedStyle(n).backgroundColor),'rgb(184, 36, 56)');
  await a.screenshot({path:'/tmp/bubbletasks-day-desktop.png',fullPage:true});
  await a.waitForTimeout(300);
  assert.equal(await a.locator('.day-grid').evaluate(n=>getComputedStyle(n).gap),'10px');

@@ -75,3 +75,36 @@
 }
 .day-help { color: #505d7c; }
 .day-summary { background: linear-gradient(135deg, #c8dfee, #e0d2ee); }
+
+/* Keep scheduled items distinct from supporting text. */
+.day-schedule-line {
+  padding: 10px 14px;
+  margin: 8px 0 0;
+  border: 1px solid #b9a5d0;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #fff9fde8, #e9e2f7d9);
+  box-shadow: inset 0 1px 0 #fff9, 0 2px 5px #79608d0b;
+  color: #354568;
+  overflow-wrap: anywhere;
+}
+.day-rating-widget { display: flex; flex-direction: column; }
+.day-rating-widget > :not(.day-rating-buttons) { flex-shrink: 0; }
+.day-rating-widget .day-rating-buttons {
+  flex: 1 0 160px;
+  min-height: 160px;
+  max-height: 280px;
+  grid-template-rows: repeat(2, minmax(64px, 1fr));
+  gap: 8px;
+}
+.day-rating-buttons button {
+  min-height: 64px;
+  font-size: 1.3rem;
+  font-weight: 700;
+  border-radius: 18px;
+  background-image: linear-gradient(135deg, #ffffff33, transparent);
+  box-shadow: inset 0 1px 0 #ffffff80, 0 2px 4px #67517e12;
+}
+.day-rating-buttons button:hover { box-shadow: inset 0 1px 0 #fff, 0 3px 8px #67517e26; }
+.day-activity-presets { margin-top: 10px; }
+.day-activity-presets summary { cursor: pointer; color: #514e7a; }
+.day-activity-presets .day-tag[aria-pressed="true"] { background: #7963a0; color: white; border-color: #68518f; }
