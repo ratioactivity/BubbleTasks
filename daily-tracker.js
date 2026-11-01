@@ -233,7 +233,7 @@
       return body;
     }
     function render(){
-      if(!showing||dirtyForms.size)return;const scrollTop=window.scrollY,scrollLeft=window.scrollX,musicOptionsOpen=view.querySelector('.day-music-options')?.open===true;dirtyForms.clear();view.replaceChildren();const d=current();
+      if(!showing||dirtyForms.size)return;const scrollTop=window.scrollY,scrollLeft=window.scrollX,musicOptionsOpen=view.querySelector('.day-music-options')?.open===true,quickActivitiesOpen=view.querySelector('.day-activity-presets')?.open===true;dirtyForms.clear();view.replaceChildren();const d=current();
       const top=el('header','day-heading');top.style.setProperty('--day-mood',M.moodColor(d));
       const heading=el('div');heading.append(el('h2','',d.music.title||'Today’s Daybook'),el('p','',new Date(selected+'T12:00:00').toLocaleDateString([],{weekday:'long',month:'long',day:'numeric',year:'numeric'})));
       const nav=el('div','day-actions'),pick=input('date',selected,'Choose log date');pick.addEventListener('change',()=>navigate(pick.value));
@@ -316,7 +316,7 @@
       reproductiveActions.append(menstrualButton,sexButton,selfButton);cycle.querySelector('h3').after(reproductiveActions);
       for(const entry of d.reproduction){const entryButton=btn((entry.kind==='sex'?'👉👌':'❤️‍🔥')+' · '+clock(entry.time),()=>reproductiveEntry(entry.kind,entry),'day-entry');entryButton.setAttribute('aria-label','Edit '+(entry.kind==='sex'?'sex':'self-pleasure')+' entry at '+clock(entry.time));cycle.append(entryButton);}
       grid.append(cycle);
-      const activities=widget('What did you do today?');const activityChips=el('div','day-tags');d.activities.forEach(name=>activityChips.append(btn(name+' ×',()=>{if(save(day=>day.activities=day.activities.filter(v=>v!==name)))render();},'day-tag')));activities.append(activityChips,tagEntry('Add activity',()=>known('activities'),name=>{if(save(day=>day.activities=M.tags([...day.activities,name])))render();}).box);const presets=el('details','day-activity-presets');presets.append(el('summary','','Quick Activities'));
+      const activities=widget('What did you do today?');const activityChips=el('div','day-tags');d.activities.forEach(name=>activityChips.append(btn(name+' ×',()=>{if(save(day=>day.activities=day.activities.filter(v=>v!==name)))render();},'day-tag')));activities.append(activityChips,tagEntry('Add activity',()=>known('activities'),name=>{if(save(day=>day.activities=M.tags([...day.activities,name])))render();}).box);const presets=el('details','day-activity-presets');presets.open=quickActivitiesOpen;presets.append(el('summary','','Quick Activities'));
       const presetButtons=el('div','day-tags');ACTIVITY_PRESETS.forEach(name=>{const selected=d.activities.some(v=>v.toLowerCase()===name.toLowerCase());const b=btn(name,()=>{if(save(day=>day.activities=selected?day.activities.filter(v=>v.toLowerCase()!==name.toLowerCase()):M.tags([...day.activities,name])))render();},'day-tag');b.setAttribute('aria-pressed',String(selected));presetButtons.append(b);});presets.append(presetButtons);activities.append(presets);grid.append(activities);
       for(const type of ['focus','watching']){
         const box=widget(type==='focus'?'Hyperfixations':'What are you watching?',type==='focus'?'“On my mind” and “Worked on” can both be true. Each interest has its own progress note.':null);
