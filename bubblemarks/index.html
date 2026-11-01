@@ -1,0 +1,403 @@
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bubblemarks</title>
+  <link rel="stylesheet" href="style.css?v=1" />
+  <link rel="icon" type="image/png" href="../assets/icon128.png" />
+</head>
+<body>
+  <div class="floating-charms">
+    <span class="charm charm-one" aria-hidden="true"></span>
+    <span class="charm charm-two" aria-hidden="true"></span>
+    <span class="charm charm-three" aria-hidden="true"></span>
+  </div>
+  <div class="axolotl-layer" aria-hidden="true">
+    <div id="axolotl-path" class="axolotl-path">
+      <div id="axolotl-sprite" class="axolotl-sprite">
+        <div id="axolotl-figure" class="axolotl-figure">
+          <div id="axolotl-front" class="axolotl-frame axolotl-frame--front"></div>
+          <div id="axolotl-back" class="axolotl-frame axolotl-frame--back"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <main class="app-shell">
+    <header class="hero">
+      <div class="hero__decor hero__decor--left" aria-hidden="true">
+        <img src="../assets/stars.gif" alt="" />
+      </div>
+      <div class="hero__decor hero__decor--right" aria-hidden="true">
+        <img src="../assets/stars.gif" alt="" />
+      </div>
+      <div class="hero__sparkles" aria-hidden="true">
+        <span class="hero__sparkle hero__sparkle--one">
+          <img src="../assets/singlestar1.gif" alt="" />
+        </span>
+        <span class="hero__sparkle hero__sparkle--two">
+          <img src="../assets/singlestar2.gif" alt="" />
+        </span>
+        <span class="hero__sparkle hero__sparkle--three">
+          <img src="../assets/singlestar3.gif" alt="" />
+        </span>
+      </div>
+      <div class="hero__content">
+        <h1 id="app-heading">Bubblemarks</h1>
+      </div>
+    </header>
+
+    <section class="controls" aria-label="Bookmark controls">
+      <div class="controls__sparkle controls__sparkle--search" aria-hidden="true">
+        <img src="../assets/singlestar2.gif" alt="" />
+      </div>
+      <div class="controls__sparkle controls__sparkle--keyboard" aria-hidden="true">
+        <img src="../assets/singlestar1.gif" alt="" />
+      </div>
+      <div class="controls__sparkle controls__sparkle--small-one" aria-hidden="true">
+        <img src="../assets/singlestar3.gif" alt="" />
+      </div>
+      <div class="controls__sparkle controls__sparkle--small-two" aria-hidden="true">
+        <img src="../assets/singlestar3.gif" alt="" />
+      </div>
+      <div class="controls__tabs" role="tablist" aria-label="Control views">
+        <button
+          type="button"
+          class="controls__tab controls__tab--active"
+          id="tab-bookmarks"
+          role="tab"
+          aria-selected="true"
+          aria-controls="controls-panel-bookmarks"
+          data-controls-tab="bookmarks"
+        >
+          Bookmarks
+        </button>
+        <button
+          type="button"
+          class="controls__tab"
+          id="tab-keyboard"
+          role="tab"
+          aria-selected="false"
+          aria-controls="controls-panel-keyboard"
+          data-controls-tab="keyboard"
+          tabindex="-1"
+        >
+          Keyboard Search
+        </button>
+      </div>
+
+      <div
+        id="controls-panel-bookmarks"
+        class="controls__panel controls__panel--bookmarks"
+        role="tabpanel"
+        aria-labelledby="tab-bookmarks"
+        data-controls-panel="bookmarks"
+      >
+        <div class="filter-bar" id="categories" role="tablist" aria-label="Category filters"></div>
+
+        <div class="category-actions">
+          <button id="add-bookmark" type="button" class="soft-btn">Add New Bookmark</button>
+          <button id="customize-categories" type="button" class="soft-btn soft-btn--ghost">
+            Customize Categories
+          </button>
+          <button id="manage-bookmarks" type="button" class="soft-btn soft-btn--ghost">
+            Manage Bookmarks
+          </button>
+        </div>
+      </div>
+
+      <div
+        id="controls-panel-keyboard"
+        class="controls__panel controls__panel--keyboard"
+        role="tabpanel"
+        aria-labelledby="tab-keyboard"
+        data-controls-panel="keyboard"
+        hidden
+      >
+        <div class="search-block">
+          <label for="search" class="sr-only">Search bookmarks</label>
+          <div class="search-wrapper">
+            <input id="search" type="text" placeholder="Search cute stuff..." list="bookmark-suggestions" autocomplete="off" />
+            <button id="clear-search" class="clear-search" type="button" aria-label="Clear search">✧</button>
+          </div>
+          <datalist id="bookmark-suggestions"></datalist>
+          <p class="hint">Tap the rainbow keyboard or start typing to filter instantly.</p>
+        </div>
+
+        <div class="keyboard" id="keyboard" aria-label="On-screen keyboard"></div>
+      </div>
+    </section>
+
+    <section id="bookmarks" class="grid" aria-live="polite" aria-busy="false"></section>
+    <div id="pagination-controls" class="pagination-controls">
+      <button id="prev-page" type="button" class="soft-btn soft-btn--ghost">← Previous</button>
+      <button id="next-page" type="button" class="soft-btn">Next →</button>
+    </div>
+    <p id="empty-state" class="empty-state" hidden>
+      No bookmarks match that vibe yet. Try a different search or category!
+    </p>
+  </main>
+
+  <template id="bookmark-card-template">
+    <a class="card bookmark-card" target="_blank" rel="noopener noreferrer">
+      <div class="card-media">
+        <img class="card-image" alt="" loading="lazy" />
+      </div>
+      <div class="card-body">
+        <span class="card-category"></span>
+        <h2 class="card-title"></h2>
+      </div>
+    </a>
+  </template>
+
+  <div
+    id="bookmark-modal"
+    class="bookmark-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="bookmark-modal-title"
+    hidden
+  >
+    <div class="bookmark-modal__backdrop" data-bookmark-dismiss="true"></div>
+    <div class="bookmark-modal__dialog" tabindex="-1">
+      <div class="bookmark-modal__header">
+        <h2 id="bookmark-modal-title">Add New Bookmark</h2>
+        <button
+          type="button"
+          class="bookmark-modal__close"
+          data-bookmark-dismiss="true"
+          aria-label="Close add bookmark form"
+        >
+          ✕
+        </button>
+      </div>
+      <form id="bookmark-form" class="bookmark-form">
+        <p class="bookmark-form__hint">
+          Drop in a name, link, vibe category, and optional header image to add a fresh bubble to your cloud.
+        </p>
+        <label class="bookmark-form__field" for="bookmark-name">
+          <span>Bookmark name</span>
+          <input id="bookmark-name" name="name" type="text" required />
+        </label>
+        <label class="bookmark-form__field" for="bookmark-url">
+          <span>Link</span>
+          <input id="bookmark-url" name="url" type="url" required placeholder="https://" />
+        </label>
+        <label class="bookmark-form__field" for="bookmark-category">
+          <span>Category</span>
+          <select id="bookmark-category" name="category" required></select>
+        </label>
+        <label class="bookmark-form__field" for="bookmark-image">
+          <span>Header image link (optional)</span>
+          <input
+            id="bookmark-image"
+            name="image"
+            type="url"
+            placeholder="https://example.com/pastel.png"
+            inputmode="url"
+          />
+        </label>
+        <div class="bookmark-form__actions">
+          <button type="button" class="soft-btn soft-btn--ghost" data-bookmark-dismiss="true">
+            Cancel
+          </button>
+          <button type="submit" class="soft-btn">Save Bookmark</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="category-modal" class="category-modal" role="dialog" aria-modal="true" aria-labelledby="category-modal-title" hidden>
+    <div class="category-modal__backdrop" data-modal-dismiss="true"></div>
+    <div class="category-modal__dialog">
+      <div class="category-modal__header">
+        <h2 id="category-modal-title">Customize Categories</h2>
+        <button type="button" class="category-modal__close" data-modal-dismiss="true" aria-label="Close">✕</button>
+      </div>
+      <form id="category-form" class="category-form">
+        <p class="category-form__hint">
+          Rename, recolor, or add extra tabs to match your vibe. These settings stay in your browser.
+        </p>
+        <div id="category-settings-list" class="category-settings-list"></div>
+        <div class="category-form__footer">
+          <button id="add-category" type="button" class="soft-btn soft-btn--ghost">Add Category</button>
+          <span class="category-form__spacer" aria-hidden="true"></span>
+          <button type="button" class="soft-btn soft-btn--ghost" data-modal-dismiss="true">Cancel</button>
+          <button type="submit" class="soft-btn">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <template id="category-item-template">
+    <div class="category-setting" data-category-key="">
+      <div class="category-setting__inputs">
+        <label class="category-setting__label">
+          <span>Name</span>
+          <input type="text" name="label" required />
+        </label>
+        <label class="category-setting__color">
+          <span>Color</span>
+          <input type="color" name="color" value="#ff80c8" />
+        </label>
+      </div>
+      <div class="category-setting__actions">
+        <button type="button" class="category-setting__move" data-direction="up" aria-label="Move up">▲</button>
+        <button type="button" class="category-setting__move" data-direction="down" aria-label="Move down">▼</button>
+        <button type="button" class="category-setting__remove" aria-label="Remove category">Remove</button>
+      </div>
+    </div>
+  </template>
+
+  <div
+    id="manage-bookmarks-modal"
+    class="bookmark-manager-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="manage-bookmarks-title"
+    hidden
+  >
+    <div class="bookmark-manager-modal__backdrop" data-manager-dismiss="true"></div>
+    <div class="bookmark-manager-modal__dialog" tabindex="-1">
+      <div class="bookmark-manager-modal__header">
+        <h2 id="manage-bookmarks-title">Manage Bookmarks</h2>
+        <button
+          type="button"
+          class="bookmark-manager-modal__close"
+          data-manager-dismiss="true"
+          aria-label="Close manage bookmarks"
+        >
+          ✕
+        </button>
+      </div>
+      <div class="bookmark-manager-modal__body">
+        <p id="bookmark-manager-empty" class="bookmark-manager-modal__empty" hidden>
+          Your bookmark cloud is clear! Add a few links to see them here.
+        </p>
+        <div id="bookmark-manager-list" class="bookmark-manager-list" role="list"></div>
+      </div>
+    </div>
+  </div>
+
+  <template id="bookmark-manager-item-template">
+    <div class="bookmark-manager-item" role="listitem">
+      <div class="bookmark-manager-item__info">
+        <span class="bookmark-manager-item__title"></span>
+        <label class="bookmark-manager-item__position">
+          <span>Image Position</span>
+          <select data-pos>
+            <option value="top">Top</option>
+            <option value="center" selected>Center</option>
+            <option value="bottom">Bottom</option>
+          </select>
+        </label>
+        <span class="bookmark-manager-item__category"></span>
+        <span class="bookmark-manager-item__url"></span>
+      </div>
+      <div class="bookmark-manager-item__actions">
+        <button type="button" class="bookmark-manager-item__delete soft-btn soft-btn--ghost">Delete</button>
+        <div class="bookmark-manager-item__confirm" hidden>
+          <span class="bookmark-manager-item__confirm-text">Remove this bookmark?</span>
+          <div class="bookmark-manager-item__confirm-buttons">
+            <button type="button" class="soft-btn soft-btn--danger" data-manager-action="confirm">Delete</button>
+            <button type="button" class="soft-btn soft-btn--ghost" data-manager-action="cancel">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <div
+    id="settings-modal"
+    class="settings-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="settings-modal-title"
+    hidden
+  >
+    <div class="settings-modal__backdrop" data-settings-dismiss="true"></div>
+    <div class="settings-modal__dialog" tabindex="-1">
+      <div class="settings-modal__header">
+        <div class="settings-title">
+          <img src="../assets/icon128.png" alt="Bubblemarks Icon" />
+          <h2 id="settings-modal-title">Bubblemarks Settings</h2>
+        </div>
+        <button
+          type="button"
+          class="settings-modal__close"
+          data-settings-dismiss="true"
+          aria-label="Close settings"
+        >
+          ✕
+        </button>
+      </div>
+      <form id="settings-form" class="settings-form">
+        <fieldset class="settings-section">
+          <legend>Display</legend>
+          <label class="settings-toggle">
+            <input type="checkbox" id="toggle-heading" />
+            <span>Show "Bubblemarks" heading</span>
+          </label>
+          <label class="settings-toggle">
+            <input type="checkbox" id="toggle-axolotl" />
+            <span>Show axolotl buddy</span>
+          </label>
+          <div class="settings-slider">
+            <label for="card-size">Card size</label>
+            <div class="settings-slider__control">
+              <input type="range" id="card-size" min="0" max="2" step="1" />
+              <div class="settings-slider__labels" aria-hidden="true">
+                <span>Cozy</span>
+                <span>Comfy</span>
+                <span>Roomy</span>
+              </div>
+            </div>
+          </div>
+          <div class="settings-layout">
+            <label class="settings-layout__field" for="cards-per-row">
+              <span>Cards per row</span>
+              <input type="number" id="cards-per-row" min="1" max="10" step="1" />
+            </label>
+            <label class="settings-layout__field" for="rows-per-page">
+              <span>Rows per page</span>
+              <input type="number" id="rows-per-page" min="1" max="10" step="1" />
+            </label>
+          </div>
+        </fieldset>
+        <fieldset class="settings-section">
+          <legend>Data</legend>
+          <div class="settings-actions">
+            <button id="import-btn" type="button" class="soft-btn">Import JSON</button>
+            <button id="export-btn" type="button" class="soft-btn">Export Backup</button>
+            <button id="restore-btn" type="button" class="soft-btn">Restore Defaults</button>
+          </div>
+          <p class="settings-note">
+            Bookmarks are saved locally in your browser. Export backups so your comfy cloud is always safe!
+          </p>
+          <input id="import-input" type="file" accept="application/json" hidden />
+        </fieldset>
+      </form>
+    </div>
+  </div>
+
+  <button
+    type="button"
+    class="settings-fab"
+    id="settings-btn"
+    aria-haspopup="dialog"
+    aria-controls="settings-modal"
+  >
+    <span aria-hidden="true">⚙</span>
+    <span class="sr-only">Open settings</span>
+  </button>
+
+  <script src="assets.js"></script>
+  <script src="bridge.js"></script>
+  <script src="script.js"></script>
+  
+</body>
+</html>
+

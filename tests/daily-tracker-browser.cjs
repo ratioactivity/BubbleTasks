@@ -30,7 +30,7 @@ const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'/opt/codex/cua_node/lib
 
 
  const a=await device();await a.locator('.page-navigation [data-page=daily]').click();await a.locator('#dailyTrackerView').waitFor();
- assert.deepEqual(await a.locator('.page-navigation button').allTextContents(),['Columns','Tabbed','Calendar','Notes','Daily Tracker']);
+ assert.deepEqual(await a.locator('.page-navigation button').allTextContents(),['Columns','Tabbed','Calendar','Notes','Daily Tracker','Bubblemarks']);
  for(const [key,selector] of [['columns','.board.columns'],['tabs','.board.tabs'],['day','.board.calendar'],['notes','#notesView'],['daily','#dailyTrackerView'],['day','.board.calendar'],['columns','.board.columns'],['daily','#dailyTrackerView']]){
    await a.locator('.page-navigation [data-page='+key+']').click();assert(await a.locator(selector).isVisible());
    assert.equal(await a.locator('.page-navigation [aria-current=page]').getAttribute('data-page'),key);
@@ -111,7 +111,8 @@ await a.getByRole('button',{name:'Log mood 7',exact:true}).click();await saveEnt
  const layout=await a.locator('.day-grid > .day-widget').evaluateAll(cards=>cards.map(c=>({x:c.offsetLeft,y:c.offsetTop,height:c.getBoundingClientRect().height})));
  assert(layout.slice(0,4).every(v=>Math.abs(v.y-layout[0].y)<1 && Math.abs(v.height-layout[0].height)<1));
 await a.setViewportSize({width:390,height:844});assert.equal(await a.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);await a.screenshot({path:'/tmp/bubbletasks-day-mobile.png',fullPage:true});await a.setViewportSize({width:1280,height:900});
- await login(a);await upload(a);assert.equal(remote.data.dailyTracker.days['2026-10-31'].mood.length,3);
+ await a.evaluate(()=>window.BubbleTasksBookmarks.setItem('bubblemarks.bookmarks.v1',JSON.stringify([{name:'Synced bookmark',url:'https://example.test',category:'Stories'}])));
+ await login(a);await upload(a);assert.equal(remote.data.bubblemarks['bubblemarks.bookmarks.v1'][0].name,'Synced bookmark');assert.equal(remote.data.dailyTracker.days['2026-10-31'].mood.length,3);
  await a.getByLabel('Automatically upload saved days to Notion').check();await a.waitForFunction(()=>document.querySelector('[data-day-sync-status]').textContent.startsWith('Uploaded'));assert(notionCalls>=1);
  await widget(a,'Song of the Day').locator('.day-music-options > summary').click();await a.getByRole('button',{name:'Refresh Artists from Notion',exact:true}).click();
  await a.waitForFunction(()=>JSON.parse(localStorage.getItem('bubbletasks_plain_v1')).dailyTracker.artists.some(a=>a.name==='Imported Artist'));
@@ -126,6 +127,7 @@ await a.setViewportSize({width:390,height:844});assert.equal(await a.evaluate(()
  assert.deepEqual(savedArtists.find(a=>a.name==='Imported Artist').genres,['Dream Pop']);
  await a.waitForFunction(()=>document.querySelector('[data-sync-status]').textContent.startsWith('Synced'));
  const b=await device();await login(b);await b.locator('[data-cloud-download]').click();await b.waitForFunction(()=>JSON.parse(localStorage.getItem('bubbletasks_plain_v1')).dailyTracker?.days?.['2026-10-31']?.mood.length===3);
+ assert.equal(await b.evaluate(()=>JSON.parse(localStorage.getItem('bubbletasks_plain_v1')).bubblemarks['bubblemarks.bookmarks.v1'][0].name),'Synced bookmark');
  await b.locator('.page-navigation [data-page=daily]').click();await b.getByLabel('Choose log date').fill('2026-10-31');assert.equal(await b.locator('.day-heading h2').innerText(),'Dreamboat Annie');assert.equal(await b.evaluate(()=>JSON.parse(localStorage.getItem('bubbletasks_plain_v1')).dailyTracker.days['2026-10-31'].reproduction[0].aftercare),'Updated aftercare');
  await b.getByLabel('Daily notes').fill('Updated on second device');await widget(b,'Anything else?').getByRole('button',{name:'Save',exact:true}).click();await b.waitForFunction(()=>document.querySelector('[data-sync-status]').textContent.startsWith('Synced'));
  await a.locator('[data-sync-now]').click();await a.waitForFunction(()=>JSON.parse(localStorage.getItem('bubbletasks_plain_v1')).dailyTracker.days['2026-10-31'].notes==='Updated on second device');await a.locator('#dailyTrackerView').waitFor();assert.equal(await a.getByLabel('Daily notes').inputValue(),'Updated on second device');
