@@ -38,3 +38,8 @@
 .notes-view :focus-visible, .notes-dialog :focus-visible { outline:2px solid #8368ae; outline-offset:3px; }
 @media(max-width:600px) { .notes-view { padding:12px; } .notes-dialog { padding:16px; } .notes-top h2 { font-size:1.8rem; } }
 .notes-search::placeholder, .notes-dialog input::placeholder, .notes-dialog textarea::placeholder { color:#81718e; opacity:1; }
+
+/* Independently sized note cards fill the gaps under shorter notes. */
+.notes-view { align-self: start; }
+.notes-grid { grid-auto-rows: 1px; grid-auto-flow: row dense; gap: 0 14px; }
+.notes-empty { margin: 0; }

@@ -92,6 +92,7 @@
       catch {notes=before;feedback.textContent='Your note could not be saved. Please free some browser storage and try again.';return false;}
     }
     function filterBy(tag) {search.value='#'+tag;render();search.focus();}
+    let notePacking=null;
     function render() {
       if(!showing)return;
       quick.replaceChildren();
@@ -109,6 +110,7 @@
         : (note.title+' '+note.body+' '+note.tags.join(' ')).toLocaleLowerCase().includes(term)))
         .sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt)||a.title.localeCompare(b.title));
       count.textContent=matching.length+' '+(matching.length===1?'note':'notes')+(query?' found':'');
+      notePacking?.disconnect();
       list.replaceChildren();
       if(!matching.length)list.append(node('p','notes-empty',notes.length?'No notes match. Try another word or hashtag.':'A little space for your ideas. Add your first note above.'));
       matching.forEach(note=>{
@@ -121,6 +123,9 @@
         footer.append(edited,button('Edit',()=>openEditor(note),'note-edit'));
         card.append(heading,text,tagRow,footer);list.append(card);
       });
+      const pack=card=>{if(!showing)return;const span='span '+Math.ceil(card.getBoundingClientRect().height+14);if(card.style.gridRowEnd!==span)card.style.gridRowEnd=span;};
+      notePacking=new ResizeObserver(entries=>entries.forEach(entry=>pack(entry.target)));
+      [...list.children].forEach(card=>{pack(card);notePacking.observe(card);});
     }
     function redrawTags() {
       tags.replaceChildren();

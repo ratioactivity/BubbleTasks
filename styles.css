@@ -396,3 +396,11 @@ input::placeholder { color: rgba(255,255,255,.85); }
 
 /* Keep Writing quick-add buttons below the content, clear of story banners. */
 .board.tabs .story-column > .card-add-task { top: auto; right: auto; bottom: 11px; left: 8px; }
+
+/* General writing tasks occupy their own full-width row beneath the stories. */
+.writing-grid > .story-column[data-story="Other Writing"] {
+  grid-column: 1 / -1;
+  order: 999;
+  height: auto;
+}
+.writing-grid > .story-column[data-story="Other Writing"] > .story-banner { display: none; }
