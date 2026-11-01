@@ -14,12 +14,14 @@
         const columns=Math.min(Math.max(1,Number(prefs.cardsPerRow)||3),Math.max(1,Math.floor(grid.clientWidth/210)));
         if(grid.style.getPropertyValue('--bm-columns')!==String(columns))grid.style.setProperty('--bm-columns',columns);
         library.setModal(!!document.querySelector('[role="dialog"]:not([hidden])'));
-        library.setContentHeight(shell.offsetTop+shell.getBoundingClientRect().height+16);
+        // A constrained shell's border box can be shorter than its grid or pagination.
+        const bottom=Math.max(shell.offsetTop+shell.scrollHeight,...Array.from(shell.children,el=>el.getBoundingClientRect().bottom+scrollY));
+        library.setContentHeight(Math.ceil(bottom)+48);
       });
     }
-    new ResizeObserver(update).observe(shell);
+    const resize=new ResizeObserver(update);resize.observe(shell);resize.observe(grid);
     new MutationObserver(update).observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['hidden','class']});
-    window.addEventListener('resize',update);document.fonts.ready.then(update);update();
+    document.addEventListener('load',update,true);window.addEventListener('load',update);window.addEventListener('resize',update);document.fonts.ready.then(update);update();
   });
   const get=Storage.prototype.getItem,set=Storage.prototype.setItem;
   Storage.prototype.getItem=function(key){return this===localStorage&&keys.has(key)?library.getItem(key):get.call(this,key);};

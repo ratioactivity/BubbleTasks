@@ -35,7 +35,7 @@
       active=true;view.hidden=false;settings.hidden=false;document.body.classList.add('bookmarks-active');
       document.getElementById('boardContainer').hidden=true;document.querySelector('.task-form').hidden=true;
       fitFrame();
-      if(!frame.src)frame.src='bubblemarks/index.html';
+      if(!frame.src)frame.src='bubblemarks/index.html?v=flow-3';
     },
     focusView(){},
     setContentHeight(height){if(Number.isFinite(height)&&height>0){contentHeight=Math.ceil(height);fitFrame();}},
