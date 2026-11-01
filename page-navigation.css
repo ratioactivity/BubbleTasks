@@ -1,0 +1,6 @@
+.page-navigation { align-items: center; }
+.page-navigation-tasks { display: flex; align-items: stretch; flex: 0 0 auto; min-height: 44px; border: 1px solid #a18ab9; border-radius: 14px; background: #e7def3b3; overflow: hidden; }
+.page-navigation-tasks-label { display: flex; align-items: center; padding: 0 12px; color: #65557f; font-weight: 700; font-size: 1rem; }
+.page-navigation .page-navigation-tasks button { border: 0; border-left: 1px solid #a18ab955; border-radius: 0; box-shadow: none; }
+.page-navigation .page-navigation-tasks button:focus-visible { outline-offset: -4px; }
+@media (max-width: 600px) { .page-navigation-tasks { flex: 1 0 100%; } .page-navigation .page-navigation-tasks button { flex: 1 1 0; } }
