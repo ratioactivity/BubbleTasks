@@ -1,0 +1,17 @@
+.calendar-day.has-weekly-hours { position: relative; padding-bottom: 40px; }
+.calendar-week-hours {
+  position: absolute;
+  bottom: 7px;
+  right: 7px;
+  max-width: calc(100% - 14px);
+  padding: 5px 9px;
+  border: 1px solid #ac95c5;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #fff0f8, #d7e5f7);
+  color: #51476e;
+  box-shadow: inset 0 1px 0 #fff9, 0 2px 5px #70578c12;
+  font-size: .8rem;
+  font-weight: 700;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}

@@ -1,0 +1,17 @@
+const assert=require('node:assert/strict');
+process.env.TZ='America/Chicago';
+const {minutesForWeek,duration}=require('../calendar-work-hours.js');
+const start=new Date('2026-10-25T00:00'),end=new Date('2026-11-01T00:00'),owner='owner';
+const native=(date,startTime,endTime,title='Details')=>({date,startTime,endTime,title,allDay:false});
+const google=(id,start,end,title='Details',userId=owner)=>({id,title,userId,start:{dateTime:start},end:{dateTime:end}});
+const data={calendarEvents:[native('2026-10-26','09:00','17:00'),native('2026-10-28','09:30','13:00'),native('2026-10-27','09:00','17:00','Not work'),{title:'Details',date:'2026-10-27',allDay:true},native('2026-10-29','09:00','')],googleEventImports:[google('fri','2026-10-30T10:00:00-05:00','2026-10-30T16:00:00-05:00'),google('duplicate','2026-10-26T09:00:00-05:00','2026-10-26T17:00:00-05:00'),google('other-user','2026-10-27T09:00:00-05:00','2026-10-27T17:00:00-05:00','Details','someone-else')]};
+assert.equal(minutesForWeek(start,end,data,owner),1050);assert.equal(duration(1050),'17h 30m');
+assert.equal(minutesForWeek(start,end,data,null),690);
+assert.equal(minutesForWeek(start,end,{calendarEvents:[native('2026-10-31','22:00','02:00')]},owner),120);
+assert.equal(minutesForWeek(start,end,{googleEventImports:[google('overnight','2026-10-24T23:00:00-05:00','2026-10-25T02:00:00-05:00')]},owner),120);
+assert.equal(minutesForWeek(start,end,{calendarEvents:[native('2026-10-26','09:00','12:00'),native('2026-10-26','11:00','14:00')]},owner),300);
+const dstStart=new Date('2026-11-01T00:00'),dstEnd=new Date('2026-11-08T00:00');
+assert.equal(minutesForWeek(dstStart,dstEnd,{googleEventImports:[google('dst','2026-11-01T00:00:00-05:00','2026-11-01T04:00:00-06:00')]},owner),300);
+assert.equal(minutesForWeek(start,end,{calendarEvents:[native('2026-02-30','09:00','17:00'),native('2026-10-26','09:00','09:00')]},owner),0);
+assert.equal(duration(0),'0h');assert.equal(duration(480),'8h');
+console.log('PASS: native/Google totals, fractions, duplicate and overlapping shifts, owner isolation, missing times, all-day exclusions, overnight/week clipping, invalid dates, and DST.');
