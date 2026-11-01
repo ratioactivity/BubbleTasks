@@ -38,8 +38,18 @@
     const result={version:1,days:{},symptoms:[],artists:[]};
     for(const [key,value] of Object.entries(v?.days||{})){if(validDate(key))result.days[key]=day(value);}
     result.symptoms=(Array.isArray(v?.symptoms)?v.symptoms:[]).slice(0,2000).filter(s=>s&&text(s.name,100)).map(s=>({name:text(s.name,100),area:AREAS.includes(s.area)?s.area:'Misc.'}));
-    result.artists=(Array.isArray(v?.artists)?v.artists:[]).slice(0,2000).filter(a=>a&&text(a.name,100)).map(a=>({name:text(a.name,100),genres:tags(a.genres)}));
+    result.artists=(Array.isArray(v?.artists)?v.artists:[]).slice(0,2000).filter(a=>a&&text(a.name,100)).map(a=>({name:text(a.name,100),genres:tags(a.genres),genresUpdatedAt:iso(a.genresUpdatedAt)}));
     return result;
+  }
+  function mergeArtistLibrary(existing,incoming){
+    const merged=(existing||[]).map(a=>({...a,genres:[...a.genres]}));
+    for(const source of incoming||[]){
+      if(!source||typeof source.name!=='string'||!source.name.trim())continue;
+      const name=text(source.name,100).trim(),old=merged.find(a=>a.name.toLowerCase()===name.toLowerCase());
+      if(old){if(!old.genresUpdatedAt)old.genres=tags([...tags(source.genres),...old.genres]);}
+      else merged.push({name,genres:tags(source.genres),genresUpdatedAt:''});
+    }
+    return merged;
   }
   const genres=(d,t)=>d.music.genres===null?tags(d.music.artists.flatMap(name=>t.artists.find(a=>a.name.toLowerCase()===name.toLowerCase())?.genres||[])):d.music.genres;
   function summary(date,d,t,formatTime){
@@ -65,8 +75,9 @@
     for(const e of d.learned)add('Learned',time(e.time)+' · '+e.text);
     add('Notes',d.notes);return lines.join('\n\n');
   }
-  const api={AREAS,COLORS,text,tags,dateKey,validDate,localTime,iso,rating,mean,sleepHours,moodColor,moodBand,emptyDay,day,normalize,genres,summary};
+  const api={AREAS,COLORS,text,tags,dateKey,validDate,localTime,iso,rating,mean,sleepHours,moodColor,moodBand,emptyDay,day,normalize,mergeArtistLibrary,genres,summary};
   globalThis.BubbleTasksDailyModel=api;
   if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })();
+
 

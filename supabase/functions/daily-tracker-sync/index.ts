@@ -38,8 +38,18 @@
     const result={version:1,days:{},symptoms:[],artists:[]};
     for(const [key,value] of Object.entries(v?.days||{})){if(validDate(key))result.days[key]=day(value);}
     result.symptoms=(Array.isArray(v?.symptoms)?v.symptoms:[]).slice(0,2000).filter(s=>s&&text(s.name,100)).map(s=>({name:text(s.name,100),area:AREAS.includes(s.area)?s.area:'Misc.'}));
-    result.artists=(Array.isArray(v?.artists)?v.artists:[]).slice(0,2000).filter(a=>a&&text(a.name,100)).map(a=>({name:text(a.name,100),genres:tags(a.genres)}));
+    result.artists=(Array.isArray(v?.artists)?v.artists:[]).slice(0,2000).filter(a=>a&&text(a.name,100)).map(a=>({name:text(a.name,100),genres:tags(a.genres),genresUpdatedAt:iso(a.genresUpdatedAt)}));
     return result;
+  }
+  function mergeArtistLibrary(existing,incoming){
+    const merged=(existing||[]).map(a=>({...a,genres:[...a.genres]}));
+    for(const source of incoming||[]){
+      if(!source||typeof source.name!=='string'||!source.name.trim())continue;
+      const name=text(source.name,100).trim(),old=merged.find(a=>a.name.toLowerCase()===name.toLowerCase());
+      if(old){if(!old.genresUpdatedAt)old.genres=tags([...tags(source.genres),...old.genres]);}
+      else merged.push({name,genres:tags(source.genres),genresUpdatedAt:''});
+    }
+    return merged;
   }
   const genres=(d,t)=>d.music.genres===null?tags(d.music.artists.flatMap(name=>t.artists.find(a=>a.name.toLowerCase()===name.toLowerCase())?.genres||[])):d.music.genres;
   function summary(date,d,t,formatTime){
@@ -65,10 +75,11 @@
     for(const e of d.learned)add('Learned',time(e.time)+' · '+e.text);
     add('Notes',d.notes);return lines.join('\n\n');
   }
-  const api={AREAS,COLORS,text,tags,dateKey,validDate,localTime,iso,rating,mean,sleepHours,moodColor,moodBand,emptyDay,day,normalize,genres,summary};
+  const api={AREAS,COLORS,text,tags,dateKey,validDate,localTime,iso,rating,mean,sleepHours,moodColor,moodBand,emptyDay,day,normalize,mergeArtistLibrary,genres,summary};
   globalThis.BubbleTasksDailyModel=api;
   if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })();
+
 
 
 // Deploy as daily-tracker-sync. The source above bundles the same pure model as the browser.
@@ -109,7 +120,21 @@ Deno.serve(async req=>{
     if(user.id!==owner)return reply({error:'This Notion connection belongs to another BubbleTasks account.'},403);
     const secret=Deno.env.get('NOTION_TOKEN');if(!secret)return reply({error:'Add NOTION_TOKEN in Supabase secrets.'},503);
     const raw=await req.text();if(raw.length>2000)return reply({error:'Request too large.'},413);
-    const body=JSON.parse(raw);date=body.date;userId=user.id;if(!MODEL.validDate(date))return reply({error:'Choose a valid log date.'},400);
+    const body=JSON.parse(raw);
+    if(body.action==='artists'){
+      const artists=[];let cursor;
+      do{
+        const response=await fetch('https://api.notion.com/v1/data_sources/'+ARTISTS+'/query',{method:'POST',signal:AbortSignal.timeout(20000),headers:{Authorization:'Bearer '+secret,'Notion-Version':'2025-09-03','Content-Type':'application/json'},body:JSON.stringify({page_size:100,...(cursor?{start_cursor:cursor}:{})})});
+        if(!response.ok)throw Error('Could not read your Notion artist library. Check the integration connection and retry shortly.');
+        const page=await response.json();
+        for(const row of page.results||[]){const name=plain(row.properties?.Artist?.title);if(name)artists.push({name,genres:(row.properties?.Genres?.multi_select||[]).map(g=>g.name)});}
+        cursor=page.has_more?page.next_cursor:null;
+        if(artists.length>2000)throw Error('The artist library exceeds this app version’s 2,000-artist limit.');
+        if(cursor)await new Promise(r=>setTimeout(r,360));
+      }while(cursor);
+      return reply({artists});
+    }
+    date=body.date;userId=user.id;if(!MODEL.validDate(date))return reply({error:'Choose a valid log date.'},400);
     db=async(path,method='GET',body)=>{
       const res=await fetch(url+'/rest/v1/'+path,{method,signal:AbortSignal.timeout(15000),headers:{apikey:service,Authorization:'Bearer '+service,'Content-Type':'application/json'},...(body===undefined?{}:{body:JSON.stringify(body)})});
       if(!res.ok)throw Error('Run the daily-tracker Notion SQL migration in Supabase before uploading.');
@@ -136,16 +161,20 @@ Deno.serve(async req=>{
       if(existing){if(!sameProps(existing,properties))await notion('pages/'+existing.id,'PATCH',{properties});return {...existing,properties:{...existing.properties,...properties}};}
       return await notion('pages','POST',{parent:{type:'data_source_id',data_source_id:source},properties});
     };
-    const artistPages=[];
+    const artistPages=[],inheritedGenres=[];
     for(const name of day.music.artists){
-      const existing=(await query(ARTISTS,{property:'Artist',title:{equals:name}}))[0],defaults=tracker.artists.find(a=>a.name.toLowerCase()===name.toLowerCase())?.genres||[];
-      const page=await upsert(ARTISTS,existing,{Artist:ttl(name),Genres:multi(defaults)});artistPages.push(page.id);
+      const matches=await query(ARTISTS,{property:'Artist',title:{equals:name}});
+      const existing=matches[0]||(await query(ARTISTS)).find(p=>plain(p.properties?.Artist?.title).toLowerCase()===name.toLowerCase()),defaults=tracker.artists.find(a=>a.name.toLowerCase()===name.toLowerCase())?.genres||[];
+      const local=tracker.artists.find(a=>a.name.toLowerCase()===name.toLowerCase());
+      const effective=local?.genresUpdatedAt?defaults:MODEL.tags([...(existing?.properties?.Genres?.multi_select||[]).map(g=>g.name),...defaults]);
+      inheritedGenres.push(...effective);
+      const page=await upsert(ARTISTS,existing,{Artist:ttl(existing?plain(existing.properties.Artist.title):name),Genres:multi(effective)});artistPages.push(page.id);
     }
     const key=userId+':'+date;
     const existing=(await query(DAILY,{property:'Log Key',rich_text:{equals:key}}))[0];
     const properties={
       'Song of the Day':ttl(day.music.title||date),Date:dt(date),'Log Key':rt(key),
-      'Song Artists':{relation:artistPages.map(id=>({id}))},'Song Genres':multi(MODEL.genres(day,tracker)),
+      'Song Artists':{relation:artistPages.map(id=>({id}))},'Song Genres':multi(day.music.genres===null?inheritedGenres:day.music.genres),
       'Bed Time':dt(day.sleep.bedAt),'Wake Time':dt(day.sleep.wakeAt),
       'Average Mood':num(MODEL.mean(day.mood)),'Average Pain':num(MODEL.mean(day.pain)),'Peak Pain':num(day.pain.length?Math.max(...day.pain.map(e=>e.rating)):null),
       'Mood Color':sel(MODEL.moodBand(day)),Symptoms:multi(day.symptoms.map(e=>e.name)),'Symptom Areas':multi(day.symptoms.map(e=>e.area)),
@@ -178,4 +207,5 @@ Deno.serve(async req=>{
   }catch(error){return reply({error:error instanceof SyntaxError?'Invalid request.':error.message||'Upload failed. Your BubbleTasks save is safe.'},error instanceof SyntaxError?400:500);}
   finally{if(locked&&db)try{await db('rpc/bubbletasks_release_notion_sync','POST',{p_user_id:userId,p_date:'1900-01-01',p_lease:lease});}catch{/* Lease expires automatically; never expose backend response details. */}}
 });
+
 

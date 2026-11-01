@@ -24,3 +24,8 @@ assert.equal(reproductive.reproduction[0].painLevel,10);assert.equal(reproductiv
 const repSummary=M.summary('2026-10-31',reproductive,{artists:[]});assert(repSummary.includes('Aftercare note'));assert(repSummary.includes('10/10'));assert(repSummary.includes('Self-pleasure'));
 assert.equal(M.day({}).reproduction.length,0);
 console.log('PASS: reproductive entries preserve menstrual history, keep separate pain/pleasure levels, clear inapplicable levels, and appear in summaries.');
+
+const originals=[{name:'Edited',genres:['Custom'],genresUpdatedAt:'2026-10-31T12:00:00Z'},{name:'Legacy',genres:['Local'],genresUpdatedAt:''},{name:'Cleared',genres:[],genresUpdatedAt:'2026-10-31T12:00:00Z'}];
+const merged=M.mergeArtistLibrary(originals,[{name:'edited',genres:['Remote']},{name:'Legacy',genres:['Remote']},{name:'Cleared',genres:['Remote']},{name:'New Artist',genres:['Rock']}]);
+assert.deepEqual(merged[0].genres,['Custom']);assert.deepEqual(merged[1].genres,['Remote','Local']);assert.deepEqual(merged[2].genres,[]);assert.equal(merged.length,4);assert.deepEqual(originals[1].genres,['Local']);
+console.log('PASS: artist-library merge preserves edits and deliberate clears, unions legacy values, deduplicates names, and leaves input unchanged.');

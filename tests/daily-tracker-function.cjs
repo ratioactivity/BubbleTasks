@@ -21,7 +21,7 @@ async function fetchMock(url,options={}){
  assert.equal(u.hostname,'api.notion.com');notionCalls++;assert.equal(options.headers.Authorization,'Bearer backend-notion-test');assert.equal(options.headers['Notion-Version'],'2025-09-03');
  if(failNotion){failNotion=false;return respond({},429);}
  let match=u.pathname.match(/^\/v1\/data_sources\/([^/]+)\/query$/);
- if(match){const source=match[1],filter=body.filter;return respond({results:[...pages.values()].filter(p=>p.parent.data_source_id===source&&!p.archived).filter(p=>!filter||filter.title?plain(p.properties[filter.property]?.title)===filter.title.equals:filter.rich_text?plain(p.properties[filter.property]?.rich_text)===filter.rich_text.equals:filter.relation?(p.properties[filter.property]?.relation||[]).some(r=>r.id===filter.relation.contains):true),has_more:false});}
+ if(match){const source=match[1],filter=body.filter;return respond({results:[...pages.values()].filter(p=>p.parent.data_source_id===source&&!p.archived).filter(p=>!filter?true:filter.title?plain(p.properties[filter.property]?.title)===filter.title.equals:filter.rich_text?plain(p.properties[filter.property]?.rich_text)===filter.rich_text.equals:filter.relation?(p.properties[filter.property]?.relation||[]).some(r=>r.id===filter.relation.contains):true),has_more:false});}
  if(u.pathname==='/v1/pages'&&method==='POST'){const p={id:crypto.randomUUID(),...body};p.url='https://www.notion.so/'+p.id;pages.set(p.id,p);blocks.set(p.id,[{id:crypto.randomUUID(),type:'paragraph',paragraph:{rich_text:[{text:{content:'Unrelated user note'}}]}}]);return respond(p);}
  match=u.pathname.match(/^\/v1\/pages\/([^/]+)$/);if(match){const p=pages.get(match[1]);assert(p);if(body.properties)p.properties={...p.properties,...body.properties};if(body.archived)p.archived=true;return respond(p);}
  match=u.pathname.match(/^\/v1\/blocks\/([^/]+)\/children$/);if(match){const children=blocks.get(match[1])||[];if(method==='GET')return respond({results:children,has_more:false});for(const b of body.children)children.push({id:crypto.randomUUID(),...b});blocks.set(match[1],children);return respond({results:children});}
@@ -36,6 +36,11 @@ const request=(body={date},token='valid-owner',origin='https://ratioactivity.git
  assert.equal((await request({date:'2026-02-30'})).status,400);
  let r=await request();assert.equal(r.status,200);let result=await r.json();assert.equal(result.revision,'v1');
  const daily=[...pages.values()].find(p=>p.parent.data_source_id===DAILY);assert(daily);assert.equal(daily.properties['Average Mood'].number,6);assert.equal(daily.properties['Average Pain'].number,6);assert.equal(daily.properties['Mood Color'].select.name,'Mint');assert.equal(daily.properties['Song of the Day'].title[0].text.content,'Dreamboat Annie');assert.equal([...pages.values()].filter(p=>p.parent.data_source_id===READINGS&&!p.archived).length,4);assert.equal([...pages.values()].filter(p=>p.parent.data_source_id===ARTISTS).length,1);
+ let library=await request({action:'artists'});assert.equal(library.status,200);assert.equal((await library.json()).artists[0].name,'Heart');
+ const artist=[...pages.values()].find(p=>p.parent.data_source_id===ARTISTS);artist.properties.Genres={multi_select:[{name:'Imported Genre'}]};tracker.artists[0].genres=[];
+ assert.equal((await request()).status,200);assert.deepEqual(artist.properties.Genres.multi_select.map(g=>g.name),['Imported Genre']);
+ tracker.artists[0].genresUpdatedAt='2026-10-31T23:00:00Z';assert.equal((await request()).status,200);assert.deepEqual(artist.properties.Genres.multi_select,[]);
+ tracker.artists[0].genres=['Rock'];tracker.days[date].music.artists=['heart'];
  const count=pages.size;r=await request();assert.equal(r.status,200);assert.equal(pages.size,count);assert.equal(blocks.get(daily.id).length,2);assert(plain(blocks.get(daily.id)[1].paragraph.rich_text).includes('Aftercare test'));assert.equal(plain(blocks.get(daily.id)[0].paragraph.rich_text),'Unrelated user note');
  tracker.days[date].pain=[];tracker.days[date].revision='v2';r=await request();assert.equal(r.status,200);assert.equal(pages.size,count);assert.equal(daily.properties['Average Pain'].number,null);assert.equal(daily.properties['Peak Pain'].number,null);assert.equal([...pages.values()].filter(p=>p.parent.data_source_id===READINGS&&!p.archived).length,3);
  leaseHeld=true;assert.equal((await request()).status,409);leaseHeld=false;
@@ -44,3 +49,4 @@ const request=(body={date},token='valid-owner',origin='https://ratioactivity.git
  assert(!JSON.stringify(await r.json()).includes('backend-notion-test'));
  console.log('PASS: owner-only auth, fail-closed config, canonical online reads, artist reuse, idempotent daily/reading upserts, averages, deleted readings, preserved user blocks, concurrent leases, and retry after Notion failure. All services mocked.');
 })().catch(e=>{console.error(e);process.exit(1)});
+

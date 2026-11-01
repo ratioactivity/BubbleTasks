@@ -59,3 +59,13 @@ Run node tests/daily-tracker-browser.cjs with Playwright and Chromium installed;
 Function tests mock authentication, owner isolation, fail-closed configuration, canonical saved input, repeated uploads, deleted readings, artist reuse, unrelated block preservation, concurrent leases, and retries. Browser tests cover all widgets, autocomplete/group recall, history, average mood, sleep, drafts, backups, mobile sizing, and two-device sync. Tests never send real health entries.
 
 The Edge Function bundles an exact copy of daily-tracker-model.js for Supabase's single-file editor. Keep that model prefix synchronized; the function test checks equality.
+
+## Existing Notion artist libraries
+
+Copy artist names and genre assignments into the tracker’s Artists database. Historical daily-log relations stay in the original database. Artist libraries are private Notion data and are not embedded in the public website.
+
+After redeploying the updated daily-tracker-sync function, click **Load Artists from Notion** inside Song of the Day. This reads the authorized owner's Artists database through the backend and merges its artists into the synced daily tracker. Names become available in inline autocomplete, and selecting an artist supplies the remembered genres.
+
+The load preserves explicit local genre edits, including deliberate clears, and unions older unmarked genre assignments. It does not create a blank daily entry. Loading changed default genres requeues affected existing days for upload. Subsequent device sync and backups include the private library.
+
+The backend preserves existing Notion genres when the app has no explicit genre assignment, and avoids duplicate artist records caused by capitalization differences. No new secrets, SQL migration, or database properties are needed; redeploy the current full function source.

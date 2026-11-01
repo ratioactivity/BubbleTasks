@@ -169,14 +169,36 @@
     }
     function known(type){
       if(type==='symptoms')return tracker.symptoms.map(s=>s.name);
-      return M.tags([...(type==='activities'?ACTIVITY_PRESETS:[]),...Object.values(tracker.days).flatMap(d=>type==='artists'?d.music.artists:type==='genres'?M.genres(d,tracker):type==='activities'?d.activities:d[type].map(e=>e.name))]);
+      return M.tags([...(type==='activities'?ACTIVITY_PRESETS:type==='artists'?tracker.artists.map(a=>a.name):type==='genres'?tracker.artists.flatMap(a=>a.genres):[]),...Object.values(tracker.days).flatMap(d=>type==='artists'?d.music.artists:type==='genres'?M.genres(d,tracker):type==='activities'?d.activities:d[type].map(e=>e.name))]);
+    }
+    let loadingArtists=false;
+    async function loadArtistLibrary(button){
+      const cloud=window.BubbleTasksCloud,user=cloud?.getUserId();if(!user){message('Sign in to BubbleTasks to load your Notion artists.');return;}
+      if(loadingArtists)return;loadingArtists=true;button.disabled=true;message('Loading artist library from Notion…');
+      const epoch=uploadEpoch;
+      try{
+        const token=await cloud.getAccessToken();if(epoch!==uploadEpoch||cloud.getUserId()!==user)return;
+        const response=await fetch('https://ejrnkaigdstalaypyhhp.supabase.co/functions/v1/daily-tracker-sync',{method:'POST',signal:AbortSignal.timeout(60000),headers:{Authorization:'Bearer '+token,apikey:'sb_publishable_Qe_bJpZQLlm-CGoPnmhqFQ_aOxXtGhN','Content-Type':'application/json'},body:JSON.stringify({action:'artists'})});
+        const result=await response.json().catch(()=>({}));if(epoch!==uploadEpoch||cloud.getUserId()!==user)return;
+        if(!response.ok||!Array.isArray(result.artists))throw Error(result.error||'Redeploy the updated daily-tracker-sync function to load your artist library.');
+        const before=tracker,next=M.normalize(tracker);next.artists=M.mergeArtistLibrary(next.artists,result.artists);
+        for(const [date,day] of Object.entries(next.days)){
+          if(day.music.genres!==null)continue;
+          const oldGenres=M.genres(day,tracker),newGenres=M.genres(day,next);
+          if(JSON.stringify(oldGenres)!==JSON.stringify(newGenres)){day.revision=identifier();day.updatedAt=new Date().toISOString();}
+        }
+        tracker=next;try{localStorage.setItem(SAVE,JSON.stringify({...read(),dailyTracker:tracker}));}catch(error){tracker=before;throw error;}
+        message('Loaded '+result.artists.length+' artists from Notion. Your saved genre edits were preserved.');
+        if(!dirtyForms.size)render();
+      }catch(error){if(epoch===uploadEpoch)message(error.message||'Could not load the artist library. Your saved data is unchanged.');}
+      finally{loadingArtists=false;if(button.isConnected)button.disabled=false;}
     }
     function artistGenres(name){
       openDialog(name+' · default genres',form=>{
         let values=[...(tracker.artists.find(a=>a.name.toLowerCase()===name.toLowerCase())?.genres||[])];
         const chips=el('div','day-tags');const redraw=()=>{chips.replaceChildren();values.forEach(v=>chips.append(btn(v+' ×',()=>{values=values.filter(t=>t!==v);redraw();dialogDirty=true;},'day-tag')));};
         const tag=tagEntry('Genre',()=>known('genres'),v=>{values=M.tags([...values,v]);redraw();dialogDirty=true;});redraw();form.append(chips,tag.box);
-        return {submit:()=>{if(tag.value.value.trim())values=M.tags([...values,tag.value.value]);return save((d,t)=>{const a=t.artists.find(a=>a.name.toLowerCase()===name.toLowerCase());if(a)a.genres=values;else t.artists.push({name,genres:values});for(const [key,oldDay] of Object.entries(t.days)){if(key!==selected&&oldDay.music.genres===null&&oldDay.music.artists.some(v=>v.toLowerCase()===name.toLowerCase())){oldDay.revision=identifier();oldDay.updatedAt=new Date().toISOString();}}});}};
+        return {submit:()=>{if(tag.value.value.trim())values=M.tags([...values,tag.value.value]);return save((d,t)=>{const a=t.artists.find(a=>a.name.toLowerCase()===name.toLowerCase());if(a){a.genres=values;a.genresUpdatedAt=new Date().toISOString();}else t.artists.push({name,genres:values,genresUpdatedAt:new Date().toISOString()});for(const [key,oldDay] of Object.entries(t.days)){if(key!==selected&&oldDay.music.genres===null&&oldDay.music.artists.some(v=>v.toLowerCase()===name.toLowerCase())){oldDay.revision=identifier();oldDay.updatedAt=new Date().toISOString();}}});}};
       });
     }
     function navigate(date){if(!M.validDate(date)||!confirmLeave())return;selected=date;dirtyForms.clear();sessionStorage.setItem(DATE,date);render();}
@@ -232,6 +254,7 @@
       music.append(el('p','day-help','Genres: '+(M.genres(d,tracker).join(', ')||'Set genres on an artist, or add a song-specific genre below.')));
       const genreChips=el('div','day-tags');if(d.music.genres!==null)d.music.genres.forEach(g=>genreChips.append(btn(g+' ×',()=>{if(save(day=>day.music.genres=day.music.genres.filter(v=>v!==g)))render();},'day-tag')));
       music.append(genreChips,tagEntry('Song-specific genre',()=>known('genres'),name=>{if(save(day=>day.music.genres=M.tags([...M.genres(day,tracker),name])))render();}).box,btn('Use artist defaults',()=>{if(save(day=>day.music.genres=null))render();}));grid.append(music);
+      const loadArtists=btn('Load Artists from Notion',()=>loadArtistLibrary(loadArtists));loadArtists.disabled=loadingArtists;music.append(loadArtists);
       const sleep=widget('Sleep','Log the sleep that ended on this date. After-midnight bedtimes use the wake-up date; choose the previous date if you slept before midnight.');
       const bed=input('datetime-local',d.sleep.bed,'Bed time'),wake=input('datetime-local',d.sleep.wake,'Wake time');
       const sl=formFor(sleep,form=>{const trial={sleep:{bed:bed.value,wake:wake.value,bedAt:bed.value?new Date(bed.value).toISOString():'',wakeAt:wake.value?new Date(wake.value).toISOString():''}};if(wake.value&&wake.value.slice(0,10)!==selected){message('Wake time must be on this log date.');return false;}if(bed.value&&wake.value&&M.sleepHours(trial)===null){message('Wake time must follow bed time, within 48 hours.');return false;}return save(day=>day.sleep=trial.sleep,form);});
@@ -315,5 +338,6 @@
     apply();render();
   });
 })();
+
 
 

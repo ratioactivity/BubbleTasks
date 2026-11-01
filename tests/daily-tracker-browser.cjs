@@ -11,7 +11,7 @@ const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'/opt/codex/cua_node/lib
   if(u.pathname.startsWith('/auth/v1/token'))return r.fulfill({json:session()});
   if(u.pathname==='/auth/v1/logout')return r.fulfill({json:{}});
   if(u.pathname.startsWith('/auth/v1/otp'))return r.fulfill({json:{}});
-  if(u.pathname.includes('/functions/v1/daily-tracker-sync')){notionCalls++;const d=r.request().postDataJSON().date;return r.fulfill({json:{revision:remote.data.dailyTracker.days[d].revision,url:'https://www.notion.so/test-day'}})}if(u.pathname.includes('/functions/v1/'))return r.fulfill({json:{connected:false}});assert.equal(u.pathname,'/rest/v1/bubbletasks_saves');assert.equal(r.request().headers().authorization,'Bearer test-access');
+  if(u.pathname.includes('/functions/v1/daily-tracker-sync')){notionCalls++;if(r.request().postDataJSON().action==='artists')return r.fulfill({json:{artists:[{name:'Imported Artist',genres:['Dream Pop']},{name:'Heart',genres:['Other Genre']}]}});const d=r.request().postDataJSON().date;return r.fulfill({json:{revision:remote.data.dailyTracker.days[d].revision,url:'https://www.notion.so/test-day'}})}if(u.pathname.includes('/functions/v1/'))return r.fulfill({json:{connected:false}});assert.equal(u.pathname,'/rest/v1/bubbletasks_saves');assert.equal(r.request().headers().authorization,'Bearer test-access');
   if(method==='GET')return r.fulfill({json:remote?[remote]:[]});
   const body=r.request().postDataJSON();
   if(method==='POST'){if(remote)return r.fulfill({status:409,json:{}});remote={data:body.data,revision:1};writeCount++;return r.fulfill({status:201,json:[remote]})}
@@ -113,6 +113,13 @@ await a.getByRole('button',{name:'Log mood 7',exact:true}).click();await saveEnt
 await a.setViewportSize({width:390,height:844});assert.equal(await a.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);await a.screenshot({path:'/tmp/bubbletasks-day-mobile.png',fullPage:true});await a.setViewportSize({width:1280,height:900});
  await login(a);await upload(a);assert.equal(remote.data.dailyTracker.days['2026-10-31'].mood.length,3);
  await a.getByLabel('Automatically upload saved days to Notion').check();await a.waitForFunction(()=>document.querySelector('[data-day-sync-status]').textContent.startsWith('Uploaded'));assert(notionCalls>=1);
+ await a.getByRole('button',{name:'Load Artists from Notion',exact:true}).click();
+ await a.waitForFunction(()=>JSON.parse(localStorage.getItem('bubbletasks_plain_v1')).dailyTracker.artists.some(a=>a.name==='Imported Artist'));
+ await a.getByLabel('Add artist',{exact:true}).fill('Imported Ar');await a.getByLabel('Add artist',{exact:true}).press('Tab');assert.equal(await a.getByLabel('Add artist',{exact:true}).inputValue(),'Imported Artist');await a.getByLabel('Add artist',{exact:true}).press('Enter');
+ const savedArtists=await a.evaluate(()=>JSON.parse(localStorage.getItem('bubbletasks_plain_v1')).dailyTracker.artists);
+ assert.deepEqual(savedArtists.find(a=>a.name==='Heart').genres,['Rock']);
+ assert.deepEqual(savedArtists.find(a=>a.name==='Imported Artist').genres,['Dream Pop']);
+ await a.waitForFunction(()=>document.querySelector('[data-sync-status]').textContent.startsWith('Synced'));
  const b=await device();await login(b);await b.locator('[data-cloud-download]').click();await b.waitForFunction(()=>JSON.parse(localStorage.getItem('bubbletasks_plain_v1')).dailyTracker?.days?.['2026-10-31']?.mood.length===3);
  await b.locator('.page-navigation [data-page=daily]').click();await b.getByLabel('Choose log date').fill('2026-10-31');assert.equal(await b.locator('.day-heading h2').innerText(),'Dreamboat Annie');assert.equal(await b.evaluate(()=>JSON.parse(localStorage.getItem('bubbletasks_plain_v1')).dailyTracker.days['2026-10-31'].reproduction[0].aftercare),'Updated aftercare');
  await b.getByLabel('Daily notes').fill('Updated on second device');await widget(b,'Anything else?').getByRole('button',{name:'Save',exact:true}).click();await b.waitForFunction(()=>document.querySelector('[data-sync-status]').textContent.startsWith('Synced'));
