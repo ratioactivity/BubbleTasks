@@ -7,7 +7,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Bubblemarks</title>
-  <link rel="stylesheet" href="style.css?v=1" />
+  <link rel="stylesheet" href="style.css?v=flow-2" />
   <link rel="icon" type="image/png" href="../assets/icon128.png" />
 </head>
 <body>
@@ -219,7 +219,7 @@
       </div>
       <form id="category-form" class="category-form">
         <p class="category-form__hint">
-          Rename, recolor, or add extra tabs to match your vibe. These settings stay in your browser.
+          Rename, recolor, or add extra tabs to match your vibe. These settings are saved with your BubbleTasks library.
         </p>
         <div id="category-settings-list" class="category-settings-list"></div>
         <div class="category-form__footer">
@@ -375,7 +375,7 @@
             <button id="restore-btn" type="button" class="soft-btn">Restore Defaults</button>
           </div>
           <p class="settings-note">
-            Bookmarks are saved locally in your browser. Export backups so your comfy cloud is always safe!
+            Bookmarks are included in BubbleTasks saves, backups, and online sync.
           </p>
           <input id="import-input" type="file" accept="application/json" hidden />
         </fieldset>
@@ -395,7 +395,7 @@
   </button>
 
   <script src="assets.js"></script>
-  <script src="bridge.js"></script>
+  <script src="bridge.js?v=flow-2"></script>
   <script src="script.js"></script>
   
 </body>

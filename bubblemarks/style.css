@@ -1839,3 +1839,17 @@ html, body { background: transparent !important; min-height: 100%; }
 body::before, body::after, .settings-fab, .app-logo { display: none !important; }
 
 .bookmark-modal__dialog, .settings-modal__dialog { max-height: calc(100dvh - 32px); overflow-y: auto; min-height: 0; }
+
+/* Flow directly into BubbleTasks rather than a second scrolling window. */
+html, body { width: 100%; height: auto; min-height: 0; overflow: hidden !important; scrollbar-width: none; }
+body { display: block; padding: 0; }
+* { scrollbar-width: none; }
+*::-webkit-scrollbar { display: none; }
+.app-shell, .scroll-locked .app-shell { width: 100%; height: auto; max-height: none; overflow: visible; padding: 12px; border: 0; border-radius: 0; box-shadow: none; background: transparent; backdrop-filter: none; }
+.hero:has(#app-heading[hidden]) { display: none; }
+.bookmark-grid { grid-template-columns: repeat(var(--bm-columns, 3), minmax(0, 1fr)) !important; width: 100%; max-height: none; overflow: visible; }
+.bookmark-card, .card__content { min-width: 0; overflow-wrap: anywhere; }
+.filter-bar, .controls__actions, .controls__tabs { min-width: 0; max-width: 100%; flex-wrap: wrap; }
+.settings-modal__dialog, .bookmark-modal__dialog, .category-modal__dialog, .bookmark-manager-modal__dialog { max-height: calc(100dvh - 32px); overflow-y: auto; }
+
+.settings-toggle[data-preference="scroll-lock"] { display: none; }
