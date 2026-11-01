@@ -280,9 +280,7 @@
       const status=el('p');status.dataset.daySyncStatus='';status.setAttribute('role','status');
       const enabled=input('checkbox');enabled.checked=isEnabled();enabled.addEventListener('change',()=>{const user=window.BubbleTasksCloud?.getUserId();if(!user){enabled.checked=false;message('Sign in to BubbleTasks first.');return;}localStorage.setItem('bubbletasks_notion_auto_v1:'+user,String(enabled.checked));paintSync();if(enabled.checked)syncPending();});
       sync.append(field('Automatically upload saved days to Notion',enabled),status,btn('Upload this date now',()=>syncDate(selected,true)));
-      const owner=window.BubbleTasksCloud?.getUserId();
-      if(owner){const setup=el('details');setup.append(el('summary','','Connection setup'),el('p','day-help','Supabase secret NOTION_OWNER_USER_ID must match your signed-in BubbleTasks account ID:'),el('code','',owner));const guide=el('a','','Notion setup instructions');guide.href='https://github.com/ratioactivity/BubbleTasks/blob/v2.0/docs/day-dashboard.md';guide.target='_blank';guide.rel='noopener noreferrer';setup.append(guide);sync.append(setup);}
-      else sync.append(el('p','day-help','Sign in using the online-sync panel to enable uploads.'));
+      if(!window.BubbleTasksCloud?.getUserId())sync.append(el('p','day-help','Sign in using the online-sync panel to enable uploads.'));
       view.append(sync);paintSync();apply();
       window.scrollTo({top:scrollTop,left:scrollLeft,behavior:'instant'});
     }
