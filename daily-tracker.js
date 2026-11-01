@@ -321,7 +321,7 @@
       for(const type of ['focus','watching']){
         const box=widget(type==='focus'?'Hyperfixations':'What are you watching?',type==='focus'?'“On my mind” and “Worked on” can both be true. Each interest has its own progress note.':null);
         box.append(tagEntry(type==='focus'?'Story, game, or interest':'Show or movie',()=>M.tags([...known(type),...(type==='focus'?['BOTA','APEX','Parallel','Black & Blue','Wild Sky','Mask','Teeth','Ruse','Horizon Line','Sleeper','Coup','Kaleidoscope']:[])]),name=>focusEntry(type,null,name)).box);
-        d[type].forEach(e=>{const row=el('div','day-interest');row.append(btn(e.name+(type==='focus'?' · '+[e.onMind?'On my mind':'',e.worked?'Worked on':''].filter(Boolean).join(' / '):''),()=>focusEntry(type,e),'day-entry'));if(e.note)row.append(el('p','',e.note));if(type==='focus')row.append(btn('History',()=>history(e.name),'day-history'));box.append(row);});grid.append(box);
+        d[type].forEach(e=>{const row=el('div','day-interest');row.append(btn(e.name+(type==='focus'?' · '+[e.onMind?'On my mind':'',e.worked?'Worked on':''].filter(Boolean).join(' / '):''),()=>focusEntry(type,e),'day-entry'));if(e.note)row.append(el('p','',e.note));box.append(row);});grid.append(box);
       }
       for(const type of ['meals','learned']){const box=widget(type==='meals'?'Meals':'What did you learn today?');box.append(btn('+ Add entry',()=>noteEntry(type)));d[type].forEach(e=>box.append(btn(clock(e.time)+' · '+(e.label?e.label+' · ':'')+e.text,()=>noteEntry(type,e),'day-entry')));grid.append(box);}
       const noteBox=widget('Anything else?');const note=el('textarea');note.rows=5;note.maxLength=10000;note.value=d.notes;

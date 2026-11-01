@@ -71,7 +71,9 @@ const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'/opt/codex/cua_node/lib
  await a.getByLabel('Add activity',{exact:true}).fill('Went out with parents');await a.getByLabel('Add activity',{exact:true}).press('Enter');
  await a.getByLabel('Story, game, or interest').fill('Cove');await a.getByLabel('Story, game, or interest').press('Enter');
  await a.getByLabel('On my mind',{exact:true}).check();await a.getByLabel('Worked on',{exact:true}).check();await a.getByLabel('Progress / note',{exact:true}).fill('Worked on chapter 31');await saveEntry(a);
- await a.getByRole('button',{name:'History',exact:true}).click();assert.match(await a.locator('#dailyEntryDialog').innerText(),/Worked on chapter 31/);await a.locator('#dailyEntryDialog').getByRole('button',{name:'Close',exact:true}).click();
+ assert.equal(await widget(a,'Hyperfixations').getByRole('button',{name:'History',exact:true}).count(),0);
+ await a.locator('[data-page=tabs]').click();await a.getByRole('button',{name:'Writing',exact:true}).click();await a.getByRole('button',{name:'Daily work history for Ruse',exact:true}).click();await a.locator('#dailyEntryDialog').getByRole('button',{name:'Close',exact:true}).click();await a.locator('[data-page=daily]').click();
+ const notionHome=a.getByRole('link',{name:'Notion Home (opens in a new tab)',exact:true});assert.equal(await notionHome.getAttribute('href'),'https://app.notion.com/p/Home-ff42302797964ca0aa31c9d81ab26979');assert.equal(await notionHome.getAttribute('target'),'_blank');
  await a.getByLabel('Show or movie').fill('The Empress');await a.getByLabel('Show or movie').press('Enter');await saveEntry(a);
  for(const name of ['Meals','What did you learn today?']){await widget(a,name).getByRole('button',{name:'+ Add entry',exact:true}).click();await a.getByLabel(name==='Meals'?'What did you eat?':'What did you learn?',{exact:true}).fill(name==='Meals'?'Garlic noodles':'A new Russian word');await saveEntry(a);}
  await a.getByLabel('Daily notes',{exact:true}).fill('<script>safe plain text</script>');await widget(a,'Anything else?').getByRole('button',{name:'Save',exact:true}).click();

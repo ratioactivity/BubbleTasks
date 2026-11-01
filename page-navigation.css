@@ -4,3 +4,8 @@
 .page-navigation .page-navigation-tasks button { border: 0; border-left: 1px solid #a18ab955; border-radius: 0; box-shadow: none; }
 .page-navigation .page-navigation-tasks button:focus-visible { outline-offset: -4px; }
 @media (max-width: 600px) { .page-navigation-tasks { flex: 1 0 100%; } .page-navigation .page-navigation-tasks button { flex: 1 1 0; } }
+
+.page-navigation-home { display: inline-flex; align-items: center; justify-content: center; margin-left: auto; min-height: 44px; padding: 10px 19px; border: 1px solid #a18ab9; border-radius: 13px; background: linear-gradient(135deg,#fff5fbe8,#e5e9fae8); color: #514c75; font-size: 1.15rem; font-weight: 700; text-decoration: none; box-sizing: border-box; }
+.page-navigation-home:hover { background: #f5e7fc; }
+.page-navigation-home:focus-visible { outline: 2px solid #63508a; outline-offset: 3px; }
+@media(max-width:600px) { .page-navigation-home { flex: 1 1 auto; padding: 9px 12px; font-size: 1rem; } }

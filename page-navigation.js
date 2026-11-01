@@ -25,6 +25,7 @@ window.addEventListener('DOMContentLoaded',()=>{
     paint();
   }
   views.forEach(([key,label])=>{const button=document.createElement('button');button.type='button';button.textContent=label;button.dataset.page=key;button.addEventListener('click',()=>navigate(key));buttons.set(key,button);if(key==='columns'||key==='tabs'){if(!tasks.isConnected)nav.append(tasks);tasks.append(button);}else nav.append(button);});
+  const home=document.createElement('a');home.className='page-navigation-home';home.textContent='Notion Home ↗';home.href='https://app.notion.com/p/Home-ff42302797964ca0aa31c9d81ab26979';home.target='_blank';home.rel='noopener noreferrer';home.setAttribute('aria-label','Notion Home (opens in a new tab)');nav.append(home);
   const observer=new MutationObserver(paint);observer.observe(layout,{childList:true});observer.observe(day,{attributes:true,attributeFilter:['aria-pressed']});observer.observe(notes,{attributes:true,attributeFilter:['aria-pressed']});observer.observe(board,{attributes:true,attributeFilter:['class']});
   paint();
 });
