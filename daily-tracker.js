@@ -48,13 +48,15 @@
     layout.addEventListener('click',event=>{if(showing){event.stopImmediatePropagation();leave();}},true);
     notesButton?.addEventListener('click',event=>{if(showing){if(!leave()){event.stopImmediatePropagation();return;}}},true);
     new MutationObserver(()=>{if(showing)apply();}).observe(layout,{childList:true});
+    let refreshMusicDetails=()=>{};
+    let musicLibraryMessage='';
     function save(change,form){
       const before=tracker;tracker=M.normalize(tracker);
       const d=tracker.days[selected]||M.emptyDay();change(d,tracker);
       d.timezone=Intl.DateTimeFormat().resolvedOptions().timeZone;d.revision=identifier();d.updatedAt=new Date().toISOString();tracker.days[selected]=M.day(d);
       try{localStorage.setItem(SAVE,JSON.stringify({...read(),dailyTracker:tracker}));}
       catch{tracker=before;message('Could not save. Free some browser storage and try again.');return false;}
-      if(form)dirtyForms.delete(form);message('Saved on this device');return true;
+      if(form)dirtyForms.delete(form);message('Saved on this device');refreshMusicDetails();return true;
     }
     function widget(title,subtitle){
       const box=el('section','day-widget');box.append(el('h3','',title));if(subtitle)box.append(el('p','day-help',subtitle));return box;
@@ -66,11 +68,11 @@
       box.append(form);return {form,submit};
     }
     // Inline completion supports phrases, e.g. "bladder cr" -> "bladder cramps"; never a dropdown.
-    function tagEntry(label,known,add,clear=true){
+    function tagEntry(label,known,add,clear=true,chooseSuggestion=false){
       const box=el('div','day-tag-entry'),row=el('div','day-inline'),value=input('text','',label);value.placeholder=label;value.autocomplete='off';value.maxLength=100;
-      const suggestion=btn('',()=>{value.value=suggested;value.dispatchEvent(new Event('input',{bubbles:true}));update();value.focus();},'day-suggestion');suggestion.hidden=true;
+      const suggestion=btn('',()=>{if(chooseSuggestion){add(suggested);value.value='';update();value.focus();return;}value.value=suggested;value.dispatchEvent(new Event('input',{bubbles:true}));update();value.focus();},'day-suggestion');suggestion.hidden=true;
       let suggested='';
-      function update(){const p=value.value.trim().replace(/^#/,'').toLowerCase();suggested=p?known().find(t=>t.toLowerCase().startsWith(p)&&t.toLowerCase()!==p)||'':'';suggestion.hidden=!suggested;suggestion.textContent=suggested?'Complete '+suggested+' ↹':'';}
+      function update(){const p=value.value.trim().replace(/^#/,'').toLowerCase();suggested=p?known().find(t=>t.toLowerCase().startsWith(p)&&t.toLowerCase()!==p)||'':'';suggestion.hidden=!suggested;suggestion.textContent=suggested?(chooseSuggestion?'Add '+suggested:'Complete '+suggested+' ↹'):'';}
       const commit=()=>{const name=value.value.trim().replace(/^#+/,'');if(!name)return;add(name);if(clear)value.value='';update();};
       value.addEventListener('input',update);
       value.addEventListener('keydown',event=>{if(event.isComposing)return;if(event.key==='Tab'&&suggested&&!event.shiftKey){event.preventDefault();value.value=suggested;value.dispatchEvent(new Event('input',{bubbles:true}));update();}else if(event.key==='Enter'){event.preventDefault();commit();}});
@@ -174,7 +176,7 @@
     let loadingArtists=false;
     async function loadArtistLibrary(button){
       const cloud=window.BubbleTasksCloud,user=cloud?.getUserId();if(!user){message('Sign in to BubbleTasks to load your Notion artists.');return;}
-      if(loadingArtists)return;loadingArtists=true;button.disabled=true;message('Loading artist library from Notion…');
+      if(loadingArtists)return;loadingArtists=true;musicLibraryMessage='';button.disabled=true;refreshMusicDetails();message('Loading artist library from Notion…');
       const epoch=uploadEpoch;
       try{
         const token=await cloud.getAccessToken();if(epoch!==uploadEpoch||cloud.getUserId()!==user)return;
@@ -188,10 +190,10 @@
           if(JSON.stringify(oldGenres)!==JSON.stringify(newGenres)){day.revision=identifier();day.updatedAt=new Date().toISOString();}
         }
         tracker=next;try{localStorage.setItem(SAVE,JSON.stringify({...read(),dailyTracker:tracker}));}catch(error){tracker=before;throw error;}
-        message('Loaded '+result.artists.length+' artists from Notion. Your saved genre edits were preserved.');
+        musicLibraryMessage=result.artists.length+' artists loaded from Notion';message(musicLibraryMessage);refreshMusicDetails();
         if(!dirtyForms.size)render();
-      }catch(error){if(epoch===uploadEpoch)message(error.message||'Could not load the artist library. Your saved data is unchanged.');}
-      finally{loadingArtists=false;if(button.isConnected)button.disabled=false;}
+      }catch(error){if(epoch===uploadEpoch){musicLibraryMessage=error.message||'Could not refresh artists. Please try again.';message(musicLibraryMessage);}}
+      finally{loadingArtists=false;if(button.isConnected)button.disabled=false;refreshMusicDetails();}
     }
     function artistGenres(name){
       openDialog(name+' · default genres',form=>{
@@ -231,7 +233,7 @@
       return body;
     }
     function render(){
-      if(!showing||dirtyForms.size)return;const scrollTop=window.scrollY,scrollLeft=window.scrollX;dirtyForms.clear();view.replaceChildren();const d=current();
+      if(!showing||dirtyForms.size)return;const scrollTop=window.scrollY,scrollLeft=window.scrollX,musicOptionsOpen=view.querySelector('.day-music-options')?.open===true;dirtyForms.clear();view.replaceChildren();const d=current();
       const top=el('header','day-heading');top.style.setProperty('--day-mood',M.moodColor(d));
       const heading=el('div');heading.append(el('h2','',d.music.title||'Today’s Daybook'),el('p','',new Date(selected+'T12:00:00').toLocaleDateString([],{weekday:'long',month:'long',day:'numeric',year:'numeric'})));
       const nav=el('div','day-actions'),pick=input('date',selected,'Choose log date');pick.addEventListener('change',()=>navigate(pick.value));
@@ -246,15 +248,43 @@
       for(const line of [...events,...due.map(t=>t.title+' · '+t.status)])agenda.append(el('p','day-schedule-line',line));
       if(!events.length&&!due.length)agenda.append(el('p','day-help','Nothing scheduled for this date.'));
       view.append(agenda);const grid=el('div','day-grid');view.append(grid);
-      const music=widget('Song of the Day','The title of your day. Artist genres are remembered and reused.');
+      const music=widget('Song of the Day','Choose an artist to fill in their saved genres.');
       const song=input('text',d.music.title,'Song title');song.maxLength=200;
       const sf=formFor(music,()=>save(day=>day.music.title=song.value.trim(),sf.form));sf.form.append(field('Song title',song),sf.submit);
-      const artistChips=el('div','day-tags');d.music.artists.forEach(name=>artistChips.append(btn(name+' · genres',()=>artistGenres(name),'day-tag'),btn('×',()=>{if(save(day=>day.music.artists=day.music.artists.filter(n=>n!==name)))render();},'day-tag-remove')));
-      music.append(artistChips,tagEntry('Add artist',()=>known('artists'),name=>{if(save((day,t)=>{day.music.artists=M.tags([...day.music.artists,name]);if(!t.artists.some(a=>a.name.toLowerCase()===name.toLowerCase()))t.artists.push({name,genres:[]});}))render();}).box);
-      music.append(el('p','day-help','Genres: '+(M.genres(d,tracker).join(', ')||'Set genres on an artist, or add a song-specific genre below.')));
-      const genreChips=el('div','day-tags');if(d.music.genres!==null)d.music.genres.forEach(g=>genreChips.append(btn(g+' ×',()=>{if(save(day=>day.music.genres=day.music.genres.filter(v=>v!==g)))render();},'day-tag')));
-      music.append(genreChips,tagEntry('Song-specific genre',()=>known('genres'),name=>{if(save(day=>day.music.genres=M.tags([...M.genres(day,tracker),name])))render();}).box,btn('Use artist defaults',()=>{if(save(day=>day.music.genres=null))render();}));grid.append(music);
-      const loadArtists=btn('Load Artists from Notion',()=>loadArtistLibrary(loadArtists));loadArtists.disabled=loadingArtists;music.append(loadArtists);
+      const artistRows=el('div','day-music-artists');
+      const artistEntry=tagEntry('Add artist',()=>known('artists'),name=>{
+        save((day,t)=>{const existing=t.artists.find(a=>a.name.toLowerCase()===name.toLowerCase());const canonical=existing?.name||name;day.music.artists=M.tags([...day.music.artists,canonical]);if(!existing)t.artists.push({name:canonical,genres:[]});});
+      },true,true);
+      artistEntry.box.querySelector('small').textContent='Choose a suggestion or press Enter to add.';
+      const songGenres=el('div','day-music-genres'),genreLabel=el('p','day-help'),genreValues=el('div','day-tags');songGenres.append(genreLabel,genreValues);
+      const options=el('details','day-music-options');options.open=musicOptionsOpen;options.append(el('summary','','More Music Options'));
+      const optionsBody=el('div','day-music-options-body');
+      optionsBody.append(el('p','day-help','Genres normally come from the selected artists. Customize them below only if this song is different.'));
+      const genreChips=el('div','day-tags');
+      const genreEntry=tagEntry('Song-specific genre',()=>known('genres'),name=>save(day=>day.music.genres=M.tags([...M.genres(day,tracker),name])));
+      const defaults=btn('Use artist genres',()=>save(day=>day.music.genres=null));
+      const libraryStatus=el('p','day-help');libraryStatus.setAttribute('role','status');
+      const loadArtists=btn('Refresh Artists from Notion',()=>loadArtistLibrary(loadArtists));
+      optionsBody.append(genreChips,genreEntry.box,defaults,libraryStatus,loadArtists);options.append(optionsBody);
+      music.append(artistRows,artistEntry.box,songGenres,options);grid.append(music);
+      refreshMusicDetails=()=>{
+        if(!showing||!music.isConnected)return;
+        const value=current();artistRows.replaceChildren();
+        for(const name of value.music.artists){
+          const row=el('div','day-music-artist'),top=el('div','day-music-artist-top');top.append(el('strong','',name));
+          const edit=btn('Edit genres',()=>artistGenres(name),'day-music-edit');edit.setAttribute('aria-label','Edit genres for '+name);
+          const remove=btn('×',()=>save(day=>day.music.artists=day.music.artists.filter(v=>v.toLowerCase()!==name.toLowerCase())),'day-music-remove');remove.setAttribute('aria-label','Remove artist '+name);
+          top.append(edit,remove);row.append(top);
+          const genres=tracker.artists.find(a=>a.name.toLowerCase()===name.toLowerCase())?.genres||[];
+          const tags=el('div','day-tags');genres.forEach(g=>tags.append(el('span','day-music-genre',g)));
+          if(!genres.length)tags.append(el('span','day-help','No genres saved yet'));row.append(tags);artistRows.append(row);
+        }
+        const effective=M.genres(value,tracker);songGenres.hidden=value.music.genres===null;genreLabel.textContent='Custom genres for this song';genreValues.replaceChildren();effective.forEach(g=>genreValues.append(el('span','day-music-genre',g)));
+        genreChips.replaceChildren();if(value.music.genres!==null)value.music.genres.forEach(g=>genreChips.append(btn(g+' ×',()=>save(day=>day.music.genres=day.music.genres.filter(v=>v!==g)),'day-tag')));
+        defaults.hidden=value.music.genres===null;loadArtists.disabled=loadingArtists;
+        libraryStatus.textContent=musicLibraryMessage||(loadingArtists?'Refreshing artist library…':tracker.artists.length+' artists in your library');
+      };
+      refreshMusicDetails();
       const sleep=widget('Sleep','Log the sleep that ended on this date. After-midnight bedtimes use the wake-up date; choose the previous date if you slept before midnight.');
       const bed=input('datetime-local',d.sleep.bed,'Bed time'),wake=input('datetime-local',d.sleep.wake,'Wake time');
       const sl=formFor(sleep,form=>{const trial={sleep:{bed:bed.value,wake:wake.value,bedAt:bed.value?new Date(bed.value).toISOString():'',wakeAt:wake.value?new Date(wake.value).toISOString():''}};if(wake.value&&wake.value.slice(0,10)!==selected){message('Wake time must be on this log date.');return false;}if(bed.value&&wake.value&&M.sleepHours(trial)===null){message('Wake time must follow bed time, within 48 hours.');return false;}return save(day=>day.sleep=trial.sleep,form);});
@@ -338,6 +368,7 @@
     apply();render();
   });
 })();
+
 
 
 

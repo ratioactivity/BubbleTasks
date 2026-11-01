@@ -44,7 +44,7 @@ const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'/opt/codex/cua_node/lib
  await widget(a,'Song of the Day').getByLabel('Song title').fill('Dreamboat Annie');await widget(a,'Song of the Day').getByRole('button',{name:'Save',exact:true}).click();
  assert.equal(await a.locator('.day-heading h2').innerText(),'Dreamboat Annie');
  await a.getByLabel('Add artist',{exact:true}).fill('Heart');await a.getByLabel('Add artist',{exact:true}).press('Enter');
- await a.getByRole('button',{name:'Heart · genres',exact:true}).click();await a.getByLabel('Genre',{exact:true}).fill('Rock');await a.getByLabel('Genre',{exact:true}).press('Enter');await saveEntry(a);
+ await a.getByRole('button',{name:'Edit genres for Heart',exact:true}).click();await a.getByLabel('Genre',{exact:true}).fill('Rock');await a.getByLabel('Genre',{exact:true}).press('Enter');await saveEntry(a);
  assert.match(await widget(a,'Song of the Day').innerText(),/Rock/);
  await a.getByLabel('Bed time',{exact:true}).fill('2026-10-31T08:00');await a.getByLabel('Wake time',{exact:true}).fill('2026-10-31T14:30');await widget(a,'Sleep').getByRole('button',{name:'Save',exact:true}).click();assert.match(await widget(a,'Sleep').innerText(),/6.5 hours/);
  for(const n of [8,4]){await a.getByRole('button',{name:'Log mood '+n,exact:true}).click();await saveEntry(a);}
@@ -113,9 +113,14 @@ await a.getByRole('button',{name:'Log mood 7',exact:true}).click();await saveEnt
 await a.setViewportSize({width:390,height:844});assert.equal(await a.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);await a.screenshot({path:'/tmp/bubbletasks-day-mobile.png',fullPage:true});await a.setViewportSize({width:1280,height:900});
  await login(a);await upload(a);assert.equal(remote.data.dailyTracker.days['2026-10-31'].mood.length,3);
  await a.getByLabel('Automatically upload saved days to Notion').check();await a.waitForFunction(()=>document.querySelector('[data-day-sync-status]').textContent.startsWith('Uploaded'));assert(notionCalls>=1);
- await a.getByRole('button',{name:'Load Artists from Notion',exact:true}).click();
+ await widget(a,'Song of the Day').locator('.day-music-options > summary').click();await a.getByRole('button',{name:'Refresh Artists from Notion',exact:true}).click();
  await a.waitForFunction(()=>JSON.parse(localStorage.getItem('bubbletasks_plain_v1')).dailyTracker.artists.some(a=>a.name==='Imported Artist'));
- await a.getByLabel('Add artist',{exact:true}).fill('Imported Ar');await a.getByLabel('Add artist',{exact:true}).press('Tab');assert.equal(await a.getByLabel('Add artist',{exact:true}).inputValue(),'Imported Artist');await a.getByLabel('Add artist',{exact:true}).press('Enter');
+ await a.getByLabel('Song title',{exact:true}).fill('Unsaved song draft');
+ await a.getByLabel('Add artist',{exact:true}).fill('Imported Ar');await widget(a,'Song of the Day').getByRole('button',{name:'Add Imported Artist',exact:true}).click();
+ assert.equal(await a.getByLabel('Add artist',{exact:true}).inputValue(),'');
+ assert.equal(await a.getByLabel('Song title',{exact:true}).inputValue(),'Unsaved song draft');
+ assert((await a.locator('.day-music-artists').innerText()).includes('Dream Pop'));
+ await a.getByLabel('Song title',{exact:true}).fill('Dreamboat Annie');await widget(a,'Song of the Day').getByRole('button',{name:'Save',exact:true}).click();
  const savedArtists=await a.evaluate(()=>JSON.parse(localStorage.getItem('bubbletasks_plain_v1')).dailyTracker.artists);
  assert.deepEqual(savedArtists.find(a=>a.name==='Heart').genres,['Rock']);
  assert.deepEqual(savedArtists.find(a=>a.name==='Imported Artist').genres,['Dream Pop']);
@@ -126,5 +131,6 @@ await a.setViewportSize({width:390,height:844});assert.equal(await a.evaluate(()
  await a.locator('[data-sync-now]').click();await a.waitForFunction(()=>JSON.parse(localStorage.getItem('bubbletasks_plain_v1')).dailyTracker.days['2026-10-31'].notes==='Updated on second device');await a.locator('#dailyTrackerView').waitFor();assert.equal(await a.getByLabel('Daily notes').inputValue(),'Updated on second device');
  assert.deepEqual(errors,[]);await browser.close();console.log('PASS: all Day widgets, average mood, symptom completion/group recall, focus history, sleep duration, notes/Day navigation, draft preservation, backups, reload, mobile sizing, two-device sync, and revision-aware Notion upload. Simulated services.');
 })().catch(e=>{console.error(e);process.exit(1)});
+
 
 

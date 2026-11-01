@@ -143,3 +143,17 @@
 .day-summary-private { padding:8px 0; }
 .day-summary-private summary { cursor:pointer; }
 @media(max-width:600px) { .page-navigation { gap:6px; }.page-navigation button { flex:1 1 auto; padding:9px 12px; font-size:1rem; } }
+
+
+.day-music-artists { display:grid; gap:8px; }
+.day-music-artist { padding:10px 12px; border:1px solid #b5a2ca; border-radius:12px; background:#ffffff66; }
+.day-music-artist-top { display:flex; align-items:center; gap:8px; }
+.day-music-artist-top strong { margin-right:auto; overflow-wrap:anywhere; }
+.daily-view .day-music-edit { background:transparent; padding:3px 0; font-size:.85rem; text-decoration:underline; white-space:nowrap; }
+.daily-view .day-music-remove { width:25px; height:25px; padding:0; flex-shrink:0; }
+.day-music-artist .day-tags { margin:7px 0 0; }
+.day-music-genre { display:inline-block; padding:4px 9px; border:1px solid #c4afd5; border-radius:999px; background:#f3eaf9; font-size:.9rem; }
+.day-music-options { margin-top:12px; border-top:1px solid #a68ebb66; padding-top:10px; }
+.day-music-options > summary { cursor:pointer; color:#58516f; font-size:.95rem; }
+.day-music-options-body { padding-top:4px; }
+.day-music-genres .day-tags { margin-top:4px; }
