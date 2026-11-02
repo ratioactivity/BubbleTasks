@@ -241,7 +241,7 @@
       nav.append(btn('‹',()=>move(-1)),btn('Today',()=>navigate(M.dateKey(new Date()))),btn('›',()=>move(1)),pick);top.append(heading,nav);view.append(top,feedback);
       const agenda=widget('Tasks & Events','Your scheduled events and due tasks.');
       const data=read();
-      const due=[...(data.tasks||[]),...(data.archived||[])].filter(t=>t.dueDate===selected);
+      const due=[...(data.tasks||[]),...(data.archived||[])].filter(t=>t.dueDate===selected).sort((a,b)=>(Number(b.priority)||0)-(Number(a.priority)||0));
       const events=(data.calendarEvents||[]).filter(e=>e.date===selected).map(e=>(e.allDay?'All day':e.startTime||'')+' · '+e.title);
       const uid=window.BubbleTasksCloud?.getUserId();
       for(const e of data.googleEventImports||[]){if(e.userId!==uid)continue;const start=e.start?.date,end=e.end?.date,dayStart=new Date(selected+'T00:00:00'),dayEnd=new Date(selected+'T00:00:00');dayEnd.setDate(dayEnd.getDate()+1);const from=new Date(e.start?.dateTime),until=new Date(e.end?.dateTime);if(start&&end?selected>=start&&selected<end:from<dayEnd&&until>dayStart)events.push((start?'All day':from<dayStart?'Continues':clock(e.start.dateTime))+' · '+e.title);}
