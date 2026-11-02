@@ -221,10 +221,8 @@ window.addEventListener('DOMContentLoaded', () => {
 
   const sortedTasks = (tasks) => {
     return [...tasks].sort((a, b) => {
-      if (a.category === 'Writing' && b.category === 'Writing') {
-        const priorityDifference = (Number(b.priority) || 0) - (Number(a.priority) || 0);
-        if (priorityDifference) return priorityDifference;
-      }
+      const priorityDifference = (Number(b.priority) || 0) - (Number(a.priority) || 0);
+      if (priorityDifference) return priorityDifference;
       const da = a.dueDate ? new Date(a.dueDate).getTime() : null;
       const db = b.dueDate ? new Date(b.dueDate).getTime() : null;
       if (da !== null && db !== null) {
