@@ -47,6 +47,11 @@ const request=(body={date},token='valid-owner',origin='https://ratioactivity.git
  const statuses=await Promise.all([request(),request()]);assert.deepEqual(statuses.map(r=>r.status).sort(),[200,409]);
  failNotion=true;r=await request();assert.equal(r.status,500);assert(!leaseHeld);r=await request();assert.equal(r.status,200);assert.equal(pages.size,count);
  assert(!JSON.stringify(await r.json()).includes('backend-notion-test'));
+ tracker.days[date].mood.push({id:'m3',time:'2026-10-31T21:00:00Z',rating:5,note:''});
+ tracker.days[date].pain=[{id:'p2',time:'2026-10-31T21:00:00Z',rating:3,note:''},{id:'p3',time:'2026-10-31T22:00:00Z',rating:4,note:''},{id:'p4',time:'2026-10-31T23:00:00Z',rating:3,note:''}];
+ tracker.days[date].revision='rounding';r=await request();assert.equal(r.status,200);
+ assert.equal(daily.properties['Average Mood'].number,5.7);assert.equal(daily.properties['Average Pain'].number,3.3);
+ assert.equal(M.mean(tracker.days[date].mood),17/3);assert.equal(M.mean(tracker.days[date].pain),10/3);
  console.log('PASS: owner-only auth, fail-closed config, canonical online reads, artist reuse, idempotent daily/reading upserts, averages, deleted readings, preserved user blocks, concurrent leases, and retry after Notion failure. All services mocked.');
 })().catch(e=>{console.error(e);process.exit(1)});
 

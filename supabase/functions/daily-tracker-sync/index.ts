@@ -89,6 +89,7 @@ const DAILY='246162c5-d30d-44a2-a04b-8fdc269ff8a5',READINGS='96298643-8f41-4d97-
 const HEADERS={'Access-Control-Allow-Origin':ORIGIN,'Access-Control-Allow-Headers':'authorization, apikey, content-type, x-client-info','Access-Control-Allow-Methods':'POST, OPTIONS','Cache-Control':'no-store',Vary:'Origin'};
 const reply=(body,status=200)=>new Response(JSON.stringify(body),{status,headers:{...HEADERS,'Content-Type':'application/json'}});
 const chunks=text=>{const parts=[];for(let n=0;n<text.length;n+=1800)parts.push({type:'text',text:{content:text.slice(n,n+1800)}});return parts;};
+const rounded=value=>value==null?null:Math.round(value*10)/10;
 const rt=value=>({rich_text:chunks(String(value||''))}),ttl=value=>({title:chunks(String(value||''))}),num=value=>({number:value??null}),sel=value=>({select:value?{name:value}:null}),multi=values=>({multi_select:MODEL.tags(values).map(name=>({name}))}),dt=value=>({date:value?{start:value}:null});
 const plain=items=>(items||[]).map(e=>e.plain_text??e.text?.content??'').join('');
 const compactId=id=>String(id).replace(/-/g,'');
@@ -176,7 +177,7 @@ Deno.serve(async req=>{
       'Song of the Day':ttl(day.music.title||date),Date:dt(date),'Log Key':rt(key),
       'Song Artists':{relation:artistPages.map(id=>({id}))},'Song Genres':multi(day.music.genres===null?inheritedGenres:day.music.genres),
       'Bed Time':dt(day.sleep.bedAt),'Wake Time':dt(day.sleep.wakeAt),
-      'Average Mood':num(MODEL.mean(day.mood)),'Average Pain':num(MODEL.mean(day.pain)),'Peak Pain':num(day.pain.length?Math.max(...day.pain.map(e=>e.rating)):null),
+      'Average Mood':num(rounded(MODEL.mean(day.mood))),'Average Pain':num(rounded(MODEL.mean(day.pain))),'Peak Pain':num(day.pain.length?Math.max(...day.pain.map(e=>e.rating)):null),
       'Mood Color':sel(MODEL.moodBand(day)),Symptoms:multi(day.symptoms.map(e=>e.name)),'Symptom Areas':multi(day.symptoms.map(e=>e.area)),
       Menstruating:sel(day.cycle.menstruating===null?null:day.cycle.menstruating?'Yes':'No'),Flow:sel(day.cycle.menstruating===true?day.cycle.flow:null),'Cycle Notes':rt(day.cycle.note),
       Activities:multi(day.activities),Hyperfixations:multi(day.focus.map(e=>e.name)),'On My Mind':multi(day.focus.filter(e=>e.onMind).map(e=>e.name)),'Worked On':multi(day.focus.filter(e=>e.worked).map(e=>e.name)),
