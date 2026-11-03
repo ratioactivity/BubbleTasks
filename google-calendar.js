@@ -1,4 +1,4 @@
-/* Google is read-only. First-seen event snapshots are saved; refreshes only add new IDs. */
+/* Google is read-only. Refresh imported details by ID while keeping local categories and native events. */
 window.addEventListener('DOMContentLoaded', () => {
   const ENDPOINT = 'https://ejrnkaigdstalaypyhhp.supabase.co/functions/v1/google-calendar-auth';
   const PUBLIC_KEY = 'sb_publishable_Qe_bJpZQLlm-CGoPnmhqFQ_aOxXtGhN';
@@ -163,19 +163,25 @@ window.addEventListener('DOMContentLoaded', () => {
       const data=await request({action:'events',start:view.start,end:view.end},version);
       if(version!==generation||account!==user)return;
       if(!Array.isArray(data.events))throw new Error('Google returned an unexpected event response.');
-      const known = new Set(imports.filter(e=>e.userId===account).map(e=>e.id));
-      const additions = normalizeImports(data.events.filter(e=>e&&e.status!=='cancelled').map(e=>({...e,userId:account})))
-        .filter(e=>{if(!eventSpan(e)||known.has(e.id))return false;known.add(e.id);return true;});
-      if(additions.length) {
-        const previous=imports;imports=[...imports,...additions];
+      const incoming = new Map(normalizeImports(data.events.filter(e=>e&&e.status!=='cancelled').map(e=>({...e,userId:account}))).filter(eventSpan).map(e=>[e.id,e]));
+      const next=[...imports], positions=new Map(next.map((e,i)=>e.userId===account?[e.id,i]:null).filter(Boolean));
+      let added=0,updated=0;
+      for(const event of incoming.values()){
+        const index=positions.get(event.id);
+        if(index===undefined){positions.set(event.id,next.length);next.push(event);added++;}
+        else if(JSON.stringify(next[index])!==JSON.stringify(event)){next[index]=event;updated++;}
+      }
+      if(added||updated) {
+        const previous=imports;imports=next;
         try {localStorage.setItem(SAVE,JSON.stringify({...readSave(),googleEventImports:imports}));}
-        catch(error){imports=previous;throw new Error('New Google events could not be saved on this device. Free some browser storage and try again.');}
+        catch(error){imports=previous;throw new Error('Google event changes could not be saved on this device. Free some browser storage and try again.');}
+        window.dispatchEvent(new Event('bubbletasks-calendar-updated'));
       }
       cache.set(view.key,{user:account,time:Date.now()});
-      // Only fetch timestamps are cached; saved event snapshots never expire.
+      // Only fetch timestamps are cached; events absent from this response are kept.
       if(cache.size>12)cache.delete(cache.keys().next().value);
       draw();
-      message(data.partial?'Some Google events could not fit in this range. Open Google Calendar to see the full list.':'Google events checked · '+additions.length+' new · '+new Date().toLocaleTimeString([], {hour:'numeric',minute:'2-digit'}));
+      message(data.partial?'Some Google events could not fit in this range. Open Google Calendar to see the full list.':'Google events checked · '+added+' new · '+updated+' updated · '+new Date().toLocaleTimeString([], {hour:'numeric',minute:'2-digit'}));
     } catch(error) {
       if(version!==generation)return;
       if(error.code==='reconnect_required'||error.code==='connect_required'){needsReconnect=true;draw();}
@@ -191,7 +197,7 @@ window.addEventListener('DOMContentLoaded', () => {
       const data=await request({action:'status'},version);
       if(version!==generation)return;
       connected=data.connected===true;needsReconnect=false;
-      message(callbackNotice + (connected?'Connected · imports add new events only; existing events and colors stay unchanged.':'Connect Google Calendar to add new events. Previously imported events are kept.'));
+      message(callbackNotice + (connected?'Connected · Google event details update on refresh; your BubbleTasks events and colors are kept.':'Connect Google Calendar to add new events. Previously imported events are kept.'));
     } catch(error) {if(version===generation)message(error.message);}
     finally {if(version===generation){busy=false;paint();if(connected)loadEvents();}}
   }
