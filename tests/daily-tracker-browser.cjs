@@ -30,7 +30,7 @@ const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'/opt/codex/cua_node/lib
 
 
  const a=await device();await a.locator('.page-navigation [data-page=daily]').click();await a.locator('#dailyTrackerView').waitFor();
- assert.deepEqual(await a.locator('.page-navigation button').allTextContents(),['Calendar','Schedule','Tracker','Columns','Tabbed','Notes','Bubblemarks','Details']);
+ assert.deepEqual(await a.locator('.page-navigation button').allTextContents(),['Calendar','Schedule','Tracker','Columns','Tabbed','Notes','Watchlist','Bubblemarks','Details']);
  for(const [key,selector] of [['columns','.board.columns'],['tabs','.board.tabs'],['day','.board.calendar'],['notes','#notesView'],['daily','#dailyTrackerView'],['day','.board.calendar'],['columns','.board.columns'],['daily','#dailyTrackerView']]){
    await a.locator('.page-navigation [data-page='+key+']').click();assert(await a.locator(selector).isVisible());
    assert.equal(await a.locator('.page-navigation [aria-current=page]').getAttribute('data-page'),key);

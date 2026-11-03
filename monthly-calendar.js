@@ -153,6 +153,7 @@
         if(!Array.isArray(tasks)||tasks.some(t=>!t||typeof t!=='object'))throw new Error('Invalid backup');
         if(parsed.dailyTracker!==undefined)window.BubbleTasksDailyModel.normalize(parsed.dailyTracker);
         if(parsed.googleEventImports!==undefined&&!Array.isArray(parsed.googleEventImports))throw new Error('Invalid imported events');
+        if(parsed.watchlist!==undefined&&(!parsed.watchlist||typeof parsed.watchlist!=='object'||Array.isArray(parsed.watchlist)))throw new Error('Invalid watchlist');
         if(parsed.detailsChecklists!==undefined&&(!parsed.detailsChecklists||typeof parsed.detailsChecklists!=='object'||Array.isArray(parsed.detailsChecklists)))throw new Error('Invalid checklists');
         if(parsed.dailySchedule!==undefined&&!Array.isArray(parsed.dailySchedule))throw new Error('Invalid schedule');
         if(parsed.notes!==undefined&&!Array.isArray(parsed.notes))throw new Error('Invalid notes');
@@ -165,6 +166,7 @@
     render();
   });
 })();
+
 
 
 
