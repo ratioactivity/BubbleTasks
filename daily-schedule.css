@@ -1,0 +1,26 @@
+.schedule-view { min-width:0; color:#405779; }
+.schedule-view[hidden] { display:none !important; }
+.schedule-top { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; padding:20px; border:1px solid #b8a5d4; border-radius:24px; background:linear-gradient(120deg,#c0e1eddf,#e1d5efdf); }
+.schedule-top h2 { font-family:Bigbesty,cursive; font-size:2.6rem; margin:0; color:#fff; text-shadow:0 3px 5px #58678a80; }
+.schedule-top p { margin:6px 0 0; }
+.schedule-date-actions { display:flex; flex-wrap:wrap; align-items:center; gap:7px; }
+.schedule-date-actions input { width:auto; max-width:100%; }
+.schedule-date-actions button,.schedule-quick button,.schedule-editor button { border:1px solid #b8a5d4; background:#eee7f7; color:#514c75; border-radius:16px; padding:9px 16px; }
+.schedule-help { margin:12px 8px 0; }.schedule-feedback { margin:6px 8px; min-height:1.2em; }
+.schedule-all-day { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px; }
+.schedule-all-day-event { padding:8px 14px; border-radius:16px; background:var(--schedule-event-color); }
+.schedule-timeline { position:relative; isolation:isolate; border:1px solid #bdabd5; border-radius:22px; background:#fff8fd80; }
+.schedule-hour { position:relative; display:grid; grid-template-columns:85px minmax(0,1fr); min-height:90px; border-bottom:1px solid #b7a3d44d; }
+.schedule-hour:last-child { border-bottom:0; }
+.schedule-hour-label { padding:12px 6px; text-align:center; color:#67597f; font-weight:bold; font-size:1rem; }
+.schedule-hour-lane { position:relative; min-width:0; padding:8px 42px 8px 8px; display:flex; flex-direction:column; gap:6px; border-left:1px solid #b7a3d44d; }
+.schedule-slot-add { position:absolute; inset:0; width:100%; height:100%; border:0; background:transparent; color:#685986a0; font-size:1.4rem; text-align:right; padding:8px 14px; display:flex; justify-content:flex-end; align-items:flex-start; }
+.schedule-slot-add:hover,.schedule-slot-add:focus-visible { background:#c9b9e624; }.schedule-slot-add:focus-visible { outline:2px solid #8a70ac; outline-offset:-3px; }
+.schedule-event-layer { position:absolute; top:0; bottom:0; left:85px; right:0; z-index:-1; pointer-events:none; }
+.schedule-event { position:absolute; box-sizing:border-box; padding:9px 12px; border-radius:12px; background:color-mix(in srgb,var(--schedule-event-color) 48%,transparent); border:1px solid color-mix(in srgb,var(--schedule-event-color) 70%,transparent); display:flex; flex-direction:column; align-items:flex-end; overflow:hidden; color:#53617d; }
+.schedule-event strong,.schedule-event small { max-width:38%; text-align:right; overflow-wrap:anywhere; }.schedule-event small { font-size:.85rem; }
+.schedule-task { position:relative; z-index:1; display:flex; align-items:center; gap:8px; width:65%; min-width:0; background:linear-gradient(120deg,#fffafdF2,#eae7f7f2); border:1px solid #c4b2d9; border-radius:14px; box-shadow:0 2px 7px #77718a15; padding:7px 10px; }
+.schedule-task input { flex:0 0 auto; width:20px; height:20px; accent-color:#8a70ac; }.schedule-task-edit { padding:0; border:0; background:transparent; text-align:left; color:#405779; flex:1; min-width:0; display:flex; flex-direction:column; overflow-wrap:anywhere; }.schedule-task-edit small { font-size:.85rem; }.schedule-task.is-done strong { text-decoration:line-through; opacity:.55; }
+.schedule-quick { position:relative; z-index:2; display:flex; gap:6px; flex-wrap:wrap; padding:8px; border-radius:14px; background:#eee7f7f5; border:1px solid #b8a5d4; }.schedule-quick input { flex:1 1 150px; min-width:0; width:auto; }
+.schedule-editor { color:#405779; background:linear-gradient(130deg,#f6eafa,#e2eff8); border:1px solid #b8a5d4; border-radius:24px; padding:24px; max-width:min(480px,calc(100vw - 24px)); }.schedule-editor::backdrop { background:#55446955; }.schedule-editor form { display:grid; gap:12px; }.schedule-editor label { display:grid; gap:4px; }.schedule-editor-actions { display:flex; gap:8px; flex-wrap:wrap; }
+@media(max-width:600px) { .schedule-hour { grid-template-columns:64px minmax(0,1fr); }.schedule-event-layer { left:64px; }.schedule-hour-label { font-size:.85rem; }.schedule-task { width:100%; box-sizing:border-box; }.schedule-event strong,.schedule-event small { max-width:100%; }.schedule-event { align-items:flex-end; opacity:.75; }.schedule-top h2 { font-size:2rem; }.schedule-date-actions { width:100%; }.schedule-date-actions input { flex:1; min-width:0; } }

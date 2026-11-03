@@ -30,7 +30,7 @@ const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'/opt/codex/cua_node/lib
 
 
  const a=await device();await a.locator('.page-navigation [data-page=daily]').click();await a.locator('#dailyTrackerView').waitFor();
- assert.deepEqual(await a.locator('.page-navigation button').allTextContents(),['Calendar','Daily Tracker','Columns','Tabbed','Notes','Bubblemarks']);
+ assert.deepEqual(await a.locator('.page-navigation button').allTextContents(),['Calendar','Schedule','Tracker','Columns','Tabbed','Notes','Bubblemarks']);
  for(const [key,selector] of [['columns','.board.columns'],['tabs','.board.tabs'],['day','.board.calendar'],['notes','#notesView'],['daily','#dailyTrackerView'],['day','.board.calendar'],['columns','.board.columns'],['daily','#dailyTrackerView']]){
    await a.locator('.page-navigation [data-page='+key+']').click();assert(await a.locator(selector).isVisible());
    assert.equal(await a.locator('.page-navigation [aria-current=page]').getAttribute('data-page'),key);
@@ -135,6 +135,7 @@ await a.setViewportSize({width:390,height:844});assert.equal(await a.evaluate(()
  await a.locator('[data-sync-now]').click();await a.waitForFunction(()=>JSON.parse(localStorage.getItem('bubbletasks_plain_v1')).dailyTracker.days['2026-10-31'].notes==='Updated on second device');await a.locator('#dailyTrackerView').waitFor();assert.equal(await a.getByLabel('Daily notes').inputValue(),'Updated on second device');
  assert.deepEqual(errors,[]);await browser.close();console.log('PASS: all Day widgets, average mood, symptom completion/group recall, focus history, sleep duration, notes/Day navigation, draft preservation, backups, reload, mobile sizing, two-device sync, and revision-aware Notion upload. Simulated services.');
 })().catch(e=>{console.error(e);process.exit(1)});
+
 
 
 

@@ -52,6 +52,7 @@ window.addEventListener('DOMContentLoaded', () => {
     [connect,refresh,disconnect].forEach(button => { button.disabled = busy; });
   };
   const range = () => {
+    const scheduleRange=window.BubbleTasksSchedule?.getGoogleRange();if(scheduleRange)return scheduleRange;
     if (!board.classList.contains('calendar')) return null;
     const cells = [...board.querySelectorAll('.calendar-day[data-date]')];
     if (!cells.length) return null;
@@ -122,7 +123,7 @@ window.addEventListener('DOMContentLoaded', () => {
   const draw = () => {
     board.querySelectorAll('.google-calendar-event').forEach(el=>el.remove());
     const view = range();
-    if (!user || !view) return;
+    if (!user || !view || window.BubbleTasksSchedule?.isActive()) return;
     const cells = [...board.querySelectorAll('.calendar-day[data-date]')];
     const time = (value) => value.toLocaleTimeString([], {hour:'numeric',minute:'2-digit'});
     const append = (tag, text, parent) => { const el=document.createElement(tag);el.textContent=text;parent.appendChild(el);return el; };
@@ -224,6 +225,7 @@ window.addEventListener('DOMContentLoaded', () => {
     generation++;controller?.abort();busy=false;user=cloud.getUserId();connected=false;needsReconnect=false;cache.clear();draw();paint();
     if(user)checkConnection();else message('Sign in to BubbleTasks to connect Google Calendar.');
   });
+  window.addEventListener('bubbletasks-schedule-view-changed',schedule);
   new MutationObserver(schedule).observe(board,{childList:true});
   document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){if(!connected)checkConnection();else loadEvents();}});
   window.addEventListener('online',()=>connected?loadEvents(true):checkConnection());
@@ -234,4 +236,5 @@ window.addEventListener('DOMContentLoaded', () => {
   }
   paint();draw();if(user)checkConnection();
 });
+
 

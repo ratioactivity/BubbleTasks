@@ -7,7 +7,7 @@
   const BACKUP_OPTION = 'bubbletasks_cloud_download_backup_v1';
   const OWNER = 'bubbletasks_cloud_owner_v1';
   const META = 'bubbletasks_cloud_meta_v1:';
-  const FIELDS = ['tasks', 'archived', 'bored', 'completions', 'agenda', 'storyDetails', 'calendarEvents', 'googleEventCategories', 'notes', 'googleEventImports', 'dailyTracker', 'bubblemarks'];
+  const FIELDS = ['tasks', 'archived', 'bored', 'completions', 'agenda', 'storyDetails', 'calendarEvents', 'googleEventCategories', 'notes', 'googleEventImports', 'dailyTracker', 'bubblemarks', 'dailySchedule'];
   const rawSet = Storage.prototype.setItem;
   const read = (key) => { try { return JSON.parse(localStorage.getItem(key)); } catch { return null; } };
   const write = (key, value) => rawSet.call(localStorage, key, JSON.stringify(value));
@@ -24,6 +24,7 @@
     && (data.dailyTracker === undefined || (data.dailyTracker && typeof data.dailyTracker === 'object' && !Array.isArray(data.dailyTracker)))
     && (data.googleEventImports === undefined || Array.isArray(data.googleEventImports))
     && (data.bubblemarks === undefined || (data.bubblemarks && typeof data.bubblemarks === 'object' && !Array.isArray(data.bubblemarks)))
+    && (data.dailySchedule === undefined || Array.isArray(data.dailySchedule))
     && (data.notes === undefined || Array.isArray(data.notes))
     && (data.calendarEvents === undefined || Array.isArray(data.calendarEvents))
     && (data.googleEventCategories === undefined || (data.googleEventCategories && typeof data.googleEventCategories==='object' && !Array.isArray(data.googleEventCategories)));
@@ -281,6 +282,7 @@
     });
   });
 })();
+
 
 
 
