@@ -18,7 +18,7 @@ const {chromium}=require('/opt/codex/cua_node/lib/node_modules/playwright'),fs=r
  });await p.goto('https://bubble.test',{waitUntil:'domcontentloaded'});await p.locator('.page-navigation').waitFor();return p;}
  const initial={tasks:[],archived:[],bored:[],completions:[],agenda:{},storyDetails:{},migratedV2Tasks:true,layout:'columns',calendarEvents:[{id:'job-native',title:'Details',date,allDay:false,startTime:'13:00',endTime:'17:00',category:'work'},{id:'overlap',title:'Appointment',date,allDay:false,startTime:'14:00',endTime:'15:30',category:'appointments'},{id:'all',title:'Holiday',date,allDay:true,category:'birthdays'}]};
  const p=await device({bubbletasks_plain_v1:initial});
- assert.deepEqual(await p.locator('.page-navigation button').allTextContents(),['Calendar','Schedule','Tracker','Columns','Tabbed','Notes','Bubblemarks']);
+ assert.deepEqual(await p.locator('.page-navigation button').allTextContents(),['Calendar','Schedule','Tracker','Columns','Tabbed','Notes','Bubblemarks','Details']);
  assert.deepEqual(await p.getByRole('group',{name:'Daily',exact:true}).getByRole('button').allTextContents(),['Schedule','Tracker']);
  await p.locator('[data-page=schedule]').click();await p.getByLabel('Choose schedule date').fill(date);assert.equal(await p.locator('.schedule-hour').count(),24);assert.equal(await p.locator('.schedule-event').count(),2);assert.match(await p.locator('.schedule-all-day').innerText(),/Holiday/);
  const span=await p.locator('.schedule-event').filter({has:p.getByText('Details',{exact:true})}).boundingBox();const a=await p.locator('[data-hour="13"]').boundingBox(),b=await p.locator('[data-hour="17"]').boundingBox();assert(Math.abs(span.y-a.y)<3);assert(Math.abs(span.height-(b.y-a.y))<3);
