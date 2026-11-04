@@ -24,3 +24,17 @@
 .schedule-quick { position:relative; z-index:2; display:flex; gap:6px; flex-wrap:wrap; padding:8px; border-radius:14px; background:#eee7f7f5; border:1px solid #b8a5d4; }.schedule-quick input { flex:1 1 150px; min-width:0; width:auto; }
 .schedule-editor { color:#405779; background:linear-gradient(130deg,#f6eafa,#e2eff8); border:1px solid #b8a5d4; border-radius:24px; padding:24px; max-width:min(480px,calc(100vw - 24px)); }.schedule-editor::backdrop { background:#55446955; }.schedule-editor form { display:grid; gap:12px; }.schedule-editor label { display:grid; gap:4px; }.schedule-editor-actions { display:flex; gap:8px; flex-wrap:wrap; }
 @media(max-width:600px) { .schedule-hour { grid-template-columns:64px minmax(0,1fr); }.schedule-event-layer { left:64px; }.schedule-hour-label { font-size:.85rem; }.schedule-task { width:100%; box-sizing:border-box; }.schedule-event strong,.schedule-event small { max-width:100%; }.schedule-event { align-items:flex-end; opacity:.75; }.schedule-top h2 { font-size:2rem; }.schedule-date-actions { width:100%; }.schedule-date-actions input { flex:1; min-width:0; } }
+
+/* Four fixed quarter-hour bars keep task duration and calendar time aligned. */
+.schedule-hour { height:208px; min-height:208px; box-sizing:border-box; }
+.schedule-hour-lane { padding:0; display:grid; grid-template-rows:repeat(4,minmax(0,1fr)); gap:0; }
+.schedule-quarter { position:relative; min-height:0; border-bottom:1px dashed #b7a3d44d; }
+.schedule-quarter:last-child { border-bottom:0; }
+.schedule-slot-add { align-items:center; justify-content:space-between; padding:0 12px; font-size:1.2rem; }
+.schedule-quarter-label { font-size:.75rem; opacity:.75; }
+.schedule-task-layer { position:absolute; inset:0 36% 0 115px; pointer-events:none; z-index:1; }
+.schedule-task { position:absolute; margin:0; box-sizing:border-box; min-height:0; pointer-events:auto; padding:3px 7px; border-radius:10px; overflow:hidden; }
+.schedule-task-edit { align-self:stretch; justify-content:center; overflow:auto; font-size:1rem; line-height:1.05; }
+.schedule-task-edit small { font-size:.7rem; line-height:1.1; }
+.schedule-quick { position:absolute; left:90px; right:8px; z-index:3; box-shadow:0 4px 16px #65557544; }
+@media(max-width:600px) { .schedule-task-layer { left:88px; right:32px; }.schedule-quick { left:66px; }.schedule-task { padding:2px 4px; gap:4px; }.schedule-task input { width:17px; height:17px; }.schedule-task-edit { font-size:.9rem; }.schedule-event strong,.schedule-event small { max-width:100%; } }

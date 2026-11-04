@@ -34,7 +34,8 @@ window.addEventListener('DOMContentLoaded', () => {
     status: task.status || (task.done ? 'Complete' : 'Not Started'),
     dueDate: task.dueDate || task.due || null, createdAt: task.createdAt || nowISO(),
   });
-  const agendaDefaults = ['Update daily tasks', 'Track previous day'];
+  // Defaults belong to an existing personal agenda, never to a new/guest workspace.
+  const agendaDefaults = () => window.BubbleTasksWorkspace?.isGuest() ? [] : [...new Set([...(state.agenda?.items || []), ...(state.agenda?.previousDayItems || [])].filter(item => item?.isDefault).map(item => item.title === 'Add daily tasks' ? 'Update daily tasks' : item.title))];
 
   const state = {
     storyDetails: {},
@@ -172,7 +173,7 @@ window.addEventListener('DOMContentLoaded', () => {
   });
 
   const buildDefaultAgendaItems = () =>
-    agendaDefaults.map((title) => ({ id: crypto.randomUUID(), title, completed: false, isDefault: true }));
+    agendaDefaults().map((title) => ({ id: crypto.randomUUID(), title, completed: false, isDefault: true }));
 
   const ensureAgendaForToday = () => {
     const today = todayKey();
@@ -195,7 +196,7 @@ window.addEventListener('DOMContentLoaded', () => {
         });
       }
       state.agenda.items = [
-        ...agendaDefaults.map(
+        ...agendaDefaults().map(
           (title) => existingDefaults.get(title) || { id: crypto.randomUUID(), title, completed: false, isDefault: true },
         ),
         ...customItems,
@@ -205,7 +206,7 @@ window.addEventListener('DOMContentLoaded', () => {
     if (!Array.isArray(state.agenda.previousDayItems)) {
       state.agenda.previousDayItems = [];
     } else {
-      state.agenda.previousDayItems = state.agenda.previousDayItems.map((item) => normalizeAgendaItem(item));
+      state.agenda.previousDayItems = state.agenda.previousDayItems.filter(item => !window.BubbleTasksWorkspace?.isGuest() || !item?.isDefault).map((item) => normalizeAgendaItem(item));
     }
 
     if (!state.agenda.dateKey) {
@@ -891,5 +892,6 @@ window.addEventListener('DOMContentLoaded', () => {
   renderAll();
   console.log('✅ script validated');
 });
+
 
 

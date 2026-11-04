@@ -23,3 +23,7 @@
 
 .details-dialog label.details-check { display:flex; }
 .details-dialog .details-check input { width:25px; padding:0; }
+
+.details-order[hidden] { display:none; }
+.details-reorder-toggle { border:1px solid #a18ab9; border-radius:16px; padding:9px 16px; background:#eee7f7; color:#514c75; }
+.details-reorder-toggle[aria-pressed=true] { background:#826da5; color:white; }

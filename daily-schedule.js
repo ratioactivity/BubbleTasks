@@ -75,29 +75,39 @@
     const picker=node('input');picker.type='date';picker.value=selected;picker.setAttribute('aria-label','Choose schedule date');picker.addEventListener('change',()=>{const before=selected;changeDate(picker.value);picker.value=selected||before;});
     const move=n=>{const date=new Date(selected+'T12:00:00');date.setDate(date.getDate()+n);changeDate(dateKey(date));};
     nav.append(button('‹',()=>move(-1)),button('Today',()=>changeDate(dateKey(new Date()))),button('Now',()=>{if(!canLeave())return;const now=new Date();changeDate(dateKey(now));requestAnimationFrame(()=>view.querySelector('[data-hour="'+now.getHours()+'"]')?.scrollIntoView({block:'center',behavior:'smooth'}));}),button('›',()=>move(1)),picker);top.append(heading,nav);
-    const help=node('p','schedule-help','Click an hour, type a task, and press Enter. Calendar events stay in the background so you can plan within them.');status=node('p','schedule-feedback');status.setAttribute('role','status');
+    const help=node('p','schedule-help','Click a 15-minute slot, type a task, and press Enter. Click a task to change its duration. Calendar events stay in the background so you can plan within them.');status=node('p','schedule-feedback');status.setAttribute('role','status');
     const allDay=node('div','schedule-all-day'),timeline=node('div','schedule-timeline'),background=node('div','schedule-event-layer');timeline.append(background);view.append(top,help,status,allDay,timeline);
-    const rows=[];
+    const rows=[],taskBlocks=[],taskLayer=node('div','schedule-task-layer');timeline.append(taskLayer);
     for(let hour=0;hour<24;hour++){
       const row=node('section','schedule-hour');row.dataset.hour=hour;row.append(node('span','schedule-hour-label',clock(hour*60)));
-      const lane=node('div','schedule-hour-lane'),add=button('+',()=>openQuick(hour,lane),'schedule-slot-add');add.setAttribute('aria-label','Add task at '+clock(hour*60));lane.append(add);
-      for(const entry of entries.filter(e=>e.date===selected&&Math.floor(e.start/60)===hour).sort((a,b)=>a.start-b.start)){
-        const card=node('div','schedule-task'+(entry.done?' is-done':'')),check=node('input');check.type='checkbox';check.checked=entry.done;check.setAttribute('aria-label','Complete '+entry.title);
-        check.addEventListener('change',()=>{if(persist(entries.map(e=>e.id===entry.id?{...e,done:check.checked}:e)))render();else check.checked=entry.done;});
-        const editButton=button('',()=>edit(entry),'schedule-task-edit');editButton.append(node('small','',clock(entry.start)+' – '+clock(entry.end)),node('strong','',entry.title));editButton.setAttribute('aria-label','Edit '+entry.title);card.append(check,editButton);lane.append(card);
+      const lane=node('div','schedule-hour-lane');
+      for(let quarter=0;quarter<4;quarter++){
+        const start=hour*60+quarter*15,slot=node('div','schedule-quarter');slot.dataset.minute=start;
+        const add=button('',()=>openQuick(start,add),'schedule-slot-add');add.setAttribute('aria-label','Add task at '+clock(start));add.append(node('small','schedule-quarter-label',':'+String(quarter*15).padStart(2,'0')),node('span','','+'));slot.append(add);lane.append(slot);
       }
       row.append(lane);timeline.append(row);rows.push(row);
     }
-    function openQuick(hour,lane){
+    const scheduled=entries.filter(e=>e.date===selected).sort((a,b)=>a.start-b.start||b.end-a.end);
+    // Pack overlapping tasks into separate columns; keep each duration in one block.
+    const lanes=[];let cluster=[],clusterEnd=0;
+    function drawCluster(){const ends=[];for(const entry of cluster){let column=ends.findIndex(end=>end<=entry.start);if(column<0)column=ends.length;ends[column]=entry.end;entry.column=column;}for(const entry of cluster){entry.columns=ends.length;lanes.push(entry);}cluster=[];}
+    for(const value of scheduled){if(cluster.length&&value.start>=clusterEnd)drawCluster();const entry={...value};cluster.push(entry);clusterEnd=Math.max(cluster.length===1?0:clusterEnd,entry.end);}drawCluster();
+    for(const entry of lanes){
+      const card=node('div','schedule-task'+(entry.done?' is-done':'')),check=node('input');card.dataset.taskId=entry.id;check.type='checkbox';check.checked=entry.done;check.setAttribute('aria-label','Complete '+entry.title);
+      check.addEventListener('change',()=>{if(persist(entries.map(e=>e.id===entry.id?{...e,done:check.checked}:e)))render();else check.checked=entry.done;});
+      const editButton=button('',()=>edit(entry),'schedule-task-edit');editButton.append(node('small','',clock(entry.start)+' – '+clock(entry.end)),node('strong','',entry.title));editButton.setAttribute('aria-label','Edit '+entry.title);card.append(check,editButton);taskLayer.append(card);taskBlocks.push({entry,el:card});
+    }
+    function openQuick(start,opener){
       if(!canLeave())return;draft?.form.remove();
-      const form=node('form','schedule-quick'),input=node('input');input.placeholder='What are you working on?';input.maxLength=500;input.required=true;input.setAttribute('aria-label','New task at '+clock(hour*60));
-      const add=node('button','','Add');add.type='submit';const cancel=button('×',()=>{form.remove();draft=null;lane.querySelector('.schedule-slot-add').focus();});cancel.setAttribute('aria-label','Cancel quick add');form.append(input,add,cancel);lane.append(form);draft={form,input};
+      const form=node('form','schedule-quick'),input=node('input');input.placeholder='What are you working on?';input.maxLength=500;input.required=true;input.setAttribute('aria-label','New task at '+clock(start));
+      form.style.top=position(start)+'px';
+      const add=node('button','','Add');add.type='submit';const cancel=button('×',()=>{form.remove();draft=null;opener.focus();});cancel.setAttribute('aria-label','Cancel quick add');form.append(input,add,cancel);timeline.append(form);draft={form,input,start};
       form.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();cancel.click();}});
-      form.addEventListener('submit',e=>{e.preventDefault();const title=input.value.trim();if(!title)return;if(persist([...entries,{id:crypto.randomUUID(),date:selected,title,start:hour*60,end:(hour+1)*60,done:false}])){draft=null;render();view.querySelector('[data-hour="'+hour+'"] .schedule-slot-add').focus();}});input.focus();
+      form.addEventListener('submit',e=>{e.preventDefault();const title=input.value.trim();if(!title)return;if(persist([...entries,{id:crypto.randomUUID(),date:selected,title,start,end:Math.min(1440,start+15),done:false}])){draft=null;render();view.querySelector('[data-minute="'+start+'"] .schedule-slot-add').focus();}});input.focus();
     }
     let visibleEvents=[];
     const position=m=>{if(m>=1440)return rows[23].offsetTop+rows[23].offsetHeight;const i=Math.floor(m/60),row=rows[i];return row.offsetTop+(m%60)/60*row.offsetHeight;};
-    const paintPositions=()=>{visibleEvents.forEach(({event,el})=>{el.style.top=position(event.start)+'px';el.style.height=Math.max(22,position(event.end)-position(event.start))+'px';});};
+    const paintPositions=()=>{for(const {entry,el} of taskBlocks){el.style.top=position(entry.start)+'px';el.style.height=(position(entry.end)-position(entry.start))+'px';el.style.left=`calc(${entry.column/entry.columns*100}% + 3px)`;el.style.width=`calc(${100/entry.columns}% - 6px)`;}if(draft?.form.isConnected)draft.form.style.top=position(draft.start)+'px';visibleEvents.forEach(({event,el})=>{el.style.top=position(event.start)+'px';el.style.height=Math.max(22,position(event.end)-position(event.start))+'px';});};
     refreshEvents=()=>{
       if(!active)return;const events=calendarEvents();allDay.replaceChildren();background.replaceChildren();visibleEvents=[];
       for(const e of events.filter(e=>e.allDay)){const chip=node('span','schedule-all-day-event','All day · '+e.title);chip.style.setProperty('--schedule-event-color',e.color);allDay.append(chip);}

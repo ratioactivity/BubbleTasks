@@ -6,7 +6,7 @@ Opening and Closing checks use local calendar dates; Other stays checked until m
 
 Older saves retain only the most recent completion date per item. Migration recovers those known facts and marks such logs as partial. Users can explicitly add missing tasks from the current setup; this is labeled as a template rather than a reconstruction of the original day.
 
-Items have drag grips and up/down controls. Weekly rules are ordered separately. Completion notes are optional and can be attached to unchecked tasks to record why they were skipped.
+The Details header has a Reorder tasks toggle, separate from compact mode. Drag grips and up/down controls appear only while reordering is on; the same toggle is available in weekly settings. Weekly rules are ordered separately. Completion notes are optional and can be attached to unchecked tasks to record why they were skipped.
 
 ## Signed-out guest workspace
 
