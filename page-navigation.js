@@ -12,6 +12,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   const buttons=new Map();
   function paint(){const current=active();buttons.forEach((button,key)=>{button.setAttribute('aria-pressed',String(key===current));if(key===current)button.setAttribute('aria-current','page');else button.removeAttribute('aria-current');});}
   function navigate(target){
+    if(window.BubbleTasksWorkspace&&!window.BubbleTasksWorkspace.canOpen(target))return;
     if(active()===target)return;
     if(!window.BubbleTasksWatchlist.hide())return;
     if(!window.BubbleTasksDetails.hide())return;
@@ -32,14 +33,15 @@ window.addEventListener('DOMContentLoaded',()=>{
     }
     paint();
   }
-  views.forEach(([key,label])=>{const button=document.createElement('button');button.type='button';button.textContent=label;button.dataset.page=key;button.addEventListener('click',()=>navigate(key));buttons.set(key,button);if(key==='columns'||key==='tabs'){if(!tasks.isConnected)nav.append(tasks);tasks.append(button);}else if(key==='schedule'||key==='daily'){if(!daily.isConnected)nav.append(daily);daily.append(button);}else nav.append(button);});
-  const home=document.createElement('a');home.className='page-navigation-home';home.textContent='Notion Home ↗';home.href='https://app.notion.com/p/Home-ff42302797964ca0aa31c9d81ab26979';home.target='_blank';home.rel='noopener noreferrer';home.setAttribute('aria-label','Notion Home (opens in a new tab)');nav.append(home);
+  views.forEach(([key,label])=>{const button=document.createElement('button');button.type='button';button.textContent=label;button.dataset.page=key;button.hidden=window.BubbleTasksWorkspace?!window.BubbleTasksWorkspace.canOpen(key):false;button.addEventListener('click',()=>navigate(key));buttons.set(key,button);if(key==='columns'||key==='tabs'){if(!tasks.isConnected)nav.append(tasks);tasks.append(button);}else if(key==='schedule'||key==='daily'){if(!daily.isConnected)nav.append(daily);daily.append(button);}else nav.append(button);});
+  const home=document.createElement('a');home.className='page-navigation-home';home.textContent='Notion Home ↗';home.href='https://app.notion.com/p/Home-ff42302797964ca0aa31c9d81ab26979';home.hidden=window.BubbleTasksWorkspace?.isGuest()===true;home.target='_blank';home.rel='noopener noreferrer';home.setAttribute('aria-label','Notion Home (opens in a new tab)');nav.append(home);
   const observer=new MutationObserver(paint);observer.observe(layout,{childList:true});observer.observe(day,{attributes:true,attributeFilter:['aria-pressed']});observer.observe(notes,{attributes:true,attributeFilter:['aria-pressed']});observer.observe(board,{attributes:true,attributeFilter:['class']});
   if(localStorage.getItem('bubbletasks_watchlist_view_v1')==='true')navigate('watchlist');
   else if(localStorage.getItem('bubbletasks_details_view_v1')==='true')navigate('details');
   else if(localStorage.getItem('bubbletasks_schedule_view_v1')==='true')navigate('schedule');
   paint();
 });
+
 
 
 

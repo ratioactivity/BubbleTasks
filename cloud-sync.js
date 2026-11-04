@@ -74,7 +74,7 @@
   };
   const authRequest = async (path, body, token) => {
     const response = await fetch(URL_BASE + '/auth/v1/' + path, {
-      method: body === undefined ? 'GET' : 'POST', signal: AbortSignal.timeout(15000),
+      method: body === undefined ? 'GET' : 'POST', signal: AbortSignal.timeout(15000), keepalive:path.startsWith('logout'),
       headers:{apikey:API_KEY, 'Content-Type':'application/json', ...(token ? {Authorization:'Bearer ' + token} : {})},
       ...(body === undefined ? {} : {body:JSON.stringify(body)}),
     });
@@ -140,7 +140,7 @@
     if (dirty()) schedule();
   };
   async function sync() {
-    if (!session?.user?.id || running) return;
+    if (!session?.user?.id || running || (window.BubbleTasksWorkspace?.canSync&&!window.BubbleTasksWorkspace.canSync(session.user.id))) return;
     running = true; paint();
     const id = session.user.id, version = epoch;
     try {
@@ -193,11 +193,14 @@
     const user = await authRequest('user', undefined, await token());
     if (epoch !== version) return;
     session.user = user; write(SESSION, session);
+    try{if(window.BubbleTasksWorkspace?.restoreAccount(user.id)){location.reload();return;}}
+    catch(error){session=null;localStorage.removeItem(SESSION);throw new Error('Your account workspace could not be restored safely. Free some browser storage and sign in again.');}
     meta = read(META + user.id);
     setMessage('Checking your online save…');
     authDialog.close(); await sync();
   };
   async function chooseUpload() {
+    if(window.BubbleTasksWorkspace?.canSync&&!window.BubbleTasksWorkspace.canSync(session?.user?.id)){setMessage('Finish signing in to your account before uploading.');return;}
     if (!session?.user?.id || running) return;
     if (!confirm('Upload this device’s current save? If an online save exists, it will be replaced.' + (ui.querySelector('[data-cloud-backup]').checked ? ' A backup of the online save will be downloaded first.' : ''))) return;
     running = true; paint();
@@ -242,9 +245,11 @@
     ui.querySelector('[data-cloud-logout]').onclick=async()=>{
       if(running)return;
       if(dirty() && !confirm('Some changes may only be saved on this device. Sign out and keep the local copy?'))return;
+      try{window.BubbleTasksWorkspace?.enterGuest();}catch(error){setMessage('Could not safely prepare the guest workspace. Your account is still signed in. Free some browser storage and try again.');return;}
       const old=session; epoch++;session=null;ready=false;meta=null;conflict=false;pendingRemote=null;
-      localStorage.removeItem(SESSION);clearTimeout(timer);setMessage('Signed out · local save kept on this device');
+      localStorage.removeItem(SESSION);clearTimeout(timer);
       authRequest('logout?scope=local',{},old.access_token).catch(()=>{});
+      if(window.BubbleTasksWorkspace)location.reload();else setMessage('Signed out · local save kept on this device');
     };
     document.getElementById('cancelCloudAuth').onclick=()=>authDialog.close();
     const form=document.getElementById('cloudAuthForm'), feedback=document.getElementById('cloudAuthFeedback');
@@ -284,6 +289,7 @@
     });
   });
 })();
+
 
 
 

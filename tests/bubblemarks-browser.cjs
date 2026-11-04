@@ -1,3 +1,4 @@
+// Feature fixture uses an account workspace; real guest isolation is tested in details-history-workspaces.cjs.
 const {chromium}=require('/opt/codex/cua_node/lib/node_modules/playwright');
 const fs=require('fs'),path=require('path'),assert=require('assert/strict');
 (async()=>{
@@ -12,7 +13,7 @@ const fs=require('fs'),path=require('path'),assert=require('assert/strict');
    if(u.hostname!=='bubble.test')return r.fulfill({status:200,contentType:'application/json',body:'{}'});
    const f=path.join(__dirname,'..',u.pathname==='/'?'index.html':decodeURIComponent(u.pathname));
    try{return r.fulfill({body:fs.readFileSync(f),contentType:f.endsWith('.js')?'text/javascript':f.endsWith('.html')?'text/html':f.endsWith('.css')?'text/css':f.endsWith('.json')?'application/json':'application/octet-stream'})}catch{return r.fulfill({status:404,body:''})}
-  });await p.goto('https://bubble.test/');return p;
+  });await p.route('**/workspaces.js*',r=>r.fulfill({contentType:'text/javascript',body:'window.BubbleTasksWorkspace={isGuest:()=>false,canOpen:()=>true,restoreAccount:()=>false,enterGuest:()=>{}};'}));await p.goto('https://bubble.test/');return p;
  }
  const legacy=[{name:'My existing library',url:'https://example.test/existing',category:'Stories',image:''}];
  const a=await device({'bubblemarks.bookmarks.v1':legacy,'bubblemarks.preferences.v1':{showAxolotl:false}});

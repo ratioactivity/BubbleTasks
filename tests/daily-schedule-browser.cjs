@@ -1,3 +1,4 @@
+// Feature fixture uses an account workspace; real guest isolation is tested in details-history-workspaces.cjs.
 const {chromium}=require('/opt/codex/cua_node/lib/node_modules/playwright'),fs=require('fs'),assert=require('assert/strict');
 (async()=>{
  const browser=await chromium.launch({executablePath:'/usr/bin/chromium',args:['--no-sandbox']});const errors=[];let remote=null,googleCalls=0;
@@ -15,7 +16,7 @@ const {chromium}=require('/opt/codex/cua_node/lib/node_modules/playwright'),fs=r
  }
  if(u.hostname!=='bubble.test')return r.fulfill({json:{}});
  const f=__dirname+'/..'+(u.pathname==='/'?'/index.html':u.pathname);try{return r.fulfill({body:fs.readFileSync(f),contentType:f.endsWith('.js')?'text/javascript':f.endsWith('.css')?'text/css':f.endsWith('.html')?'text/html':'application/octet-stream'})}catch{return r.fulfill({status:404,body:''})}
- });await p.goto('https://bubble.test',{waitUntil:'domcontentloaded'});await p.locator('.page-navigation').waitFor();return p;}
+ });await p.route('**/workspaces.js*',r=>r.fulfill({contentType:'text/javascript',body:'window.BubbleTasksWorkspace={isGuest:()=>false,canOpen:()=>true,restoreAccount:()=>false,enterGuest:()=>{}};'}));await p.goto('https://bubble.test',{waitUntil:'domcontentloaded'});await p.locator('.page-navigation').waitFor();return p;}
  const initial={tasks:[],archived:[],bored:[],completions:[],agenda:{},storyDetails:{},migratedV2Tasks:true,layout:'columns',calendarEvents:[{id:'job-native',title:'Details',date,allDay:false,startTime:'13:00',endTime:'17:00',category:'work'},{id:'overlap',title:'Appointment',date,allDay:false,startTime:'14:00',endTime:'15:30',category:'appointments'},{id:'all',title:'Holiday',date,allDay:true,category:'birthdays'}]};
  const p=await device({bubbletasks_plain_v1:initial});
  assert.deepEqual(await p.locator('.page-navigation button').allTextContents(),['Calendar','Schedule','Tracker','Columns','Tabbed','Notes','Watchlist','Bubblemarks','Details']);

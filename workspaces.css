@@ -1,0 +1,4 @@
+.guest-workspace #dailyTrackerView,.guest-workspace #bookmarksView,.guest-workspace [data-page=daily],.guest-workspace [data-page=bookmarks],.guest-workspace .page-navigation-home { display:none !important; }
+.workspace-banner { margin:10px 0; padding:10px 14px; border:1px solid #b8a5d4; border-radius:14px; background:#fff8d7b8; color:#655575; }
+.workspace-error #app,.workspace-error-message { display:none; }.workspace-error .workspace-error-message { display:block; max-width:600px; margin:40px auto; padding:24px; background:#fff5fb; color:#514c75; border:1px solid #b8a5d4; border-radius:24px; }
+.workspace-switching #app,.workspace-switching body > dialog { visibility:hidden !important; }
