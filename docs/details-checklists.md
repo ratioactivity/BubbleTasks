@@ -19,3 +19,9 @@ Tracker, Bubblemarks, and the personal Notion Home shortcut are unavailable in g
 Supabase validates sign-in before the matching account workspace is restored. Switching workspaces reloads every controller so stale account data cannot be saved into the guest workspace. Storage failures cancel the switch and preserve the prior save. Guest and account caches are ordinary browser storage, not encryption or a security boundary against someone inspecting that browser profile.
 
 Feature browser tests mock an account workspace. `tests/details-history-workspaces.cjs` exercises the real workspace transitions, privacy checks, failure rollback, historical corrections, and cross-device history sync.
+
+## Personal feature activation
+
+`personal-features.js` hides Bubblemarks, Daily Tracker (including writing-card daily work history), and the entire Today's Agenda card unless `personalFeatures` is enabled for the current account ID. Existing data stays in the account save while locked; the agenda is not rolled over or reset until activated. The toolbar activation dialog sends the code to the authenticated Supabase function for verification and stores an account-bound activation record, included in normal cloud sync and backups. A copied activation record cannot enable a different account in the UI. Guest mode always remains locked.
+
+This is a feature visibility gate, not encryption or server-enforced authorization. A person inspecting source or browser storage can bypass it. The activation code itself is not stored in public source or the save. Set the Supabase secret `PERSONAL_FEATURES_PASSWORD` and deploy `supabase/functions/personal-features-activate/index.ts` (JWT verification off: the function validates the Bearer token against Supabase Auth itself). No migration is required. Run the real workspace/activation test with `BT_TEST_ACTIVATION` set to the configured code; feature-only fixtures stub activation.

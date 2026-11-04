@@ -7,7 +7,7 @@
   const BACKUP_OPTION = 'bubbletasks_cloud_download_backup_v1';
   const OWNER = 'bubbletasks_cloud_owner_v1';
   const META = 'bubbletasks_cloud_meta_v1:';
-  const FIELDS = ['tasks', 'archived', 'bored', 'completions', 'agenda', 'storyDetails', 'calendarEvents', 'googleEventCategories', 'notes', 'googleEventImports', 'dailyTracker', 'bubblemarks', 'dailySchedule', 'detailsChecklists', 'watchlist'];
+  const FIELDS = ['tasks', 'archived', 'bored', 'completions', 'agenda', 'storyDetails', 'calendarEvents', 'googleEventCategories', 'notes', 'googleEventImports', 'dailyTracker', 'bubblemarks', 'dailySchedule', 'detailsChecklists', 'watchlist', 'personalFeatures'];
   const rawSet = Storage.prototype.setItem;
   const read = (key) => { try { return JSON.parse(localStorage.getItem(key)); } catch { return null; } };
   const write = (key, value) => rawSet.call(localStorage, key, JSON.stringify(value));
@@ -15,7 +15,7 @@
     ? Object.fromEntries(Object.keys(x).sort().map(k => [k, x[k]])) : x);
   const snapshot = () => {
     const local = read(SAVE) || {};
-    return Object.fromEntries(FIELDS.map(k => [k, local[k] ?? (['agenda','storyDetails','googleEventCategories','dailyTracker','bubblemarks','detailsChecklists','watchlist'].includes(k) ? {} : [])]));
+    return Object.fromEntries(FIELDS.map(k => [k, local[k] ?? (['agenda','storyDetails','googleEventCategories','dailyTracker','bubblemarks','detailsChecklists','watchlist','personalFeatures'].includes(k) ? {} : [])]));
   };
   const valid = (data) => data && typeof data === 'object' && !Array.isArray(data)
     && ['tasks','archived','bored','completions'].every(k => Array.isArray(data[k]))

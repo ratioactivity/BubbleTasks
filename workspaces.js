@@ -64,7 +64,7 @@
     if(this===localStorage&&key===SAVE){const save=stamp(JSON.parse(value));value=JSON.stringify(save);if(state.mode==='guest')write(GUEST,save);}
     return set.call(this,key,value);
   };
-  window.BubbleTasksWorkspace={isGuest:()=>blocked||state.mode==='guest',canSync:id=>!blocked&&state.mode==='account'&&state.id===id,canOpen:page=>!blocked&&(state.mode!=='guest'||!['daily','bookmarks'].includes(page)),enterGuest:()=>atomic(switchGuest,[ACCOUNT+(state.id||read('bubbletasks_cloud_owner_v1'))]),restoreAccount:id=>atomic(()=>{const changed=restoreAccount(id);if(blocked){blocked=false;document.documentElement.classList.remove('workspace-error');return true;}return changed;},[ACCOUNT+id,...(state.id?[ACCOUNT+state.id]:[])])};
+  window.BubbleTasksWorkspace={isGuest:()=>blocked||state.mode==='guest',canSync:id=>!blocked&&state.mode==='account'&&state.id===id,canOpen:page=>!blocked&&(!['daily','bookmarks'].includes(page)||(state.mode!=='guest'&&window.BubbleTasksPersonal?.isEnabled()===true)),enterGuest:()=>atomic(switchGuest,[ACCOUNT+(state.id||read('bubbletasks_cloud_owner_v1'))]),restoreAccount:id=>atomic(()=>{const changed=restoreAccount(id);if(blocked){blocked=false;document.documentElement.classList.remove('workspace-error');return true;}return changed;},[ACCOUNT+id,...(state.id?[ACCOUNT+state.id]:[])])};
   let changing=false;
   function checkWorkspace(){const current=read(MODE);if(!changing&&current&&(current.mode!==state.mode||current.id!==state.id||(!read(SESSION)?.access_token&&state.mode==='account'))){changing=true;document.documentElement.classList.add('workspace-switching');location.reload();}}
   window.addEventListener('pageshow',checkWorkspace);window.addEventListener('focus',checkWorkspace);

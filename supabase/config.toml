@@ -1,2 +1,5 @@
 [functions.google-calendar-auth]
 verify_jwt = false
+
+[functions.personal-features-activate]
+verify_jwt = false

@@ -21,7 +21,7 @@
   window.addEventListener('DOMContentLoaded',()=>{
     const board=document.getElementById('boardContainer'),notes=document.getElementById('notesView'),layout=document.getElementById('layoutToggleButton'),notesButton=document.getElementById('notesToggleButton');
     const taskForm=document.querySelector('.task-form'),view=el('section','daily-view');view.id='dailyTrackerView';view.setAttribute('aria-label','Day dashboard');board.after(view);
-    let showing=localStorage.getItem(VIEW)==='true', selected=sessionStorage.getItem(DATE);
+    let showing=(!window.BubbleTasksPersonal||window.BubbleTasksPersonal.isEnabled())&&localStorage.getItem(VIEW)==='true', selected=sessionStorage.getItem(DATE);
     if(!M.validDate(selected))selected=M.dateKey(new Date());
     if(showing&&notesButton?.getAttribute('aria-pressed')==='true')notesButton.click();
     let dirtyForms=new Set(),lastUser=window.BubbleTasksCloud?.getUserId(),uploading=false,uploadEpoch=0;
@@ -36,6 +36,7 @@
     const message=text=>{feedback.textContent=text;};
     const confirmLeave=()=>!dirtyForms.size||confirm('Leave without saving the changes in the open widgets?');
     function enter(){
+      if(window.BubbleTasksPersonal&&!window.BubbleTasksPersonal.isEnabled())return;
       if(notes&&!notes.hidden)notesButton.click();
       showing=true;localStorage.setItem(VIEW,'true');apply();render();
     }
@@ -152,6 +153,7 @@
       });
     }
     function history(name){
+      if(window.BubbleTasksPersonal&&!window.BubbleTasksPersonal.isEnabled())return;
       openDialog(name+' · history',form=>{
         const records=Object.entries(tracker.days).sort(([a],[b])=>b.localeCompare(a)).flatMap(([date,d])=>d.focus.filter(e=>e.name.toLowerCase()===name.toLowerCase()).map(e=>({date,e})));
         if(!records.length)form.append(el('p','','No entries yet.'));
@@ -233,6 +235,7 @@
       return body;
     }
     function render(){
+      if(window.BubbleTasksPersonal&&!window.BubbleTasksPersonal.isEnabled()){view.replaceChildren();return;}
       if(!showing||dirtyForms.size)return;const scrollTop=window.scrollY,scrollLeft=window.scrollX,musicOptionsOpen=view.querySelector('.day-music-options')?.open===true,quickActivitiesOpen=view.querySelector('.day-activity-presets')?.open===true;dirtyForms.clear();view.replaceChildren();const d=current();
       const top=el('header','day-heading');top.style.setProperty('--day-mood',M.moodColor(d));
       const heading=el('div');heading.append(el('h2','',d.music.title||'Today’s Daybook'),el('p','',new Date(selected+'T12:00:00').toLocaleDateString([],{weekday:'long',month:'long',day:'numeric',year:'numeric'})));
@@ -338,7 +341,7 @@
       window.scrollTo({top:scrollTop,left:scrollLeft,behavior:'instant'});
     }
     function download(content,name,type){const a=el('a');a.href=URL.createObjectURL(new Blob([content],{type}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}
-    const isEnabled=()=>{const user=window.BubbleTasksCloud?.getUserId();return user&&localStorage.getItem('bubbletasks_notion_auto_v1:'+user)==='true';};
+    const isEnabled=()=>{const user=window.BubbleTasksCloud?.getUserId();return (!window.BubbleTasksPersonal||window.BubbleTasksPersonal.isEnabled())&&user&&localStorage.getItem('bubbletasks_notion_auto_v1:'+user)==='true';};
     let syncText='Not connected yet · logging works without Notion.';
     function paintSync(){const n=view.querySelector('[data-day-sync-status]');if(n)n.textContent=syncText;}
     function acknowledgements(){const key='bubbletasks_notion_ack_v1:'+window.BubbleTasksCloud?.getUserId();try{return JSON.parse(localStorage.getItem(key))||{};}catch{return {};}}
@@ -363,12 +366,13 @@
     window.addEventListener('bubbletasks-account-changed',()=>{uploadEpoch++;lastUser=window.BubbleTasksCloud?.getUserId();syncText='Account changed · uploads use the signed-in account.';if(dialog.open)dialog.close();if(showing&&!dirtyForms.size)render();});
     window.addEventListener('bubbletasks-backup-import',event=>{if(event.detail?.dailyTracker!==undefined){tracker=M.normalize(event.detail.dailyTracker);if(showing&&!dirtyForms.size)render();}});
     // Writing-card history uses the same daily focus entries, without copying story task data.
-    function storyHistory(){board.querySelectorAll('.story-column').forEach(card=>{if(card.querySelector('.day-story-history'))return;const name=card.dataset.story;if(!name)return;const b=btn('◷',()=>history(name),'day-story-history');b.title=b.ariaLabel='Daily work history for '+name;card.append(b);});}
+    function storyHistory(){if(window.BubbleTasksPersonal&&!window.BubbleTasksPersonal.isEnabled())return;board.querySelectorAll('.story-column').forEach(card=>{if(card.querySelector('.day-story-history'))return;const name=card.dataset.story;if(!name)return;const b=btn('◷',()=>history(name),'day-story-history');b.title=b.ariaLabel='Daily work history for '+name;card.append(b);});}
     new MutationObserver(storyHistory).observe(board,{childList:true,subtree:true});storyHistory();
     window.addEventListener('beforeunload',event=>{if(dirtyForms.size||dialog.open&&dialogDirty){event.preventDefault();event.returnValue='';}});
     apply();render();
   });
 })();
+
 
 
 

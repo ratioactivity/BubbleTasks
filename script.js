@@ -176,6 +176,7 @@ window.addEventListener('DOMContentLoaded', () => {
     agendaDefaults().map((title) => ({ id: crypto.randomUUID(), title, completed: false, isDefault: true }));
 
   const ensureAgendaForToday = () => {
+    if(window.BubbleTasksPersonal&&!window.BubbleTasksPersonal.isEnabled())return;
     const today = todayKey();
     const hasAgendaObject = state.agenda && typeof state.agenda === 'object';
     if (!hasAgendaObject) {
@@ -477,6 +478,7 @@ window.addEventListener('DOMContentLoaded', () => {
   };
 
   const renderAgenda = () => {
+    const enabled=!window.BubbleTasksPersonal||window.BubbleTasksPersonal.isEnabled();elements.agendaCard.hidden=!enabled;if(!enabled){elements.agendaCard.replaceChildren();return;}
     ensureAgendaForToday();
     const agendaItems = state.agenda.items;
     const completedCount = agendaItems.filter((item) => item.completed).length;
@@ -817,6 +819,7 @@ window.addEventListener('DOMContentLoaded', () => {
   });
 
   elements.agendaCard.addEventListener('click', (event) => {
+    if(window.BubbleTasksPersonal&&!window.BubbleTasksPersonal.isEnabled())return;
     const target = event.target;
     if (!(target instanceof HTMLElement)) return;
 

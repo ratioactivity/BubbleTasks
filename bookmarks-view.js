@@ -32,6 +32,7 @@
       try{localStorage.setItem(SAVE,JSON.stringify({...read(),bubblemarks:library}));}catch(error){library=before;throw error;}
     },
     show(){
+      if(window.BubbleTasksPersonal&&!window.BubbleTasksPersonal.isEnabled())return;
       active=true;view.hidden=false;settings.hidden=false;document.body.classList.add('bookmarks-active');
       document.getElementById('boardContainer').hidden=true;document.querySelector('.task-form').hidden=true;
       fitFrame();
