@@ -15,6 +15,7 @@
     <link rel="stylesheet" href="details-checklists.css?v=reorder-toggle-3" />
     <link rel="stylesheet" href="watchlist.css?v=1" />
     <link rel="stylesheet" href="workspaces.css?v=personal-2" />
+    <link rel="stylesheet" href="emoji-picker.css?v=1" />
   </head>
   <body>
     <div id="app">
@@ -29,11 +30,11 @@
         <header class="card controls">
           <div class="title-row">
             <h1>BubbleTasks</h1>
-            <div class="accent-stars" aria-hidden="true">
+            <button type="button" class="accent-stars emoji-picker-trigger" aria-label="Open emoji picker" aria-haspopup="dialog" aria-controls="emojiPicker" aria-expanded="false" title="Emoji picker">
               <img src="assets/singlestar3.gif" alt="" class="tiny-star tiny-star-lg" />
               <img src="assets/singlestar3.gif" alt="" class="tiny-star" />
               <img src="assets/singlestar3.gif" alt="" class="tiny-star tiny-star-sm" />
-            </div>
+            </button>
           </div>
           <div class="task-form">
             <input id="taskTitleInput" aria-label="Task title" placeholder="Task title" />
@@ -195,6 +196,7 @@
     <script src="daily-tracker.js?v=personal-15"></script>
     <script src="page-navigation.js?v=workspaces-8"></script>
   <script src="calendar-work-hours.js?v=1"></script>
+    <script src="emoji-picker.js?v=1"></script>
   </body>
 </html>
 
