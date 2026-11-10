@@ -29,3 +29,5 @@ const originals=[{name:'Edited',genres:['Custom'],genresUpdatedAt:'2026-10-31T12
 const merged=M.mergeArtistLibrary(originals,[{name:'edited',genres:['Remote']},{name:'Legacy',genres:['Remote']},{name:'Cleared',genres:['Remote']},{name:'New Artist',genres:['Rock']}]);
 assert.deepEqual(merged[0].genres,['Custom']);assert.deepEqual(merged[1].genres,['Remote','Local']);assert.deepEqual(merged[2].genres,[]);assert.equal(merged.length,4);assert.deepEqual(originals[1].genres,['Local']);
 console.log('PASS: artist-library merge preserves edits and deliberate clears, unions legacy values, deduplicates names, and leaves input unchanged.');
+
+assert.equal(M.normalize({}).quickActivities,null);assert.deepEqual(M.normalize({quickActivities:[]}).quickActivities,[]);const quick=M.normalize({quickActivities:['Walking','walking','Coding']});assert.deepEqual(quick.quickActivities,['walking','Coding']);assert.deepEqual(M.normalize(quick).quickActivities,quick.quickActivities);console.log('PASS: Quick Activities preserve default/empty distinctions, deduplicate names and survive normalization.');

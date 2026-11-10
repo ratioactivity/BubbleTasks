@@ -165,3 +165,10 @@
 .day-symptom-group + .day-symptom-group { margin-top:16px; }.day-symptom-group h4 { margin:0 0 8px; color:#63517e; font-size:1.1rem; }
 .day-symptom-choices { display:flex; flex-wrap:wrap; gap:7px; }.day-symptom-choice { text-align:left; white-space:normal; overflow-wrap:anywhere; min-height:42px; padding:8px 12px; }
 .day-symptom-library button:focus-visible,.day-symptom-library summary:focus-visible { outline:2px solid #8065ad; outline-offset:3px; }
+
+.day-activity-library { margin:14px 0; padding:12px; border:1px solid #bda8d3; border-radius:16px; background:#fff9ff80; min-width:0; }
+.day-activity-library > summary { cursor:pointer; color:#58516f; font-weight:bold; }.day-activity-library input { width:100%; min-width:0; box-sizing:border-box; }
+.day-activity-library-results { max-height:340px; overflow:auto; overscroll-behavior:contain; margin-top:12px; display:grid; gap:8px; }
+.day-activity-library-row { display:flex; align-items:center; gap:8px; min-width:0; }.day-activity-library-choice { flex:1; min-width:0; text-align:left; overflow-wrap:anywhere; min-height:42px; padding:8px 12px; }
+.day-activity-library-choice[aria-pressed=true] { background:#826da5; color:white; }.day-activity-quick-toggle { flex:0 0 auto; font-size:.85rem; padding:8px; min-height:42px; }.day-activity-quick-toggle[aria-pressed=true] { box-shadow:inset 0 0 0 1px #a18ab9; }
+.day-activity-library button:focus-visible,.day-activity-library summary:focus-visible { outline:2px solid #8065ad; outline-offset:3px; }

@@ -24,7 +24,7 @@
     let showing=(!window.BubbleTasksPersonal||window.BubbleTasksPersonal.isEnabled())&&localStorage.getItem(VIEW)==='true', selected=sessionStorage.getItem(DATE);
     if(!M.validDate(selected))selected=M.dateKey(new Date());
     if(showing&&notesButton?.getAttribute('aria-pressed')==='true')notesButton.click();
-    let symptomLibraryOpen=false,symptomLibrarySearch='';
+    let symptomLibraryOpen=false,symptomLibrarySearch='',activityLibraryOpen=false,activityLibrarySearch='';
     let dirtyForms=new Set(),lastUser=window.BubbleTasksCloud?.getUserId(),uploading=false,uploadEpoch=0;
     const dayButton=btn('Day',()=>{if(showing)leave();else enter();});dayButton.id='dayToggleButton';layout.after(dayButton);
     const dialog=el('dialog','day-dialog');dialog.id='dailyEntryDialog';document.body.append(dialog);
@@ -130,6 +130,26 @@
       }
       search.addEventListener('input',()=>{symptomLibrarySearch=search.value;draw();});draw();menu.append(help,search,results);return menu;
     }
+    const quickActivities=()=>Array.isArray(tracker.quickActivities)?tracker.quickActivities:ACTIVITY_PRESETS;
+    function setQuickActivity(name,include){
+      const before=tracker,next=M.normalize(tracker),items=quickActivities();next.quickActivities=M.tags(include?[...items,name]:items.filter(v=>v.toLowerCase()!==name.toLowerCase()));tracker=next;
+      try{localStorage.setItem(SAVE,JSON.stringify({...read(),dailyTracker:tracker}));message(include?'Added to Quick Activities':'Removed from Quick Activities');return true;}
+      catch{tracker=before;message('Could not save. Free some browser storage and try again.');return false;}
+    }
+    function activityLibrary(refreshQuick){
+      const menu=el('details','day-activity-library');menu.open=activityLibraryOpen;menu.addEventListener('toggle',()=>activityLibraryOpen=menu.open);menu.append(el('summary','','Browse saved activities'));
+      const help=el('p','day-help','Click an activity to add or remove it for this day. Use + Quick add to keep it in Quick Activities.'),search=input('search',activityLibrarySearch,'Search saved activities');search.placeholder='Search activities…';const results=el('div','day-activity-library-results');
+      function draw(){
+        results.replaceChildren();const query=search.value.trim().toLowerCase(),matches=known('activities').filter(name=>!query||name.toLowerCase().includes(query)).sort((a,b)=>a.localeCompare(b));
+        for(const name of matches){
+          const row=el('div','day-activity-library-row'),selected=current().activities.some(v=>v.toLowerCase()===name.toLowerCase()),isQuick=quickActivities().some(v=>v.toLowerCase()===name.toLowerCase());
+          const choose=btn(name,()=>{if(save(day=>day.activities=selected?day.activities.filter(v=>v.toLowerCase()!==name.toLowerCase()):M.tags([...day.activities,name])))render();},'day-activity-library-choice');choose.setAttribute('aria-pressed',String(selected));
+          const pin=btn(isQuick?'− Quick add':'+ Quick add',()=>{if(setQuickActivity(name,!isQuick)){draw();refreshQuick();const replacement=[...results.querySelectorAll('[data-activity-quick]')].find(b=>b.dataset.activityQuick===name);replacement?.focus({preventScroll:true});}},'day-activity-quick-toggle');pin.dataset.activityQuick=name;pin.setAttribute('aria-label',(isQuick?'Remove ':'Add ')+name+(isQuick?' from':' to')+' Quick Activities');pin.setAttribute('aria-pressed',String(isQuick));row.append(choose,pin);results.append(row);
+        }
+        if(!matches.length)results.append(el('p','day-help','No saved activities match. Use “Add activity” to create one.'));
+      }
+      search.addEventListener('input',()=>{activityLibrarySearch=search.value;draw();});draw();menu.append(help,search,results);return menu;
+    }
     function reproductiveEntry(kind,entry){
       openDialog((entry?'Edit ':'Log ')+(kind==='sex'?'sex':'self-pleasure'),(form,error)=>{
         const time=input('datetime-local',entry?local(entry.time):nowTime(),'Entry time');time.required=true;
@@ -189,7 +209,7 @@
     }
     function known(type){
       if(type==='symptoms')return tracker.symptoms.map(s=>s.name);
-      return M.tags([...(type==='activities'?ACTIVITY_PRESETS:type==='artists'?tracker.artists.map(a=>a.name):type==='genres'?tracker.artists.flatMap(a=>a.genres):[]),...Object.values(tracker.days).flatMap(d=>type==='artists'?d.music.artists:type==='genres'?M.genres(d,tracker):type==='activities'?d.activities:d[type].map(e=>e.name))]);
+      return M.tags([...(type==='activities'?[...ACTIVITY_PRESETS,...quickActivities()]:type==='artists'?tracker.artists.map(a=>a.name):type==='genres'?tracker.artists.flatMap(a=>a.genres):[]),...Object.values(tracker.days).flatMap(d=>type==='artists'?d.music.artists:type==='genres'?M.genres(d,tracker):type==='activities'?d.activities:d[type].map(e=>e.name))]);
     }
     let loadingArtists=false;
     async function loadArtistLibrary(button){
@@ -335,8 +355,11 @@
       reproductiveActions.append(menstrualButton,sexButton,selfButton);cycle.querySelector('h3').after(reproductiveActions);
       for(const entry of d.reproduction){const entryButton=btn((entry.kind==='sex'?'👉👌':'❤️‍🔥')+' · '+clock(entry.time),()=>reproductiveEntry(entry.kind,entry),'day-entry');entryButton.setAttribute('aria-label','Edit '+(entry.kind==='sex'?'sex':'self-pleasure')+' entry at '+clock(entry.time));cycle.append(entryButton);}
       grid.append(cycle);
-      const activities=widget('What did you do today?');const activityChips=el('div','day-tags');d.activities.forEach(name=>activityChips.append(btn(name+' ×',()=>{if(save(day=>day.activities=day.activities.filter(v=>v!==name)))render();},'day-tag')));activities.append(activityChips,tagEntry('Add activity',()=>known('activities'),name=>{if(save(day=>day.activities=M.tags([...day.activities,name])))render();}).box);const presets=el('details','day-activity-presets');presets.open=quickActivitiesOpen;presets.append(el('summary','','Quick Activities'));
-      const presetButtons=el('div','day-tags');ACTIVITY_PRESETS.forEach(name=>{const selected=d.activities.some(v=>v.toLowerCase()===name.toLowerCase());const b=btn(name,()=>{if(save(day=>day.activities=selected?day.activities.filter(v=>v.toLowerCase()!==name.toLowerCase()):M.tags([...day.activities,name])))render();},'day-tag');b.setAttribute('aria-pressed',String(selected));presetButtons.append(b);});presets.append(presetButtons);activities.append(presets);grid.append(activities);
+      const activities=widget('What did you do today?'),activityChips=el('div','day-tags');d.activities.forEach(name=>activityChips.append(btn(name+' ×',()=>{if(save(day=>day.activities=day.activities.filter(v=>v!==name)))render();},'day-tag')));
+      activities.append(activityChips,tagEntry('Add activity',()=>known('activities'),name=>{if(save(day=>day.activities=M.tags([...day.activities,name])))render();}).box);
+      const presets=el('details','day-activity-presets');presets.open=quickActivitiesOpen;presets.append(el('summary','','Quick Activities'));const presetButtons=el('div','day-tags');
+      function drawQuick(){presetButtons.replaceChildren();quickActivities().forEach(name=>{const selected=current().activities.some(v=>v.toLowerCase()===name.toLowerCase());const b=btn(name,()=>{if(save(day=>day.activities=selected?day.activities.filter(v=>v.toLowerCase()!==name.toLowerCase()):M.tags([...day.activities,name])))render();},'day-tag');b.setAttribute('aria-pressed',String(selected));presetButtons.append(b);});if(!presetButtons.children.length)presetButtons.append(el('p','day-help','Add activities here from Browse saved activities.'));}
+      drawQuick();presets.append(presetButtons);activities.append(activityLibrary(drawQuick),presets);grid.append(activities);
       for(const type of ['focus','watching']){
         const box=widget(type==='focus'?'Hyperfixations':'What are you watching?',type==='focus'?'“On my mind” and “Worked on” can both be true. Each interest has its own progress note.':null);
         box.append(tagEntry(type==='focus'?'Story, game, or interest':'Show or movie',()=>M.tags([...known(type),...(type==='focus'?['BOTA','APEX','Parallel','Black & Blue','Wild Sky','Mask','Teeth','Ruse','Horizon Line','Sleeper','Coup','Kaleidoscope']:[])]),name=>focusEntry(type,null,name)).box);

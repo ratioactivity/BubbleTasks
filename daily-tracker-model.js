@@ -35,7 +35,7 @@
   function normalize(v){
     if(v!==undefined&&(!v||typeof v!=='object'||Array.isArray(v)))throw Error('Invalid daily tracker data');
     if(v?.version!==undefined&&v.version!==1)throw Error('This daily tracker version needs a newer BubbleTasks app.');
-    const result={version:1,days:{},symptoms:[],artists:[]};
+    const result={version:1,days:{},symptoms:[],artists:[],quickActivities:Array.isArray(v?.quickActivities)?tags(v.quickActivities):null};
     for(const [key,value] of Object.entries(v?.days||{})){if(validDate(key))result.days[key]=day(value);}
     result.symptoms=(Array.isArray(v?.symptoms)?v.symptoms:[]).slice(0,2000).filter(s=>s&&text(s.name,100)).map(s=>({name:text(s.name,100),area:AREAS.includes(s.area)?s.area:'Misc.'}));
     result.artists=(Array.isArray(v?.artists)?v.artists:[]).slice(0,2000).filter(a=>a&&text(a.name,100)).map(a=>({name:text(a.name,100),genres:tags(a.genres),genresUpdatedAt:iso(a.genresUpdatedAt)}));
