@@ -288,7 +288,7 @@ window.addEventListener('DOMContentLoaded', () => {
     const in3 = now + 3 * 24 * 60 * 60 * 1000;
     const overdue = state.tasks.filter((t) => t.dueDate && parseLocalDate(t.dueDate).getTime() < now);
     const soon = state.tasks.filter((t) => t.dueDate && parseLocalDate(t.dueDate).getTime() >= now && parseLocalDate(t.dueDate).getTime() <= in3);
-    const stale = state.tasks.filter((t) => now - new Date(t.createdAt).getTime() > 30 * 24 * 60 * 60 * 1000 && t.status !== 'Complete');
+    const stale = state.tasks.filter((t) => t.dueDate && now - new Date(t.createdAt).getTime() > 30 * 24 * 60 * 60 * 1000 && t.status !== 'Complete');
 
     const list = (arr) => arr.map((t) => `<li>${escapeHtml(t.title)}</li>`).join('') || '<li>None</li>';
     elements.feedCard.innerHTML = `
