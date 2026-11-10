@@ -1,4 +1,4 @@
-/* Google is read-only. Refresh imported details by ID while keeping local categories and native events. */
+/* Google is read-only. Reconcile complete Google ranges by ID; keep local categories and native events. */
 window.addEventListener('DOMContentLoaded', () => {
   const ENDPOINT = 'https://ejrnkaigdstalaypyhhp.supabase.co/functions/v1/google-calendar-auth';
   const PUBLIC_KEY = 'sb_publishable_Qe_bJpZQLlm-CGoPnmhqFQ_aOxXtGhN';
@@ -109,11 +109,11 @@ window.addEventListener('DOMContentLoaded', () => {
     (categoryChoices.querySelector('[aria-pressed="true"]')||categoryChoices.firstElementChild)?.focus();
   }
   const formatDate = (date) => `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
-  const validDay = (value) => typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value);
+  const validDay = (value) => typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value) && formatDate(new Date(value+'T12:00:00'))===value;
   const eventSpan = (event) => {
-    if (validDay(event.start?.date) && validDay(event.end?.date)) return {allDay:true,start:event.start.date,end:event.end.date};
+    if (validDay(event.start?.date) && validDay(event.end?.date) && event.end.date>event.start.date) return {allDay:true,start:event.start.date,end:event.end.date};
     const start = new Date(event.start?.dateTime), end = new Date(event.end?.dateTime);
-    if (!Number.isFinite(start.getTime()) || !Number.isFinite(end.getTime())) return null;
+    if (!Number.isFinite(start.getTime()) || !Number.isFinite(end.getTime()) || end<=start) return null;
     return {allDay:false,start,end};
   };
   const googleLink = (link) => {
@@ -164,25 +164,38 @@ window.addEventListener('DOMContentLoaded', () => {
       const data=await request({action:'events',start:view.start,end:view.end},version);
       if(version!==generation||account!==user)return;
       if(!Array.isArray(data.events))throw new Error('Google returned an unexpected event response.');
-      const incoming = new Map(normalizeImports(data.events.filter(e=>e&&e.status!=='cancelled').map(e=>({...e,userId:account}))).filter(eventSpan).map(e=>[e.id,e]));
-      const next=[...imports], positions=new Map(next.map((e,i)=>e.userId===account?[e.id,i]:null).filter(Boolean));
-      let added=0,updated=0;
+      const received=data.events.filter(e=>e?.status!=='cancelled'),normalized=normalizeImports(received.map(e=>({...e,userId:account})));
+      // Never interpret malformed or incomplete responses as evidence that an event was deleted.
+      if(received.length!==normalized.length||normalized.some(e=>!eventSpan(e)))throw new Error('Google returned an invalid event response.');
+      const incoming=new Map(normalized.map(e=>[e.id,e])),complete=data.partial===false;
+      const intersectsRange=event=>{const span=eventSpan(event);if(!span)return false;const start=span.allDay?new Date(span.start+'T00:00:00'):span.start,end=span.allDay?new Date(span.end+'T00:00:00'):span.end;return start<new Date(view.end)&&end>new Date(view.start);};
+      const retired=imports.filter(e=>e.userId===account&&complete&&intersectsRange(e)&&!incoming.has(e.id));
+      const next=[],positions=new Map();let added=0,updated=0;
+      for(const event of imports){
+        if(event.userId!==account){next.push(event);continue;}
+        if(complete&&intersectsRange(event)&&!incoming.has(event.id))continue;
+        // Older saves can contain repeated copies of the same Google occurrence.
+        const index=positions.get(event.id);if(index===undefined){positions.set(event.id,next.length);next.push(event);}else next[index]=event;
+      }
       for(const event of incoming.values()){
         const index=positions.get(event.id);
         if(index===undefined){positions.set(event.id,next.length);next.push(event);added++;}
         else if(JSON.stringify(next[index])!==JSON.stringify(event)){next[index]=event;updated++;}
       }
-      if(added||updated) {
-        const previous=imports;imports=next;
-        try {localStorage.setItem(SAVE,JSON.stringify({...readSave(),googleEventImports:imports}));}
-        catch(error){imports=previous;throw new Error('Google event changes could not be saved on this device. Free some browser storage and try again.');}
+      if(JSON.stringify(next)!==JSON.stringify(imports)) {
+        const previous=imports;
+        try {
+          // One bounded local recovery record, without triggering a file download.
+          if(retired.length)localStorage.setItem('bubbletasks_google_refresh_recovery_v1:'+account,JSON.stringify({savedAt:new Date().toISOString(),range:view,events:retired,categories:Object.fromEntries(retired.filter(e=>categories[e.id]).map(e=>[e.id,categories[e.id]]))}));
+          imports=next;localStorage.setItem(SAVE,JSON.stringify({...readSave(),googleEventImports:imports}));
+        }catch(error){imports=previous;throw new Error('Google event changes could not be saved on this device. Free some browser storage and try again.');}
         window.dispatchEvent(new Event('bubbletasks-calendar-updated'));
       }
       cache.set(view.key,{user:account,time:Date.now()});
-      // Only fetch timestamps are cached; events absent from this response are kept.
+      // Only fetch timestamps are cached. Complete ranges reconcile; partial ranges only update/add.
       if(cache.size>12)cache.delete(cache.keys().next().value);
       draw();
-      message(data.partial?'Some Google events could not fit in this range. Open Google Calendar to see the full list.':'Google events checked · '+added+' new · '+updated+' updated · '+new Date().toLocaleTimeString([], {hour:'numeric',minute:'2-digit'}));
+      message(data.partial?'Some Google events could not fit in this range. Open Google Calendar to see the full list.':'Google events checked · '+added+' new · '+updated+' updated · '+retired.length+' outdated removed · '+new Date().toLocaleTimeString([], {hour:'numeric',minute:'2-digit'}));
     } catch(error) {
       if(version!==generation)return;
       if(error.code==='reconnect_required'||error.code==='connect_required'){needsReconnect=true;draw();}
