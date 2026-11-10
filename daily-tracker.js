@@ -24,6 +24,7 @@
     let showing=(!window.BubbleTasksPersonal||window.BubbleTasksPersonal.isEnabled())&&localStorage.getItem(VIEW)==='true', selected=sessionStorage.getItem(DATE);
     if(!M.validDate(selected))selected=M.dateKey(new Date());
     if(showing&&notesButton?.getAttribute('aria-pressed')==='true')notesButton.click();
+    let symptomLibraryOpen=false,symptomLibrarySearch='';
     let dirtyForms=new Set(),lastUser=window.BubbleTasksCloud?.getUserId(),uploading=false,uploadEpoch=0;
     const dayButton=btn('Day',()=>{if(showing)leave();else enter();});dayButton.id='dayToggleButton';layout.after(dayButton);
     const dialog=el('dialog','day-dialog');dialog.id='dailyEntryDialog';document.body.append(dialog);
@@ -90,15 +91,15 @@
       if(handlers.remove){actions.prepend(btn('Delete entry',()=>{if(confirm('Delete this entry?')&&handlers.remove()!==false){dialogDirty=false;dialog.close();if(!dirtyForms.size)render();}},'day-delete'));}
       dialogDirty=false;dialog.showModal();form.querySelector('input,textarea,button')?.focus();
     }
-    function reading(type,entry,initial){
+    function reading(type,entry,initial,preset){
       openDialog((entry?'Edit ':'Log ')+(type==='mood'?'mood':type==='pain'?'pain':'symptom'),(form,error)=>{
         const time=input('datetime-local',entry?local(entry.time):nowTime(),'Entry time');time.required=true;
         const score=input('number',entry?.rating??initial??'','Rating');score.min='1';score.max='10';score.step='1';score.required=type!=='symptoms';
         const note=el('textarea');note.rows=3;note.maxLength=2000;note.value=entry?.note||'';
         let name,area;
         if(type==='symptoms'){
-          const all=tracker.symptoms.map(s=>s.name);const tag=tagEntry('Symptom',()=>all,n=>{name.value=n;updateArea();},false);name=tag.value;name.required=true;name.value=entry?.name||'';
-          area=el('select');area.setAttribute('aria-label','Body area');M.AREAS.forEach(a=>area.add(new Option(a,a)));area.value=entry?.area||'Misc.';
+          const all=tracker.symptoms.map(s=>s.name);const tag=tagEntry('Symptom',()=>all,n=>{name.value=n;updateArea();},false);name=tag.value;name.required=true;name.value=entry?.name||preset?.name||'';
+          area=el('select');area.setAttribute('aria-label','Body area');M.AREAS.forEach(a=>area.add(new Option(a,a)));area.value=entry?.area||preset?.area||'Misc.';
           function updateArea(){const existing=tracker.symptoms.find(s=>s.name.toLowerCase()===name.value.trim().toLowerCase());if(existing)area.value=existing.area;}
           name.addEventListener('input',updateArea);name.addEventListener('change',updateArea);
           form.append(tag.box,field('Body area (remembered for this symptom)',area));
@@ -113,6 +114,21 @@
           return save((d,t)=>{d[type]=entry?d[type].map(e=>e.id===entry.id?record:e):[...d[type],record];if(type==='symptoms'){const old=t.symptoms.find(s=>s.name.toLowerCase()===record.name.toLowerCase());if(old)old.area=record.area;else t.symptoms.push({name:record.name,area:record.area});}});
         },remove:entry?()=>save(d=>d[type]=d[type].filter(e=>e.id!==entry.id)):null};
       });
+    }
+    function symptomLibrary(){
+      const menu=el('details','day-symptom-library');menu.open=symptomLibraryOpen;menu.addEventListener('toggle',()=>symptomLibraryOpen=menu.open);menu.append(el('summary','','Browse saved symptoms'));
+      const help=el('p','day-help','Choose a symptom to log it with a time, optional severity, and notes.'),search=input('search',symptomLibrarySearch,'Search saved symptoms');search.placeholder='Search by symptom or body area…';
+      const results=el('div','day-symptom-library-results');
+      function draw(){
+        results.replaceChildren();const query=search.value.trim().toLowerCase();
+        for(const area of M.AREAS){
+          const matches=tracker.symptoms.filter(s=>s.area===area&&(!query||(s.name+' '+s.area).toLowerCase().includes(query))).sort((a,b)=>a.name.localeCompare(b.name));if(!matches.length)continue;
+          const group=el('section','day-symptom-group'),heading=el('h4','',area),choices=el('div','day-symptom-choices');group.setAttribute('aria-label',area+' symptoms');group.append(heading,choices);
+          for(const symptom of matches){const choice=btn(symptom.name,()=>reading('symptoms',null,null,symptom),'day-symptom-choice');choice.setAttribute('aria-label','Log '+symptom.name);choices.append(choice);}results.append(group);
+        }
+        if(!results.children.length)results.append(el('p','day-help',tracker.symptoms.length?'No saved symptoms match. Try another search.':'No saved symptoms yet. Use “+ Log symptom” to add your first one.'));
+      }
+      search.addEventListener('input',()=>{symptomLibrarySearch=search.value;draw();});draw();menu.append(help,search,results);return menu;
     }
     function reproductiveEntry(kind,entry){
       openDialog((entry?'Edit ':'Log ')+(kind==='sex'?'sex':'self-pleasure'),(form,error)=>{
@@ -302,7 +318,7 @@
       const symptoms=widget('Symptoms','Type a symptom or create one. Each symptom remembers its body-area group.');
       const areaFilter=el('select');areaFilter.setAttribute('aria-label','Filter symptoms by body area');['All areas',...M.AREAS].forEach(a=>areaFilter.add(new Option(a,a)));const symptomRows=el('div');
       const showSymptoms=()=>{symptomRows.replaceChildren();d.symptoms.filter(e=>areaFilter.value==='All areas'||e.area===areaFilter.value).forEach(e=>symptomRows.append(btn(clock(e.time)+' · '+e.name+' · '+e.area+(e.rating?' · '+e.rating+'/10':''),()=>reading('symptoms',e),'day-entry')));};areaFilter.addEventListener('change',showSymptoms);showSymptoms();
-      symptoms.append(btn('+ Log symptom',()=>reading('symptoms')),areaFilter,symptomRows);grid.append(symptoms);
+      symptoms.append(btn('+ Log symptom',()=>reading('symptoms')),symptomLibrary(),field('Logged symptoms — body area',areaFilter),symptomRows);grid.append(symptoms);
       const cycle=widget('Reproductive Health');
       const yes=el('select');yes.setAttribute('aria-label','Menstruating?');[['','Not recorded'],['no','No'],['yes','Yes']].forEach(([v,l])=>yes.add(new Option(l,v)));yes.value=d.cycle.menstruating===null?'':d.cycle.menstruating?'yes':'no';
       const flow=el('select');flow.setAttribute('aria-label','Flow');['','Spotting','Light','Medium','Heavy'].forEach(v=>flow.add(new Option(v||'Choose flow',v)));flow.value=d.cycle.flow;

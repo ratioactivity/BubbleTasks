@@ -157,3 +157,11 @@
 .day-music-options > summary { cursor:pointer; color:#58516f; font-size:.95rem; }
 .day-music-options-body { padding-top:4px; }
 .day-music-genres .day-tags { margin-top:4px; }
+
+.day-symptom-library { margin:14px 0; padding:12px; border:1px solid #bda8d3; border-radius:16px; background:#fff9ff80; min-width:0; }
+.day-symptom-library > summary { cursor:pointer; color:#58516f; font-weight:bold; }
+.day-symptom-library input { width:100%; min-width:0; box-sizing:border-box; }
+.day-symptom-library-results { max-height:340px; overflow:auto; overscroll-behavior:contain; margin-top:12px; }
+.day-symptom-group + .day-symptom-group { margin-top:16px; }.day-symptom-group h4 { margin:0 0 8px; color:#63517e; font-size:1.1rem; }
+.day-symptom-choices { display:flex; flex-wrap:wrap; gap:7px; }.day-symptom-choice { text-align:left; white-space:normal; overflow-wrap:anywhere; min-height:42px; padding:8px 12px; }
+.day-symptom-library button:focus-visible,.day-symptom-library summary:focus-visible { outline:2px solid #8065ad; outline-offset:3px; }
