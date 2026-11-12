@@ -410,3 +410,8 @@ input::placeholder { color: rgba(255,255,255,.85); }
 .controls .task-form { display:none !important; }
 
 .story-banner-link { display:block; border-radius:10px; }.story-home-link { color:inherit; text-decoration:none; }.story-home-link:hover { text-decoration:underline; }.story-banner-link:focus-visible,.story-home-link:focus-visible { outline:3px solid #bda5e7; outline-offset:3px; }
+
+.category-title button[data-action="rename-custom-category"] { margin-left:auto; color:inherit; background:#ffffff50; font-size:.85rem; padding:5px 9px; }
+.category-column[data-category="Custom"] .category-title { flex-wrap:wrap; }
+.category-column[data-category="Custom"] .category-title h3 { min-width:0; max-width:100%; overflow-wrap:anywhere; }
+.tab-buttons button[data-tab="Custom"] { overflow-wrap:anywhere; }

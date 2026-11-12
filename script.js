@@ -11,7 +11,13 @@ window.addEventListener('DOMContentLoaded', () => {
     { key: 'Creative', color: 'var(--creative)', gif: 'assets/yellow.gif' },
     { key: 'Writing', color: 'var(--school)', gif: 'assets/teal.gif' },
     { key: '3D', color: 'var(--other)', gif: 'assets/purple.gif' },
+    { key: 'Custom', color: 'var(--other)', gif: 'assets/purple.gif' },
   ];
+  const personalMode=()=>window.BubbleTasksPersonal?.isEnabled()===true;
+  const categoryName=c=>c.key==='Custom'?(state.customCategoryLabel||'Fill in your own'):c.key;
+  const projectCategory=key=>!personalMode()&&['Writing','3D'].includes(key)?'Custom':key;
+  const visibleCategories=()=>categories.filter(c=>personalMode()?(c.key!=='Custom'||state.customCategoryLabel||[...state.tasks,...state.archived].some(t=>t.category==='Custom')):!['Writing','3D'].includes(c.key));
+  const categoryHeading=c=>`<div class="category-title"><h3>${escapeHtml(categoryName(c))}</h3>${c.key==='Custom'?'<button type="button" data-action="rename-custom-category" aria-label="Name your custom category">Name category</button>':''}</div>`;
   const categoryByWeekday = ['Home', 'Personal', 'Work', 'Writing', 'Business', 'Creative', '3D'];
 
   const STORY_TASK_LIMIT = 3;
@@ -60,6 +66,7 @@ window.addEventListener('DOMContentLoaded', () => {
     completions: [],
     layout: 'columns',
     activeTab: 'Work',
+    customCategoryLabel: '',
     weatherSummary: 'Loading weather...',
     boardVisibleByCategory: {},
     agenda: {
@@ -99,7 +106,7 @@ window.addEventListener('DOMContentLoaded', () => {
     closeBoredButton: document.getElementById('closeBoredButton'),
   };
 
-  const normalizeStoryDetails = (details) => Object.fromEntries(
+  const normalizeStoryDetails = (details) => !personalMode() ? (details&&typeof details==='object'?details:{}) : Object.fromEntries(
     [...stories.map(([name]) => name), 'Other Writing'].map((name) => {
       const detail = details && typeof details === 'object' ? (details[name] || (name === 'Wild Sky' ? details['Wild Skies'] : null)) : null;
       return [name, {
@@ -145,6 +152,7 @@ window.addEventListener('DOMContentLoaded', () => {
       state.tasks = (state.tasks || []).map((task) => ({ ...task, category: normalizeCategoryKey(task.category) }));
       state.archived = (state.archived || []).map((task) => ({ ...task, category: normalizeCategoryKey(task.category) }));
     }
+    state.customCategoryLabel=typeof state.customCategoryLabel==='string'?state.customCategoryLabel.trim().slice(0,60):'';
     state.storyDetails = normalizeStoryDetails(state.storyDetails);
     state.tasks = (state.tasks || []).map(normalizeTask);
     state.archived = (state.archived || []).map(normalizeTask);
@@ -342,7 +350,7 @@ window.addEventListener('DOMContentLoaded', () => {
       <article class="task-card" data-id="${escapeHtml(task.id)}">
         <strong>${escapeHtml(task.title)}</strong>
         <div>Status: ${escapeHtml(task.status)}</div>
-        ${task.story ? `<div class="story-chip">${escapeHtml(task.story)}</div>` : ''}
+        ${personalMode()&&task.story ? `<div class="story-chip">${escapeHtml(task.story)}</div>` : ''}
         <div class="task-meta"><div>${due}</div><div>${priority}</div></div>
         <div class="task-actions">
           <button data-action="status" data-status="Not Started">Not Started</button>
@@ -359,14 +367,15 @@ window.addEventListener('DOMContentLoaded', () => {
 
   const renderBoard = () => {
     const grouped = Object.fromEntries(categories.map((c) => [c.key, []]));
-    sortedTasks(state.tasks).forEach((t) => grouped[t.category].push(t));
+    sortedTasks(state.tasks).forEach((t) => grouped[projectCategory(t.category)].push(t));
+    const shownCategories=visibleCategories();
 
     if (state.layout === 'columns') {
       elements.boardContainer.className = 'board columns';
 
       const renderCategorySection = (category) => `
-        <section class="category-column" style="background-color:${category.color}; background-image:url(${category.gif});">
-          <div class="category-title"><h3>${category.key}</h3></div>
+        <section class="category-column" data-category="${category.key}" style="background-color:${category.color}; background-image:url(${category.gif});">
+          ${categoryHeading(category)}
           ${grouped[category.key].slice(0, state.boardVisibleByCategory[category.key]).map(taskCardHTML).join('') || '<p>No tasks</p>'}
           <div class="column-expand-controls">
             ${
@@ -385,7 +394,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
       const columnBuckets = [[], [], []];
       const columnHeights = [0, 0, 0];
-      categories.forEach((category) => {
+      shownCategories.forEach((category) => {
         const estimatedHeight = Math.max(1, Math.min(state.boardVisibleByCategory[category.key], grouped[category.key].length)) + 1;
         let targetColumn = 0;
         if (columnHeights[1] < columnHeights[targetColumn]) targetColumn = 1;
@@ -405,22 +414,22 @@ window.addEventListener('DOMContentLoaded', () => {
         .join('');
     } else if (state.layout === 'tabs') {
       elements.boardContainer.className = 'board tabs';
-      const active = categories.find((c) => c.key === state.activeTab) || categories[0];
+      const active = shownCategories.find((c) => c.key === projectCategory(state.activeTab)) || shownCategories[0];
       elements.boardContainer.innerHTML = `
         <div class="tab-buttons">
-          ${categories
+          ${shownCategories
             .map(
               (c) =>
-                `<button class="${c.key === active.key ? 'is-active' : ''}" style="background-color:${c.color};" data-tab="${c.key}">${c.key}</button>`,
+                `<button class="${c.key === active.key ? 'is-active' : ''}" style="background-color:${c.color};" data-tab="${c.key}">${escapeHtml(categoryName(c))}</button>`,
             )
             .join('')}
         </div>
-        <section class="category-column" style="background-color:${active.color}; background-image:url(${active.gif});">
-          <div class="category-title"><h3>${active.key}</h3></div>
+        <section class="category-column" data-category="${active.key}" style="background-color:${active.color}; background-image:url(${active.gif});">
+          ${categoryHeading(active)}
           ${grouped[active.key].map(taskCardHTML).join('') || '<p>No tasks</p>'}
         </section>
       `;
-      if (active.key === 'Writing') {
+      if (active.key === 'Writing'&&personalMode()) {
         const renderStory = ([title, gif, banner], tasks, key) => {
           const limit = storyVisibleCounts[key] || STORY_TASK_LIMIT;
           const detail = state.storyDetails[title] || {};
@@ -574,6 +583,7 @@ window.addEventListener('DOMContentLoaded', () => {
       completions: state.completions,
       layout: state.layout,
       activeTab: state.activeTab,
+      customCategoryLabel: state.customCategoryLabel,
       agenda: state.agenda,
       storyDetails: state.storyDetails,
     };
@@ -633,6 +643,8 @@ window.addEventListener('DOMContentLoaded', () => {
         state.layout = parsed.layout;
       }
       state.activeTab = normalizeCategoryKey(parsed?.activeTab);
+      if(typeof parsed?.customCategoryLabel==='string')state.customCategoryLabel=parsed.customCategoryLabel.trim().slice(0,60);
+      updateCategoryOptions();
       if (parsed?.storyDetails && typeof parsed.storyDetails === 'object') state.storyDetails = normalizeStoryDetails(parsed.storyDetails);
       if (parsed?.agenda && typeof parsed.agenda === 'object') state.agenda = parsed.agenda;
     } catch (error) {
@@ -663,11 +675,12 @@ window.addEventListener('DOMContentLoaded', () => {
     renderAll();
   };
 
-  elements.taskCategoryInput.innerHTML = categories.map((c) => `<option>${c.key}</option>`).join('');
+  const updateCategoryOptions=()=>{elements.taskCategoryInput.innerHTML=visibleCategories().map(c=>`<option value="${c.key}">${escapeHtml(categoryName(c))}</option>`).join('');};
+  updateCategoryOptions();
 
-  elements.taskStoryInput.innerHTML = '<option value="">Other</option>' + stories.map(([name]) => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join('');
+  elements.taskStoryInput.innerHTML = '<option value="">Other</option>' + (personalMode()?stories:[]).map(([name]) => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join('');
   const updateStoryControl = () => {
-    const writing = elements.taskCategoryInput.value === 'Writing';
+    const writing = personalMode()&&elements.taskCategoryInput.value === 'Writing';
     elements.taskStoryInput.hidden = !writing;
     elements.taskStoryInput.disabled = !writing;
   };
@@ -692,8 +705,12 @@ window.addEventListener('DOMContentLoaded', () => {
     const target = event.target;
     if (!(target instanceof HTMLElement)) return;
 
+    if(target.closest('[data-action="rename-custom-category"]')){
+      const name=window.prompt('Name this category:',state.customCategoryLabel||'');if(name===null)return;const label=name.trim().slice(0,60);if(!label){window.alert('Enter a category name.');return;}if(categories.some(c=>c.key!=='Custom'&&c.key.toLowerCase()===label.toLowerCase())){window.alert('Choose a name different from the existing categories.');return;}state.customCategoryLabel=label;updateCategoryOptions();renderAll();return;
+    }
     const storyControl = target.closest('[data-story-action]');
     if (storyControl) {
+      if(!personalMode())return;
       const name = storyControl.dataset.storyName;
       if (!Object.hasOwn(state.storyDetails, name)) return;
       if (storyControl.dataset.storyAction === 'pin') {
@@ -758,13 +775,13 @@ window.addEventListener('DOMContentLoaded', () => {
         }
       }
 
-      const categoryList = categories.map((c) => c.key).join(', ');
-      const nextCategory = window.prompt(`Edit category (${categoryList}):`, task.category);
+      const categoryList = visibleCategories().map(categoryName).join(', ');
+      const nextCategory = window.prompt(`Edit category (${categoryList}):`,categoryName(categories.find(c=>c.key===projectCategory(task.category))));
       if (nextCategory !== null) {
-        const normalizedCategory = categories.find(
-          (category) => category.key.toLowerCase() === nextCategory.trim().toLowerCase(),
+        const normalizedCategory = visibleCategories().find(
+          (category) => categoryName(category).toLowerCase() === nextCategory.trim().toLowerCase(),
         );
-        if (normalizedCategory) {
+        if (normalizedCategory&&(personalMode()||projectCategory(task.category)!==normalizedCategory.key)) {
           task.category = normalizedCategory.key;
         }
       }
@@ -908,6 +925,7 @@ window.addEventListener('DOMContentLoaded', () => {
   }, 1000 * 30);
   setInterval(updateWeather, 1000 * 60 * 15);
   load();
+  updateCategoryOptions();
   updateWeather();
   renderAll();
   console.log('✅ script validated');

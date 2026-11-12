@@ -7,7 +7,7 @@
   const BACKUP_OPTION = 'bubbletasks_cloud_download_backup_v1';
   const OWNER = 'bubbletasks_cloud_owner_v1';
   const META = 'bubbletasks_cloud_meta_v1:';
-  const FIELDS = ['tasks', 'archived', 'bored', 'completions', 'agenda', 'storyDetails', 'calendarEvents', 'googleEventCategories', 'notes', 'googleEventImports', 'dailyTracker', 'bubblemarks', 'dailySchedule', 'detailsChecklists', 'watchlist', 'personalFeatures', 'calendarEventExtras'];
+  const FIELDS = ['tasks', 'archived', 'bored', 'completions', 'agenda', 'storyDetails', 'calendarEvents', 'googleEventCategories', 'notes', 'googleEventImports', 'dailyTracker', 'bubblemarks', 'dailySchedule', 'detailsChecklists', 'watchlist', 'personalFeatures', 'calendarEventExtras', 'customCategoryLabel'];
   const rawSet = Storage.prototype.setItem;
   const read = (key) => { try { return JSON.parse(localStorage.getItem(key)); } catch { return null; } };
   const write = (key, value) => rawSet.call(localStorage, key, JSON.stringify(value));
@@ -15,12 +15,13 @@
     ? Object.fromEntries(Object.keys(x).sort().map(k => [k, x[k]])) : x);
   const snapshot = () => {
     const local = read(SAVE) || {};
-    return Object.fromEntries(FIELDS.map(k => [k, local[k] ?? (['agenda','storyDetails','googleEventCategories','dailyTracker','bubblemarks','detailsChecklists','watchlist','personalFeatures','calendarEventExtras'].includes(k) ? {} : [])]));
+    return Object.fromEntries(FIELDS.map(k => [k, local[k] ?? (k==='customCategoryLabel'?'':['agenda','storyDetails','googleEventCategories','dailyTracker','bubblemarks','detailsChecklists','watchlist','personalFeatures','calendarEventExtras'].includes(k) ? {} : [])]));
   };
   const valid = (data) => data && typeof data === 'object' && !Array.isArray(data)
     && ['tasks','archived','bored','completions'].every(k => Array.isArray(data[k]))
     && data.agenda && typeof data.agenda === 'object' && !Array.isArray(data.agenda)
     && data.storyDetails && typeof data.storyDetails === 'object' && !Array.isArray(data.storyDetails)
+    && (data.customCategoryLabel === undefined || typeof data.customCategoryLabel==='string')
     && (data.calendarEventExtras === undefined || (data.calendarEventExtras && typeof data.calendarEventExtras==='object' && !Array.isArray(data.calendarEventExtras)))
     && (data.dailyTracker === undefined || (data.dailyTracker && typeof data.dailyTracker === 'object' && !Array.isArray(data.dailyTracker)))
     && (data.googleEventImports === undefined || Array.isArray(data.googleEventImports))

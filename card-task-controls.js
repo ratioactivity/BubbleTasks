@@ -9,15 +9,16 @@ window.addEventListener('DOMContentLoaded', () => {
     board.querySelectorAll('.category-column').forEach((card) => {
       if (card.querySelector(':scope > .card-add-task')) return;
       const story = card.dataset.story;
-      const category = story ? 'Writing' : card.querySelector('.category-title h3')?.textContent;
+      const label=story||card.querySelector('.category-title h3')?.textContent;
+      const category = story ? 'Writing' : (card.dataset.category||label);
       if (!category) return;
       const button = document.createElement('button');
       button.type = 'button';
       button.className = 'card-add-task';
       button.textContent = '+';
-      button.dataset.category = category;
+      button.dataset.category = category;button.dataset.categoryLabel=label;
       button.dataset.story = story === 'Other Writing' ? '' : (story || '');
-      button.title = button.ariaLabel = 'Add task to ' + (story || category);
+      button.title = button.ariaLabel = 'Add task to ' + (story || label);
       card.appendChild(button);
     });
   };
@@ -26,10 +27,10 @@ window.addEventListener('DOMContentLoaded', () => {
   board.addEventListener('click', (event) => {
     const button = event.target.closest('.card-add-task');
     if (!button) return;
-    context = {category: button.dataset.category, story: button.dataset.story};
+    context = {category: button.dataset.category, label:button.dataset.categoryLabel, story: button.dataset.story};
     opener = button;
     form.reset();
-    document.getElementById('cardTaskHeading').textContent = 'Add task · ' + (context.story || context.category);
+    document.getElementById('cardTaskHeading').textContent = 'Add task · ' + (context.story || context.label || context.category);
     dialog.showModal();
   });
   document.getElementById('cancelCardTask').addEventListener('click', () => dialog.close());
@@ -56,3 +57,4 @@ window.addEventListener('DOMContentLoaded', () => {
     card?.focus();
   });
 });
+
