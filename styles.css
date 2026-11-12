@@ -408,3 +408,5 @@ input::placeholder { color: rgba(255,255,255,.85); }
 
 /* Task creation uses the card plus controls; retain the shared controller inputs internally. */
 .controls .task-form { display:none !important; }
+
+.story-banner-link { display:block; border-radius:10px; }.story-home-link { color:inherit; text-decoration:none; }.story-home-link:hover { text-decoration:underline; }.story-banner-link:focus-visible,.story-home-link:focus-visible { outline:3px solid #bda5e7; outline-offset:3px; }

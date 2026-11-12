@@ -24,6 +24,21 @@ window.addEventListener('DOMContentLoaded', () => {
     ['Horizon Line', 'horizonlinebkg.gif', 'placeholder.png'], ['Sleeper', 'sleeperbkg.gif', 'placeholder.png'],
     ['Coup', 'coupbkg.gif', 'placeholder.png'], ['Kaleidoscope', 'kaleidoscopebkg.gif', 'placeholder.png'],
   ];
+  const STORY_LINKS = {
+    "Other Writing": "https://app.notion.com/p/Story-Homepage-26b86c3bb6b980299a04f9a09417eb31",
+    "BOTA": "https://app.notion.com/p/BOTA-10586c3bb6b980dbadddf8e6568086d1",
+    "APEX": "https://app.notion.com/p/APEX-23286c3bb6b980ffbeddd4a8cf15d2e6",
+    "Parallel": "https://app.notion.com/p/Parallel-2f586c3bb6b980378a77ca9cdb8974dc",
+    "Black & Blue": "https://app.notion.com/p/Black-Blue-32d86c3bb6b980af93e9f24c62fab064",
+    "Wild Sky": "https://app.notion.com/p/Wild-Sky-23686c3bb6b980ef8bb1d8df1e223ba2",
+    "Mask": "https://app.notion.com/p/Mask-91e86c3bb6b983d483100177d2dd582b?pvs=25",
+    "Teeth": "https://app.notion.com/p/Teeth-25886c3bb6b980839c48c00157c46ca1?pvs=25",
+    "Ruse": "https://app.notion.com/p/Ruse-2f586c3bb6b980ce99bdf967093012f2",
+    "Horizon Line": "https://app.notion.com/p/Horizon-Line-3cb86c3bb6b980198915e8f8aa37f43f",
+    "Sleeper": "https://app.notion.com/p/Sleeper-23286c3bb6b980598dd2e7b427af60f1",
+    "Coup": "https://app.notion.com/p/Coup-2f886c3bb6b98012933cca7662856251",
+    "Kaleidoscope": "https://app.notion.com/p/Kaleidoscope-2f886c3bb6b9805db85cfea1f0adcc62"
+};
   const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
   })[char]);
@@ -411,8 +426,7 @@ window.addEventListener('DOMContentLoaded', () => {
           const detail = state.storyDetails[title] || {};
           const hasStatus = detail.label || detail.value;
           return `<section class="category-column story-column" data-story="${escapeHtml(title)}" style="background-color:var(--school);background-image:url('assets/backgrounds/${gif}')">
-            <img class="story-banner" src="assets/banners/${banner}" alt="${escapeHtml(title)} banner">
-            ${banner === 'placeholder.png' ? `<h3>${escapeHtml(title)}</h3>` : ''}
+            ${title === 'Other Writing' ? `<h3><a class="story-home-link" href="${escapeHtml(STORY_LINKS[title])}" target="_blank" rel="noopener noreferrer" aria-label="Open Other Writing in Notion (new tab)">${escapeHtml(title)}</a></h3>` : `<a class="story-banner-link" href="${escapeHtml(STORY_LINKS[title])}" target="_blank" rel="noopener noreferrer" aria-label="Open ${escapeHtml(title)} in Notion (new tab)"><img class="story-banner" src="assets/banners/${banner}" alt="${escapeHtml(title)} banner"></a>${banner === 'placeholder.png' ? `<h3>${escapeHtml(title)}</h3>` : ''}`}
             <div class="story-status-row">
               <button type="button" class="story-status" data-story-action="edit" data-story-name="${escapeHtml(title)}" aria-label="Edit status for ${escapeHtml(title)}">
                 ${hasStatus ? `${detail.label ? `<strong>${escapeHtml(detail.label)}</strong>` : ''}${detail.value ? `<span class="story-status-value" ${detail.note ? `aria-describedby="note-${key}"` : ''}>${escapeHtml(detail.value)}${detail.note ? `<span class="story-status-note" role="tooltip" id="note-${key}">${escapeHtml(detail.note)}</span>` : ''}</span>` : ''}` : '<span class="story-status-placeholder">Add status…</span>'}
