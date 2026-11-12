@@ -2,7 +2,7 @@
 
 Checklist definitions, ordering, completion dates, notes, and daily logs are stored under `detailsChecklists` in the shared save. No predefined work tasks are shipped.
 
-Opening and Closing checks use local calendar dates; Other stays checked until manually reset. Logging an action captures the day's complete checklist, including that weekday's cleaning tasks. Daily logs retain their task titles after a definition is deleted or renamed on a later date. Historical checks and notes can be corrected without changing a different day's checks.
+Opening and Closing checks use local calendar dates; Other stays checked until manually reset. Reset Other checklist removes every current Other item (checked or unchecked), with confirmation; it retains recorded history and leaves Opening, Closing, and weekly cleaning definitions alone. Logging an action captures the day's complete checklist, including that weekday's cleaning tasks. Daily logs retain their task titles after a definition is deleted or renamed on a later date. Historical checks and notes can be corrected without changing a different day's checks.
 
 Older saves retain only the most recent completion date per item. Migration recovers those known facts and marks such logs as partial. Users can explicitly add missing tasks from the current setup; this is labeled as a template rather than a reconstruction of the original day.
 

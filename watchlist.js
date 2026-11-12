@@ -11,7 +11,7 @@
       const seen=new Set(),viewings=(Array.isArray(e.viewings)?e.viewings:[]).filter(v=>v&&typeof v.id==='string'&&!seen.has(v.id)&&seen.add(v.id)&&validDate(v.date)).map(v=>({id:v.id,date:v.date,note:text(v.note,5000),queueNotes:text(v.queueNotes,5000),seasons:text(v.seasons,100),rating:rating(v.rating),rewatch:v.rewatch===true}));
       return {id:e.id,name:e.name.trim().slice(0,500),type:e.type,seasons:e.type==='series'?text(e.seasons,100):'',rating:rating(e.rating),viewings};
     });
-    const queued=new Set(),queue=(Array.isArray(value?.queue)?value.queue:[]).filter(e=>e&&typeof e.id==='string'&&!queued.has(e.id)&&queued.add(e.id)&&titles.some(t=>t.id===e.titleId)).map(e=>({id:e.id,titleId:e.titleId,seasons:text(e.seasons,100),notes:text(e.notes,5000),rewatch:e.rewatch===true}));
+    const queued=new Set(),queue=(Array.isArray(value?.queue)?value.queue:[]).filter(e=>e&&typeof e.id==='string'&&!queued.has(e.id)&&queued.add(e.id)&&titles.some(t=>t.id===e.titleId)).map(e=>({id:e.id,titleId:e.titleId,seasons:text(e.seasons,100),notes:text(e.notes,5000),rewatch:e.rewatch===true,shelved:e.shelved===true,shelfNote:text(e.shelfNote,5000)}));
     return {version:1,titles:titles.filter(t=>t.viewings.length||queue.some(e=>e.titleId===t.id)),queue};
   };
   let data=normalize(read().watchlist),active=false,view,board,taskForm,status,editor,history,section='queue',search='',editorSignature=()=>'',originalSignature='',dragged=null;
@@ -62,10 +62,22 @@
     form.addEventListener('click',e=>{if(!wrap.contains(e.target))hideSuggestions();});form.append(wrap,field('Movie or series',type),seasonField,modes,field('Additional notes',notes),preview);paintPreview();
     form.addEventListener('submit',e=>{e.preventDefault();if(!name.value.trim())return;let t=data.titles.find(t=>t.id===selectedId&&key(t.name)===key(name.value)&&t.type===type.value)||data.titles.find(t=>key(t.name)===key(name.value)&&t.type===type.value);
       if(!t)t={id:crypto.randomUUID(),name:name.value.trim(),type:type.value,seasons:type.value==='series'?seasons.value.trim():'',rating:null,viewings:[]};
-      const item={id:entry?.id||crypto.randomUUID(),titleId:t.id,seasons:type.value==='series'?seasons.value.trim():'',notes:notes.value.trim(),rewatch:(entry||modeTouched)?rewatch.checked:(rewatch.checked||t.viewings.length>0)};
+      const item={id:entry?.id||crypto.randomUUID(),titleId:t.id,seasons:type.value==='series'?seasons.value.trim():'',notes:notes.value.trim(),rewatch:(entry||modeTouched)?rewatch.checked:(rewatch.checked||t.viewings.length>0),shelved:entry?.shelved===true,shelfNote:entry?.shelfNote||''};
       const titles=data.titles.some(row=>row.id===t.id)?data.titles:[...data.titles,t],queue=entry?data.queue.map(row=>row.id===entry.id?item:row):[...data.queue,item];
-      if(save({...data,titles,queue})){editor.close();section='queue';render();}else error.textContent='Could not save this title. Please try again.';
+      if(save({...data,titles,queue})){editor.close();section=entry?.shelved?'shelved':'queue';render();}else error.textContent='Could not save this title. Please try again.';
     });ready(form,error,actions);name.focus();
+  }
+  function shelve(entry){
+    const t=find(entry.titleId),{form,error,actions,submit}=formDialog('Shelve · '+t.name),note=el('textarea');note.name='shelfNote';note.rows=4;note.maxLength=5000;note.value=entry.shelfNote||'';note.placeholder='e.g. Waiting until I have this streaming service';submit.textContent=entry.shelved?'Save shelf note':'Move to Shelved';form.append(el('p','','Keep this title for later without taking up a place in Up Next.'),field('Why can’t you watch it right now? (optional)',note));
+    form.addEventListener('submit',e=>{e.preventDefault();if(save({...data,queue:data.queue.map(row=>row.id===entry.id?{...row,shelved:true,shelfNote:note.value.trim()}:row)})){editor.close();section='shelved';render();}else error.textContent='Could not shelve this title. Please try again.';});ready(form,error,actions);note.focus();
+  }
+  function renderShelved(){
+    view.append(el('p','watch-help','Saved for later. Return a title to Up Next when you can watch it.'));const list=el('div','watch-library');view.append(list);
+    for(const entry of data.queue.filter(e=>e.shelved)){
+      const t=find(entry.titleId),row=el('article','watch-card watch-library-card'),content=el('div','watch-content'),facts=el('div','watch-facts');row.dataset.shelvedId=entry.id;content.append(el('h3','',t.name),el('p','watch-kind',kind(t,entry.seasons)));metadata(t,facts);content.append(facts);if(entry.notes)content.append(el('p','watch-note-text',entry.notes));content.append(el('strong','','Shelved reason'),el('p','watch-note-text',entry.shelfNote||'No reason added.'));
+      const actions=el('div','watch-card-actions');actions.append(button('Back to Up Next',()=>{if(save({...data,queue:[...data.queue.filter(e=>e.id!==entry.id),{...entry,shelved:false}]})){section='queue';render();}},'watch-primary'),button('Edit shelf note',()=>shelve(entry)),icon('Edit shelved '+t.name,'assets/pencil.png',()=>addOrEdit(entry)),icon('Remove '+t.name+' from shelf','assets/delete.png',()=>{if(confirm('Remove “'+t.name+'” from Shelved? Its viewing history will stay.')&&save({...data,queue:data.queue.filter(e=>e.id!==entry.id)}))render();}));const note=noteButton(t);if(note)actions.append(note);row.append(content,actions);list.append(row);
+    }
+    if(!list.children.length)list.append(el('p','watch-empty','Nothing shelved yet. Use Shelve on a title in Up Next.'));
   }
   function finish(entry){
     const t=find(entry.titleId),{form,error,actions,submit}=formDialog('Finished watching · '+t.name);submit.textContent='Save viewing';form.append(el('p','',kind(t,entry.seasons)));
@@ -98,24 +110,24 @@
     }
     if(!history.open)history.showModal();
   }
-  function move(id,targetId,after=false){if(id===targetId)return;const moving=data.queue.find(e=>e.id===id);if(!moving)return;const queue=data.queue.filter(e=>e.id!==id),index=queue.findIndex(e=>e.id===targetId);if(index<0)return;queue.splice(index+(after?1:0),0,moving);if(save({...data,queue})){render();const row=[...view.querySelectorAll('[data-queue-id]')].find(n=>n.dataset.queueId===id);row?.querySelector('.watch-drag')?.focus({preventScroll:true});status.textContent=find(moving.titleId).name+' moved to position '+(data.queue.findIndex(e=>e.id===id)+1)+'.';}}
+  function move(id,targetId,after=false){if(id===targetId)return;const moving=data.queue.find(e=>e.id===id);if(!moving)return;const queue=data.queue.filter(e=>e.id!==id),index=queue.findIndex(e=>e.id===targetId);if(index<0)return;queue.splice(index+(after?1:0),0,moving);if(save({...data,queue})){render();const row=[...view.querySelectorAll('[data-queue-id]')].find(n=>n.dataset.queueId===id);row?.querySelector('.watch-drag')?.focus({preventScroll:true});status.textContent=find(moving.titleId).name+' moved to position '+(data.queue.filter(e=>!e.shelved).findIndex(e=>e.id===id)+1)+'.';}}
   function render(){
     if(!active)return;view.replaceChildren();const top=el('header','watch-top'),heading=el('div');heading.append(el('h2','','Watchlist'),el('p','','Your next watch, with a little memory of the last one.'));top.append(heading,button('+ Add title',()=>addOrEdit(),'watch-primary'));view.append(top);
-    const tabs=el('div','watch-tabs');for(const [key,label]of [['queue','Up Next'],['watched','Watched']]){const b=button(label,()=>{section=key;render();});b.setAttribute('aria-pressed',String(key===section));tabs.append(b);}view.append(tabs);status=el('p','watch-status');status.setAttribute('role','status');view.append(status);
-    if(section==='queue')renderQueue();else renderLibrary();
+    const tabs=el('div','watch-tabs');for(const [key,label]of [['queue','Up Next'],['shelved','Shelved'],['watched','Watched']]){const b=button(label,()=>{section=key;render();});b.setAttribute('aria-pressed',String(key===section));tabs.append(b);}view.append(tabs);status=el('p','watch-status');status.setAttribute('role','status');view.append(status);
+    if(section==='queue')renderQueue();else if(section==='shelved')renderShelved();else renderLibrary();
   }
   function renderQueue(){
     view.append(el('p','watch-help','Drag the grip to reorder, or use ↑ and ↓. The top title is what you’ll watch next.'));
     const list=el('ol','watch-queue');view.append(list);
-    data.queue.forEach((entry,i)=>{const t=find(entry.titleId),row=el('li','watch-card');row.dataset.queueId=entry.id;
+    const queued=data.queue.filter(e=>!e.shelved);queued.forEach((entry,i)=>{const t=find(entry.titleId),row=el('li','watch-card');row.dataset.queueId=entry.id;
       const order=el('div','watch-order'),grip=button('⠿',()=>{},'watch-drag');grip.draggable=true;grip.setAttribute('aria-label','Drag to reorder '+t.name);grip.title='Drag to reorder';
       grip.addEventListener('dragstart',e=>{dragged=entry.id;e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',entry.id);row.classList.add('watch-dragging');});grip.addEventListener('dragend',()=>{dragged=null;view.querySelectorAll('.watch-card').forEach(n=>n.classList.remove('watch-drop-before','watch-drop-after','watch-dragging'));});
       row.addEventListener('dragover',e=>{if(!dragged)return;e.preventDefault();e.dataTransfer.dropEffect='move';const after=e.clientY>row.getBoundingClientRect().top+row.offsetHeight/2;row.classList.toggle('watch-drop-before',!after);row.classList.toggle('watch-drop-after',after);});row.addEventListener('dragleave',e=>{if(!row.contains(e.relatedTarget))row.classList.remove('watch-drop-before','watch-drop-after');});row.addEventListener('drop',e=>{e.preventDefault();if(dragged)move(dragged,entry.id,e.clientY>row.getBoundingClientRect().top+row.offsetHeight/2);dragged=null;});
-      const up=button('↑',()=>move(entry.id,data.queue[i-1]?.id),'watch-move'),down=button('↓',()=>move(entry.id,data.queue[i+1]?.id,true),'watch-move');up.disabled=i===0;down.disabled=i===data.queue.length-1;up.setAttribute('aria-label','Move '+t.name+' up');down.setAttribute('aria-label','Move '+t.name+' down');order.append(grip,up,down);
+      const up=button('↑',()=>move(entry.id,queued[i-1]?.id),'watch-move'),down=button('↓',()=>move(entry.id,queued[i+1]?.id,true),'watch-move');up.disabled=i===0;down.disabled=i===queued.length-1;up.setAttribute('aria-label','Move '+t.name+' up');down.setAttribute('aria-label','Move '+t.name+' down');order.append(grip,up,down);
       const content=el('div','watch-content'),head=el('div','watch-card-heading'),badge=el('span','watch-badge');badge.title=entry.rewatch?'Rewatch':'New';badge.setAttribute('role','img');badge.setAttribute('aria-label',badge.title);if(entry.rewatch)badge.append(image('assets/reload.png'));else badge.append(el('span','watch-star','★'));head.append(el('h3','',t.name),badge);content.append(head,el('p','watch-kind',kind(t,entry.seasons)));const facts=el('div','watch-facts');metadata(t,facts);content.append(facts);if(entry.notes)content.append(el('p','watch-note-text',entry.notes));
-      const actions=el('div','watch-card-actions');actions.append(icon('Mark '+t.name+' watched','assets/check.png',()=>finish(entry)));const notes=noteButton(t);if(notes)actions.append(notes);actions.append(icon('Edit queued '+t.name,'assets/pencil.png',()=>addOrEdit(entry)),icon('Remove '+t.name+' from queue','assets/delete.png',()=>{if(confirm('Remove “'+t.name+'” from the queue? Its viewing history will be kept.')&&save({...data,queue:data.queue.filter(e=>e.id!==entry.id)}))render();}));row.append(order,content,actions);list.append(row);
+      const actions=el('div','watch-card-actions');actions.append(icon('Mark '+t.name+' watched','assets/check.png',()=>finish(entry)));const notes=noteButton(t);if(notes)actions.append(notes);const shelf=button('Shelve',()=>shelve(entry));shelf.setAttribute('aria-label','Shelve '+t.name);actions.append(shelf);actions.append(icon('Edit queued '+t.name,'assets/pencil.png',()=>addOrEdit(entry)),icon('Remove '+t.name+' from queue','assets/delete.png',()=>{if(confirm('Remove “'+t.name+'” from the queue? Its viewing history will be kept.')&&save({...data,queue:data.queue.filter(e=>e.id!==entry.id)}))render();}));row.append(order,content,actions);list.append(row);
     });
-    if(!data.queue.length)view.append(el('p','watch-empty','Nothing queued yet. Add a movie or series to choose your next watch.'));
+    if(!queued.length)view.append(el('p','watch-empty','Nothing queued yet. Add a movie or series to choose your next watch.'));
   }
   function renderLibrary(){
     const searchInput=input('search',search);searchInput.placeholder='Search watched titles or viewing notes';searchInput.setAttribute('aria-label','Search watched titles');const list=el('div','watch-library');view.append(searchInput,list);

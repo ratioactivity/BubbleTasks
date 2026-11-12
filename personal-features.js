@@ -7,7 +7,8 @@
   window.BubbleTasksPersonal={isEnabled};
   document.documentElement.classList.toggle('personal-features-locked',!isEnabled());
   window.addEventListener('DOMContentLoaded',()=>{
-    const button=document.createElement('button');button.type='button';button.className='personal-features-button';button.textContent=isEnabled()?'Personal features activated':'Activate personal features';button.disabled=isEnabled();button.hidden=!account();document.querySelector('.toolbar')?.append(button);
+    if(isEnabled())return;
+    const button=document.createElement('button');button.type='button';button.className='personal-features-button';button.textContent='Activate personal features';button.hidden=!account();document.querySelector('.toolbar')?.append(button);
     const dialog=document.createElement('dialog');dialog.className='personal-features-dialog';dialog.setAttribute('aria-label','Activate personal features');
     const form=document.createElement('form'),heading=document.createElement('h2'),description=document.createElement('p'),label=document.createElement('label'),input=document.createElement('input'),error=document.createElement('p'),actions=document.createElement('div'),cancel=document.createElement('button'),submit=document.createElement('button');
     heading.textContent='Activate Personal Features';description.textContent='Unlock Bubblemarks, Daily Tracker, and Today’s Agenda for this account. Existing saved data stays intact.';label.textContent='Activation password';input.type='password';input.required=true;input.autocomplete='off';label.append(input);error.setAttribute('role','alert');cancel.type='button';cancel.textContent='Cancel';submit.type='submit';submit.textContent='Activate';actions.append(cancel,submit);form.append(heading,description,label,error,actions);dialog.append(form);document.body.append(dialog);
