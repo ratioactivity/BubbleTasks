@@ -10,9 +10,9 @@ window.addEventListener('DOMContentLoaded', () => {
     { key: 'Personal', color: 'var(--personal)', gif: 'assets/orange.gif' },
     { key: 'Creative', color: 'var(--creative)', gif: 'assets/yellow.gif' },
     { key: 'Writing', color: 'var(--school)', gif: 'assets/teal.gif' },
-    { key: 'Other', color: 'var(--other)', gif: 'assets/purple.gif' },
+    { key: '3D', color: 'var(--other)', gif: 'assets/purple.gif' },
   ];
-  const categoryByWeekday = ['Home', 'Personal', 'Work', 'Writing', 'Business', 'Creative', 'Other'];
+  const categoryByWeekday = ['Home', 'Personal', 'Work', 'Writing', 'Business', 'Creative', '3D'];
 
   const STORY_TASK_LIMIT = 3;
   const storyVisibleCounts = {};
@@ -118,8 +118,9 @@ window.addEventListener('DOMContentLoaded', () => {
 
   const save = () => localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   const normalizeCategoryKey = (categoryKey) => {
+    if (categoryKey === 'Other') return '3D';
     if (categoryKey === 'School' || categoryKey === 'X') return 'Writing';
-    return categories.some((category) => category.key === categoryKey) ? categoryKey : 'Other';
+    return categories.some((category) => category.key === categoryKey) ? categoryKey : '3D';
   };
   const load = () => {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -145,7 +146,9 @@ window.addEventListener('DOMContentLoaded', () => {
       if (!raw && ['tabs', 'columns'].includes(layout)) { state.layout = layout; state.activeTab = 'Writing'; }
       state.migratedV2Tasks = true;
     }
+    state.activeTab=normalizeCategoryKey(state.activeTab);
     state.boardVisibleByCategory ||= {};
+    if(state.boardVisibleByCategory.Other!==undefined&&state.boardVisibleByCategory['3D']===undefined)state.boardVisibleByCategory['3D']=state.boardVisibleByCategory.Other;
     ensureAgendaForToday();
     categories.forEach((category) => {
       if (!Number.isFinite(state.boardVisibleByCategory?.[category.key])) {
@@ -245,10 +248,10 @@ window.addEventListener('DOMContentLoaded', () => {
   };
 
   const categoryForDay = (dayKey) => {
-    if (dayKey === 'no-due-date') return categories.find((category) => category.key === 'Other');
+    if (dayKey === 'no-due-date') return categories.find((category) => category.key === '3D');
 
     const weekday = parseLocalDate(dayKey).getDay();
-    const categoryKey = categoryByWeekday[weekday] || 'Other';
+    const categoryKey = categoryByWeekday[weekday] || '3D';
     return categories.find((category) => category.key === categoryKey);
   };
 

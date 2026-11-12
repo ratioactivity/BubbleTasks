@@ -19,8 +19,8 @@
     d.revision=text(v.revision,100);d.updatedAt=iso(v.updatedAt);d.timezone=text(v.timezone,100);
     d.sleep={bed:localTime(v.sleep?.bed)?v.sleep.bed:'',wake:localTime(v.sleep?.wake)?v.sleep.wake:'',bedAt:iso(v.sleep?.bedAt),wakeAt:iso(v.sleep?.wakeAt)};
     d.music={title:text(v.music?.title,200),artists:tags(v.music?.artists),genres:v.music?.genres===null||v.music?.genres===undefined?null:tags(v.music.genres)};
-    for(const type of ['mood','pain'])d[type]=(Array.isArray(v[type])?v[type]:[]).slice(0,300).filter(e=>e&&text(e.id,100)&&iso(e.time)&&rating(e.rating)!==null).map(e=>({id:text(e.id,100),time:iso(e.time),rating:rating(e.rating),note:text(e.note)}));
-    d.symptoms=(Array.isArray(v.symptoms)?v.symptoms:[]).slice(0,300).filter(e=>e&&text(e.id,100)&&text(e.name,100)&&iso(e.time)).map(e=>({id:text(e.id,100),time:iso(e.time),name:text(e.name,100),area:AREAS.includes(e.area)?e.area:'Misc.',rating:rating(e.rating),note:text(e.note)}));
+    for(const type of ['mood','pain'])d[type]=(Array.isArray(v[type])?v[type]:[]).slice(0,300).filter(e=>e&&text(e.id,100)&&iso(e.time)&&rating(e.rating)!==null).map(e=>({id:text(e.id,100),time:iso(e.time),timeMode:['allDay','sporadic'].includes(e.timeMode)?e.timeMode:'specific',rating:rating(e.rating),note:text(e.note)}));
+    d.symptoms=(Array.isArray(v.symptoms)?v.symptoms:[]).slice(0,300).filter(e=>e&&text(e.id,100)&&text(e.name,100)&&iso(e.time)).map(e=>({id:text(e.id,100),time:iso(e.time),timeMode:['allDay','sporadic'].includes(e.timeMode)?e.timeMode:'specific',name:text(e.name,100),area:AREAS.includes(e.area)?e.area:'Misc.',rating:rating(e.rating),note:text(e.note)}));
     d.cycle={menstruating:typeof v.cycle?.menstruating==='boolean'?v.cycle.menstruating:null,flow:['Spotting','Light','Medium','Heavy'].includes(v.cycle?.flow)?v.cycle.flow:'',note:text(v.cycle?.note)};
     d.reproduction=(Array.isArray(v.reproduction)?v.reproduction:[]).slice(0,300).filter(e=>e&&text(e.id,100)&&iso(e.time)&&['sex','selfPleasure'].includes(e.kind)).map(e=>({
       id:text(e.id,100),time:iso(e.time),kind:e.kind,preparation:text(e.preparation),aftercare:text(e.aftercare),
@@ -53,13 +53,13 @@
   }
   const genres=(d,t)=>d.music.genres===null?tags(d.music.artists.flatMap(name=>t.artists.find(a=>a.name.toLowerCase()===name.toLowerCase())?.genres||[])):d.music.genres;
   function summary(date,d,t,formatTime){
-    const time=formatTime||((s)=>s), lines=[d.music.title||date,'Date: '+date];
+    const time=formatTime||((s)=>s), readingTime=e=>e.timeMode==='allDay'?'All day':e.timeMode==='sporadic'?'Sporadic':time(e.time), lines=[d.music.title||date,'Date: '+date];
     const add=(label,value)=>{if(value!==null&&value!==undefined&&value!=='')lines.push(label+': '+value);};
     add('Artist(s)',d.music.artists.join(', '));add('Song genres',genres(d,t).join(', '));
     add('Bed time',d.sleep.bed);add('Wake time',d.sleep.wake);const hours=sleepHours(d);add('Hours slept',hours===null?null:Math.round(hours*100)/100);
     add('Average mood',mean(d.mood)?.toFixed(1));add('Average pain',mean(d.pain)?.toFixed(1));add('Peak pain',d.pain.length?Math.max(...d.pain.map(e=>e.rating)):null);
-    for(const kind of ['mood','pain'])for(const e of d[kind])add(kind==='mood'?'Mood reading':'Pain reading',time(e.time)+' · '+e.rating+'/10'+(e.note?' · '+e.note:''));
-    for(const e of d.symptoms)add('Symptom',time(e.time)+' · '+e.area+' · '+e.name+(e.rating?' · '+e.rating+'/10':'')+(e.note?' · '+e.note:''));
+    for(const kind of ['mood','pain'])for(const e of d[kind])add(kind==='mood'?'Mood reading':'Pain reading',readingTime(e)+' · '+e.rating+'/10'+(e.note?' · '+e.note:''));
+    for(const e of d.symptoms)add('Symptom',readingTime(e)+' · '+e.area+' · '+e.name+(e.rating?' · '+e.rating+'/10':'')+(e.note?' · '+e.note:''));
     add('Menstruating',d.cycle.menstruating===null?null:d.cycle.menstruating?'Yes':'No');
     if(d.cycle.menstruating===true)add('Flow',d.cycle.flow);add('Cycle notes',d.cycle.note);
     for(const e of d.reproduction){

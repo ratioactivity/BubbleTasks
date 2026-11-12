@@ -13,6 +13,7 @@
   const input=(type,value='',label='')=>{const n=el('input');n.type=type;n.value=value;if(label)n.setAttribute('aria-label',label);return n;};
   const field=(title,n)=>{const label=el('label','day-field',title);label.append(n);return label;};
   const clock=s=>new Date(s).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
+  const readingTime=e=>e.timeMode==='allDay'?'All day':e.timeMode==='sporadic'?'Sporadic':clock(e.time);
   const stamp=s=>new Date(s).toLocaleString([],{dateStyle:'medium',timeStyle:'short'});
   const local=s=>{const d=new Date(s);return M.dateKey(d)+'T'+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');};
   const ACTIVITY_PRESETS=["Stayed Home","Worked","On Vacation","Procedure","Doctor's Appointment","Dentist Appointment","Hair Appointment","Therapy Appointment","Family Gathering","Friend Gathering","Went Out with Jacob","Went Out with Parents","Went to See Parents","Saw a Movie","Went on a Hike","Played with the Dogs","Ran Errands","Grocery Shopping","Tea Shopping","Antique Shopping","Clothes Shopping","Drug Shopping","Did Chores","Worked on Writing","3D Printed","Made Art","Cooked at Home","Got Takeout","Ordered Delivery","Ate Out","Smoked","Drank Alcohol"];
@@ -93,7 +94,7 @@
     }
     function reading(type,entry,initial,preset){
       openDialog((entry?'Edit ':'Log ')+(type==='mood'?'mood':type==='pain'?'pain':'symptom'),(form,error)=>{
-        const time=input('datetime-local',entry?local(entry.time):nowTime(),'Entry time');time.required=true;
+        const time=input('datetime-local',entry?local(entry.time):nowTime(),'Entry time'),timing=el('select');timing.setAttribute('aria-label','Timing');[['specific','Specific time'],['allDay','All day'],['sporadic','Sporadic']].forEach(([value,label])=>timing.add(new Option(label,value)));timing.value=entry?.timeMode||'specific';const timeField=field('When',time);const updateTiming=()=>{timeField.hidden=timing.value!=='specific';time.disabled=timing.value!=='specific';time.required=timing.value==='specific';};timing.addEventListener('change',updateTiming);updateTiming();
         const score=input('number',entry?.rating??initial??'','Rating');score.min='1';score.max='10';score.step='1';score.required=type!=='symptoms';
         const note=el('textarea');note.rows=3;note.maxLength=2000;note.value=entry?.note||'';
         let name,area;
@@ -104,12 +105,12 @@
           name.addEventListener('input',updateArea);name.addEventListener('change',updateArea);
           form.append(tag.box,field('Body area (remembered for this symptom)',area));
         }
-        form.append(field('When',time),field(type==='symptoms'?'Severity 1–10 (optional)':'Rating 1–10',score),field('Note (optional)',note));
+        form.append(field('Timing',timing),timeField,field(type==='symptoms'?'Severity 1–10 (optional)':'Rating 1–10',score),field('Note (optional)',note));
         return {submit:()=>{
-          if(!M.localTime(time.value)||time.value.slice(0,10)!==selected){error.textContent='Use a time on the selected day.';return false;}
+          if(timing.value==='specific'&&(!M.localTime(time.value)||time.value.slice(0,10)!==selected)){error.textContent='Use a time on the selected day.';return false;}
           const value=score.value===''?null:Number(score.value);
           if((type!=='symptoms'||value!==null)&&M.rating(value)===null){error.textContent='Choose a whole number from 1 to 10.';return false;}
-          const record={id:entry?.id||identifier(),time:new Date(time.value).toISOString(),rating:value,note:note.value};
+          const record={id:entry?.id||identifier(),time:new Date(timing.value==='specific'?time.value:selected+'T12:00:00').toISOString(),timeMode:timing.value,rating:value,note:note.value};
           if(type==='symptoms'){if(!name.value.trim()){error.textContent='Enter a symptom.';return false;}record.name=name.value.trim();record.area=area.value;}
           return save((d,t)=>{d[type]=entry?d[type].map(e=>e.id===entry.id?record:e):[...d[type],record];if(type==='symptoms'){const old=t.symptoms.find(s=>s.name.toLowerCase()===record.name.toLowerCase());if(old)old.area=record.area;else t.symptoms.push({name:record.name,area:record.area});}});
         },remove:entry?()=>save(d=>d[type]=d[type].filter(e=>e.id!==entry.id)):null};
@@ -254,13 +255,13 @@
       function pairs(box,items){const dl=el('dl','day-summary-facts');items.forEach(([label,value])=>{if(value===null||value===undefined||value==='')return;dl.append(el('dt','',label),el('dd','',String(value)));});if(dl.children.length)box.append(dl);}
       function entry(box,label,note){const item=el('div','day-summary-item');item.append(el('strong','',label));if(note)item.append(el('p','',note));box.append(item);}
       if(d.music.artists.length||M.genres(d,tracker).length){const box=section('Song of the Day');pairs(box,[['Artists',d.music.artists.join(', ')],['Genres',M.genres(d,tracker).join(', ')]]);}
-      for(const type of ['mood','pain'])if(d[type].length){const box=section(type==='mood'?'Mood Readings':'Pain Readings');for(const e of d[type])entry(box,clock(e.time)+' · '+e.rating+'/10',e.note);}
+      for(const type of ['mood','pain'])if(d[type].length){const box=section(type==='mood'?'Mood Readings':'Pain Readings');for(const e of d[type])entry(box,readingTime(e)+' · '+e.rating+'/10',e.note);}
       if(d.sleep.bed||d.sleep.wake){const box=section('Sleep');const dateTime=value=>value?new Date(value).toLocaleString([],{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}):null;pairs(box,[['Went to Sleep',dateTime(d.sleep.bed)],['Woke Up',dateTime(d.sleep.wake)]]);}
       if(d.cycle.menstruating!==null||d.cycle.note||d.reproduction.length){
         const box=section('Reproductive Health');pairs(box,[['Menstruating',d.cycle.menstruating===null?null:d.cycle.menstruating?'Yes':'No'],['Flow',d.cycle.menstruating===true?d.cycle.flow:null],['Cycle Notes',d.cycle.note]]);
         for(const e of d.reproduction){const details=el('details','day-summary-private');details.append(el('summary','',(e.kind==='sex'?'👉👌':'❤️‍🔥')+' · '+clock(e.time)));pairs(details,[['Preparation',e.preparation],['Aftercare',e.aftercare],['Pain',e.pain===null?null:e.pain?'Yes · '+(e.painLevel??'—')+'/10':'No'],['Orgasm',e.orgasm===null?null:e.orgasm?'Yes · '+(e.pleasureLevel??'—')+'/10 pleasure':'No'],['Notes',e.note]]);box.append(details);}
       }
-      if(d.symptoms.length){const box=section('Symptoms');for(const e of d.symptoms)entry(box,clock(e.time)+' · '+e.name+(e.rating?' · '+e.rating+'/10':''),e.area+(e.note?'\n'+e.note:''));}
+      if(d.symptoms.length){const box=section('Symptoms');for(const e of d.symptoms)entry(box,readingTime(e)+' · '+e.name+(e.rating?' · '+e.rating+'/10':''),e.area+(e.note?'\n'+e.note:''));}
       if(d.meals.length){const box=section('Meals');for(const e of d.meals)entry(box,clock(e.time)+(e.label?' · '+e.label:''),e.text);}
       if(d.activities.length){const box=section('Activities'),tags=el('div','day-tags');d.activities.forEach(v=>tags.append(el('span','day-summary-tag',v)));box.append(tags);}
       if(d.watching.length){const box=section('Watching');d.watching.forEach(e=>entry(box,e.name,e.note));}
@@ -333,11 +334,11 @@
         w.classList.add('day-rating-widget');
         const avg=M.mean(d[type]);w.append(el('p','day-stat',avg===null?'Not recorded':'Average: '+avg.toFixed(1)+' / 10'+(type==='pain'?' · Peak: '+Math.max(...d.pain.map(e=>e.rating)):''))); 
         const ratings=el('div','day-rating-buttons');for(let n=1;n<=10;n++){const b=btn(String(n),()=>reading(type,null,n));b.setAttribute('aria-label','Log '+type+' '+n);b.style.backgroundColor=type==='mood'?M.COLORS[n-1]:PAIN_COLORS[n-1];if(type==='pain')b.style.color=n>=7?'#fff':'#443451';ratings.append(b);}w.append(ratings);
-        d[type].forEach(e=>w.append(btn(clock(e.time)+' · '+e.rating+'/10'+(e.note?' · '+e.note:''),()=>reading(type,e),'day-entry')));grid.append(w);
+        d[type].forEach(e=>w.append(btn(readingTime(e)+' · '+e.rating+'/10'+(e.note?' · '+e.note:''),()=>reading(type,e),'day-entry')));grid.append(w);
       }
       const symptoms=widget('Symptoms','Type a symptom or create one. Each symptom remembers its body-area group.');
       const areaFilter=el('select');areaFilter.setAttribute('aria-label','Filter symptoms by body area');['All areas',...M.AREAS].forEach(a=>areaFilter.add(new Option(a,a)));const symptomRows=el('div');
-      const showSymptoms=()=>{symptomRows.replaceChildren();d.symptoms.filter(e=>areaFilter.value==='All areas'||e.area===areaFilter.value).forEach(e=>symptomRows.append(btn(clock(e.time)+' · '+e.name+' · '+e.area+(e.rating?' · '+e.rating+'/10':''),()=>reading('symptoms',e),'day-entry')));};areaFilter.addEventListener('change',showSymptoms);showSymptoms();
+      const showSymptoms=()=>{symptomRows.replaceChildren();d.symptoms.filter(e=>areaFilter.value==='All areas'||e.area===areaFilter.value).forEach(e=>symptomRows.append(btn(readingTime(e)+' · '+e.name+' · '+e.area+(e.rating?' · '+e.rating+'/10':''),()=>reading('symptoms',e),'day-entry')));};areaFilter.addEventListener('change',showSymptoms);showSymptoms();
       symptoms.append(btn('+ Log symptom',()=>reading('symptoms')),symptomLibrary(),field('Logged symptoms — body area',areaFilter),symptomRows);grid.append(symptoms);
       const cycle=widget('Reproductive Health');
       const yes=el('select');yes.setAttribute('aria-label','Menstruating?');[['','Not recorded'],['no','No'],['yes','Yes']].forEach(([v,l])=>yes.add(new Option(l,v)));yes.value=d.cycle.menstruating===null?'':d.cycle.menstruating?'yes':'no';

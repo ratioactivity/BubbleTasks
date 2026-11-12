@@ -404,3 +404,7 @@ input::placeholder { color: rgba(255,255,255,.85); }
   height: auto;
 }
 .writing-grid > .story-column[data-story="Other Writing"] > .story-banner { display: none; }
+
+
+/* Task creation uses the card plus controls; retain the shared controller inputs internally. */
+.controls .task-form { display:none !important; }
