@@ -89,7 +89,7 @@
     },true);
     new MutationObserver(applyView).observe(layout,{childList:true});
     function persist(before) {
-      try { localStorage.setItem(SAVE,JSON.stringify({...read(),notes}));return true; }
+      try { localStorage.setItem(SAVE,JSON.stringify({...read(),notes}));window.dispatchEvent(new Event('bubbletasks-notes-changed'));return true; }
       catch {notes=before;feedback.textContent='Your note could not be saved. Please free some browser storage and try again.';return false;}
     }
     function filterBy(tag) {search.value='#'+tag;render();search.focus();}
@@ -155,6 +155,7 @@
       editorHeading.textContent=note?'Edit note':'New note';remove.hidden=!note;redrawTags();updateSuggestion();
       initial=signature();dialog.showModal();title.focus();
     }
+    window.BubbleTasksNotes={list:()=>notes.map(n=>({...n,tags:[...n.tags]})),editNote(id){const note=notes.find(n=>n.id===id);if(note)openEditor(note);}};
     function closeEditor() {if(signature()===initial||confirm('Discard your unsaved note changes?'))dialog.close();}
     dialog.addEventListener('cancel',event=>{event.preventDefault();closeEditor();});
     dialog.addEventListener('close',()=>{if(opener?.isConnected)opener.focus();});

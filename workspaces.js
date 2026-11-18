@@ -17,7 +17,7 @@
     if(id||meaningful)write(id?ACCOUNT+id:UNOWNED,{save,views:views(),legacy:Object.fromEntries(LEGACY.map(k=>[k,localStorage.getItem(k)]))});
   }
   function sharedDefinitions(owner,guest,baseline){
-    if(!guest)return owner;const result={...owner,logs:guest.logs||{}};
+    if(!guest)return owner;const result={...owner,logs:guest.logs||{},workNotes:Array.isArray(guest.workNotes)?guest.workNotes:[],stylists:Array.isArray(guest.stylists)?guest.stylists:[]};
     for(const key of ['items','weekly']){
       const old=(baseline?.[key]||[]),local=checklistDefinitions(guest)[key],latest=owner[key];
       if(JSON.stringify(local)===JSON.stringify(old)){result[key]=latest;continue;}

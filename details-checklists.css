@@ -27,3 +27,11 @@
 .details-order[hidden] { display:none; }
 .details-reorder-toggle { border:1px solid #a18ab9; border-radius:16px; padding:9px 16px; background:#eee7f7; color:#514c75; }
 .details-reorder-toggle[aria-pressed=true] { background:#826da5; color:white; }
+
+.details-tabs { flex-wrap:wrap; }.details-tabs button { min-width:100px; }
+.details-daily-note { margin:14px 0; padding:16px 20px; border:1px solid #b8a5d4; border-radius:20px; background:linear-gradient(120deg,#e3edf8e8,#eee2f5e8); }.details-daily-note h3 { color:#665886; font-size:1.4rem; text-shadow:none; }
+.details-work-columns { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; margin-top:14px; }.details-work-section { min-width:0; }.details-work-section > .details-section-heading { flex-wrap:wrap; }.details-work-section h3 { font-size:1.6rem; }.details-work-card { padding:16px; margin-top:14px; border:1px solid #c5b2dc; border-radius:18px; background:#fffafdcc; min-width:0; }.details-work-card h4,.details-linked-heading { margin:0 0 8px; color:#61517e; font-size:1.2rem; overflow-wrap:anywhere; }.details-linked-heading { margin-top:24px; }.details-work-body { margin:10px 0; white-space:pre-wrap; overflow-wrap:anywhere; line-height:1.4; }.details-work-card .details-actions { justify-content:flex-end; margin-top:12px; }.details-linked-note > button { margin-top:10px; }
+.details-work-card button,.details-daily-note button { padding:8px 12px; border:1px solid #b8a5d4; border-radius:14px; color:#514c75; background:#ede4f6; }.details-dialog textarea { width:100%; box-sizing:border-box; padding:12px; font:inherit; color:#405779; border:1px solid #b8a5d4; border-radius:14px; background:#fffafd; resize:vertical; }
+@media(max-width:850px) { .details-work-columns { grid-template-columns:1fr; }.details-daily-note { padding:15px; }.details-daily-note .details-section-heading { flex-wrap:wrap; } }
+.details-header-actions > button:not(.details-primary) { color:#514c75; background:#ede4f6; border:1px solid #b8a5d4; padding:8px 12px; border-radius:14px; }
+.details-linked-note > small { display:block; color:#77688a; margin-top:10px; }
